@@ -529,7 +529,7 @@ export function UserCollection({
                   >
                     <SlidersHorizontal className="h-4 w-4" />
                     {hasFilter && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-3xs font-semibold flex items-center justify-center">
                         {filterCount}
                       </span>
                     )}

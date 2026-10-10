@@ -273,7 +273,7 @@ export function TagSuggestSelect({
                 autoFocus
               />
             </div>
-            <p className="text-[11px] text-muted-foreground px-1">
+            <p className="text-2xs text-muted-foreground px-1">
               {t("tagManage.suggest.hint")}
             </p>
           </div>

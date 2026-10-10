@@ -243,7 +243,7 @@ export function ReportsManager() {
         key={r.id}
         className={cn(
           "space-y-2 rounded-xl border p-3",
-          overdue ? "border-destructive/60 bg-destructive/5" : soon ? "border-amber-400/60 bg-amber-50/40" : "border-border"
+          overdue ? "border-destructive/60 bg-destructive/5" : soon ? "border-warning/50 bg-warning-soft" : "border-border"
         )}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -261,7 +261,7 @@ export function ReportsManager() {
           <p
             className={cn(
               "flex items-center gap-1 text-xs",
-              overdue ? "font-semibold text-destructive" : soon ? "text-amber-700" : "text-muted-foreground"
+              overdue ? "font-semibold text-destructive" : soon ? "text-warning" : "text-muted-foreground"
             )}
           >
             {overdue && <AlertTriangle className="h-3.5 w-3.5" />}
@@ -285,7 +285,7 @@ export function ReportsManager() {
 
         {r.target_excerpt && (
           <div className="rounded-lg border border-dashed border-border bg-muted/30 p-2">
-            <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">{t("admin.reports.excerpt")}</p>
+            <p className="mb-0.5 text-3xs font-medium text-muted-foreground">{t("admin.reports.excerpt")}</p>
             <p className="whitespace-pre-wrap break-words text-xs">{r.target_excerpt}</p>
           </div>
         )}
@@ -295,7 +295,7 @@ export function ReportsManager() {
         )}
 
         {hiddenInfo?.hidden && (
-          <p className="flex items-center gap-1 text-xs font-medium text-amber-700">
+          <p className="flex items-center gap-1 text-xs font-medium text-warning">
             <EyeOff className="h-3.5 w-3.5" />
             {hiddenInfo.reason === "auto_reports" ? t("admin.reports.autoHidden") : t("admin.reports.hiddenNow")}
           </p>

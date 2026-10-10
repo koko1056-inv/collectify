@@ -431,14 +431,14 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
             <div className="flex items-center gap-1.5 mt-1">
               <div
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r text-white shadow-sm",
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-semibold bg-gradient-to-r text-white shadow-sm",
                   rank.color
                 )}
               >
                 <RankIcon className="w-3 h-3" />
                 {rank.label}
               </div>
-              <span className="text-[10px] text-muted-foreground">{t("homeScreen.hero.collector")}</span>
+              <span className="text-3xs text-muted-foreground">{t("homeScreen.hero.collector")}</span>
             </div>
           </div>
 
@@ -484,7 +484,7 @@ function StatInline({
           {value.toLocaleString()}
         </span>
       </div>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className="text-3xs text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -518,7 +518,7 @@ function MiniStat({ icon: Icon, label, userId, type }: {
     <div className="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-muted/40 border border-border/20">
       <Icon className="w-4 h-4 text-primary/70" />
       <span className="text-base font-bold text-foreground">{count}</span>
-      <span className="text-[10px] text-muted-foreground leading-none">{label}</span>
+      <span className="text-3xs text-muted-foreground leading-none">{label}</span>
     </div>
   );
 }

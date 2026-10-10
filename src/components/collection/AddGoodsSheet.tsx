@@ -478,7 +478,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                   )}
                 >
                   <span className="max-w-[9rem] truncate">{contentLabel(c.name)}</span>
-                  <span className="tabular-nums text-[10px] opacity-70">{c.count}</span>
+                  <span className="tabular-nums text-3xs opacity-70">{c.count}</span>
                 </button>
               );
             })}
@@ -486,7 +486,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
         )}
 
         {!isLoading && !isError && (
-          <p className="mt-2 text-[11px] text-muted-foreground tabular-nums">
+          <p className="mt-2 text-2xs text-muted-foreground tabular-nums">
             {t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: totalCount })}
           </p>
         )}
@@ -543,7 +543,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                       footer={
                         <span
                           className={cn(
-                            "mt-auto rounded-md py-1 text-center text-[10px] font-semibold",
+                            "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
                             owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                           )}
                         >

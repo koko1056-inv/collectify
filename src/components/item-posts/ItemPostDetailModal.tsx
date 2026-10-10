@@ -275,7 +275,7 @@ export function ItemPostDetailModal({
                     <p className="text-xs font-medium truncate">
                       {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
                     </p>
-                    <p className="text-[10px] text-muted-foreground shrink-0">
+                    <p className="text-3xs text-muted-foreground shrink-0">
                       {formatRelative(c.created_at)}
                     </p>
                   </div>

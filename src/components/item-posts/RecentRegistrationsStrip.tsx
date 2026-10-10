@@ -30,8 +30,8 @@ export function RecentRegistrationsStrip() {
             <div className="aspect-square overflow-hidden rounded-xl bg-muted">
               {r.image && <img src={r.image} alt="" loading="lazy" className="h-full w-full object-contain" />}
             </div>
-            <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-tight">{r.title}</p>
-            <p className="truncate text-[10px] text-muted-foreground">
+            <p className="mt-1 line-clamp-2 text-2xs font-medium leading-tight">{r.title}</p>
+            <p className="truncate text-3xs text-muted-foreground">
               {r.display_name || r.username} · {formatRelative(r.created_at)}
             </p>
           </button>

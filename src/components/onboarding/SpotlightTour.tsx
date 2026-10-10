@@ -367,7 +367,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
                 onDisableAll();
                 close("skipped");
               }}
-              className="w-full text-[11px] text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+              className="w-full text-2xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
             >
               {t("tour.disableAll")}
             </button>

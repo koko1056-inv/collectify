@@ -59,13 +59,13 @@ export function AchievementsDisplay({
   const getAchievementColor = (name: string) => {
     switch (name) {
       case "ビギナー":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-success-soft text-success border-success/30";
       case "コレクター":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-info-soft text-info border-info/30";
       case "エキスパート":
         return "bg-purple-100 text-purple-800 border-purple-200";
       case "レジェンド":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-warning-soft text-warning border-warning/30";
       case "クリエイター":
         return "bg-pink-100 text-pink-800 border-pink-200";
       default:

@@ -78,14 +78,14 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
         />
         {!imgLoaded && <Skeleton className="absolute inset-0 rounded-none" />}
 
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-semibold text-primary">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-semibold text-primary">
           <Sparkles className="w-3 h-3" />
           AI
         </div>
 
         {/* 着せ替え済み（グッズを使った）アバターの印 */}
         {!!avatar.item_ids?.length && (
-          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-[10px] font-semibold text-accent-foreground">
+          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-semibold text-accent-foreground">
             <Package className="w-3 h-3" />
             {avatar.item_ids.length}
           </div>
@@ -131,7 +131,7 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
           >
             <Avatar className="w-5 h-5 border border-border shrink-0">
               <AvatarImage src={avatar.profile?.avatar_url || undefined} />
-              <AvatarFallback className="text-[8px]">
+              <AvatarFallback className="text-3xs">
                 {avatar.profile?.username?.charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -141,7 +141,7 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
                 t("chrome.exploreCard.userFallback")}
             </span>
           </button>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
+          <div className="flex items-center gap-2 text-3xs text-muted-foreground shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();

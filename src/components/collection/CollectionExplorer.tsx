@@ -69,7 +69,7 @@ export function CollectionExplorer({
         <section aria-label={t("engage.collection.progressTitle")} className="space-y-1.5">
           <div className="flex items-baseline justify-between">
             <h3 className="text-sm font-bold">{t("engage.collection.progressTitle")}</h3>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-2xs text-muted-foreground">
               {t("engage.collection.progressHint")}
             </span>
           </div>
@@ -102,7 +102,7 @@ export function CollectionExplorer({
                         />
                       )}
                       {done && (
-                        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-warning px-2 py-0.5 text-3xs font-bold text-warning-foreground shadow">
                           <Trophy className="h-3 w-3" />
                           {t("engage.collection.complete")}
                         </span>
@@ -113,7 +113,7 @@ export function CollectionExplorer({
                         {p.series_label}
                       </p>
                       <Progress value={pct} className="h-1.5" />
-                      <p className="text-[11px] text-muted-foreground tabular-nums">
+                      <p className="text-2xs text-muted-foreground tabular-nums">
                         {t("engage.collection.ownedOf", { owned: p.owned, total: p.total })}
                         <span className="ml-1 font-semibold text-foreground">{pct}%</span>
                       </p>
@@ -123,7 +123,7 @@ export function CollectionExplorer({
                     <button
                       type="button"
                       onClick={() => onShareSeries(p)}
-                      className="flex w-full items-center justify-center gap-1 border-t border-border py-1.5 text-[11px] font-medium text-primary hover:bg-primary/5"
+                      className="flex w-full items-center justify-center gap-1 border-t border-border py-1.5 text-2xs font-medium text-primary hover:bg-primary/5"
                     >
                       <Share2 className="h-3 w-3" />
                       {t("engage.collection.shareSeries")}
@@ -158,7 +158,7 @@ export function CollectionExplorer({
                 )}
               >
                 {t(`engage.collection.kind.${k}`)}
-                <span className="ml-1 tabular-nums text-[10px] opacity-70">{counts[k].length}</span>
+                <span className="ml-1 tabular-nums text-3xs opacity-70">{counts[k].length}</span>
               </button>
             ))}
           </div>
@@ -180,7 +180,7 @@ export function CollectionExplorer({
                   )}
                 >
                   <span className="max-w-[10rem] truncate">{c.value}</span>
-                  <span className={cn("tabular-nums text-[10px]", selected ? "opacity-80" : "text-muted-foreground")}>
+                  <span className={cn("tabular-nums text-3xs", selected ? "opacity-80" : "text-muted-foreground")}>
                     {c.count}
                   </span>
                 </button>

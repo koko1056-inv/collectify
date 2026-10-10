@@ -203,7 +203,7 @@ export default function AiWorkDetail() {
                       <p className="text-sm font-medium">
                         {profile.display_name || profile.username}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">@{profile.username}</p>
+                      <p className="text-2xs text-muted-foreground">@{profile.username}</p>
                     </div>
                   </button>
                 )}

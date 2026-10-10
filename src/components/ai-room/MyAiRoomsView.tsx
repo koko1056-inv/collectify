@@ -128,11 +128,11 @@ export function MyAiRoomsView() {
           <div className="flex items-center gap-1.5">
             <Wand2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-bold">{t("aiRoom.list.heading")}</h2>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+            <span className="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
               NEW
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+          <p className="text-2xs text-muted-foreground mt-0.5 truncate">
             {t("aiRoom.list.subtitle")}
           </p>
         </div>
@@ -524,7 +524,7 @@ function HeroRoom({
           className={cn(
             "absolute top-3 right-3 px-2.5 py-1 rounded-full backdrop-blur text-xs font-semibold flex items-center gap-1.5",
             room.is_public
-              ? "bg-emerald-500/90 text-white"
+              ? "bg-success/90 text-success-foreground"
               : "bg-black/60 text-white"
           )}
         >
@@ -540,7 +540,7 @@ function HeroRoom({
         </div>
 
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
-          <p className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5">
+          <p className="text-3xs uppercase tracking-widest opacity-80 mb-0.5">
             {t("aiRoom.list.latest")}
           </p>
           <p className="text-base font-bold truncate drop-shadow-md">
@@ -627,17 +627,17 @@ function RoomThumbCard({
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
         {preset && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-black/55 backdrop-blur text-white text-[9px] font-semibold flex items-center gap-1">
+          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-black/55 backdrop-blur text-white text-3xs font-semibold flex items-center gap-1">
             <span>{preset.emoji}</span>
           </div>
         )}
         {room.is_public && (
-          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500/90 text-white text-[9px] font-semibold flex items-center gap-0.5">
+          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-success/90 text-success-foreground text-3xs font-semibold flex items-center gap-0.5">
             <Globe className="w-2.5 h-2.5" />
           </div>
         )}
         {room.title && (
-          <div className="absolute left-2 right-2 bottom-1.5 text-white text-[11px] font-semibold truncate text-left">
+          <div className="absolute left-2 right-2 bottom-1.5 text-white text-2xs font-semibold truncate text-left">
             {room.title}
           </div>
         )}
@@ -648,7 +648,7 @@ function RoomThumbCard({
           variant="ghost"
           size="sm"
           onClick={onTogglePublic}
-          className="flex-1 text-[10px] h-7 px-2"
+          className="flex-1 text-3xs h-7 px-2"
         >
           {room.is_public ? (
             <>

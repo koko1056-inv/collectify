@@ -44,7 +44,7 @@ export function ItemDetailsActions({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
+            className="flex-1 border-destructive/30 hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4 mr-2" />

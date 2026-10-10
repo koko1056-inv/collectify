@@ -138,7 +138,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
             )}
           >
             {t("misc.premium.yearly")}
-            <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full">
+            <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-3xs px-1.5 py-0.5 rounded-full">
               {t("misc.premium.yearlyBadge")}
             </span>
           </button>
@@ -234,7 +234,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
             : t("misc.premium.startCta", { price: monthlyEquiv.toLocaleString() })}
         </Button>
 
-        <p className="text-[10px] text-center text-muted-foreground leading-relaxed">
+        <p className="text-3xs text-center text-muted-foreground leading-relaxed">
           {t("misc.premium.autoRenew")}
           <br />
           {t("misc.premium.terms")}

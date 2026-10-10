@@ -69,7 +69,7 @@ export function CardModals({
             <AlertDialogCancel>{t("collectionScreen.common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={onDeleteConfirm}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {t("collectionScreen.common.delete")}
             </AlertDialogAction>

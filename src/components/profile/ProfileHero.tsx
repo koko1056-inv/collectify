@@ -304,7 +304,7 @@ export function ProfileHero({
               <h1 className="text-xl sm:text-2xl font-bold leading-tight">{displayName}</h1>
               <div
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white bg-gradient-to-r shadow-sm",
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-semibold text-white bg-gradient-to-r shadow-sm",
                   rank.color
                 )}
               >
@@ -433,7 +433,7 @@ function StatButton({
       )}
     >
       <span className="text-lg font-bold tabular-nums">{value.toLocaleString()}</span>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className="text-3xs text-muted-foreground">{label}</span>
     </Comp>
   );
 }

@@ -82,7 +82,7 @@ export function PopularCollectors() {
         <Button 
           size="sm" 
           variant="outline"
-          className="text-[10px]"
+          className="text-3xs"
           onClick={() => setIsFilterOpen(true)}
         >
           {t("profileScreen.collectors.filter")}
@@ -94,7 +94,7 @@ export function PopularCollectors() {
           <Button
             variant={selectedContent === null ? "default" : "outline"}
             size="sm"
-            className="text-[10px]"
+            className="text-3xs"
             onClick={() => setSelectedContent(null)}
           >
             {t("profileScreen.collectors.all")}
@@ -104,7 +104,7 @@ export function PopularCollectors() {
               key={content.id}
               variant={selectedContent === content.name ? "default" : "outline"}
               size="sm"
-              className="text-[10px]"
+              className="text-3xs"
               onClick={() => setSelectedContent(content.name)}
             >
               {content.name}

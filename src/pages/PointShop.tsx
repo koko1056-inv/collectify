@@ -268,7 +268,7 @@ export default function PointShop() {
               {t("screens.pointShop.packsHeading")}
             </h2>
             {!nativeAvailable && !isWebCheckoutAvailable() && (
-              <Badge variant="outline" className="text-[10px]">{t("screens.pointShop.iosOnlyBadge")}</Badge>
+              <Badge variant="outline" className="text-3xs">{t("screens.pointShop.iosOnlyBadge")}</Badge>
             )}
           </div>
 
@@ -296,7 +296,7 @@ export default function PointShop() {
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-base">{pack.name}</CardTitle>
                         {hasBonus && (
-                          <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-300">
+                          <Badge className="bg-points-soft text-points border-points/30">
                             {t("screens.pointShop.bonusBadge", { points: pack.bonus_points })}
                           </Badge>
                         )}
@@ -401,7 +401,7 @@ export default function PointShop() {
                   </div>
                 );
               })}
-              <p className="text-[11px] text-muted-foreground pt-2">
+              <p className="text-2xs text-muted-foreground pt-2">
                 {t("screens.pointShop.spendNote")}
               </p>
             </CardContent>
@@ -449,8 +449,8 @@ export default function PointShop() {
                         key={tier.min_streak}
                         className={
                           active
-                            ? "text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
-                            : "text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                            ? "text-2xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
+                            : "text-2xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
                         }
                       >
                         {t("screens.pointShop.streakTier", {

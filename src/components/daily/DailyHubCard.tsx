@@ -59,7 +59,7 @@ export function DailyHubCard() {
             )}
           </div>
           {hub.claimedToday && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-semibold text-primary">
               <Check className="h-3 w-3" aria-hidden="true" />
               {t("engage.dailyHub.today")}
             </span>
@@ -168,7 +168,7 @@ function NewForYouDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
                     footer={
                       <span
                         className={cn(
-                          "mt-auto rounded-md py-1 text-center text-[10px] font-semibold",
+                          "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
                           owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                         )}
                       >

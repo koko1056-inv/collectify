@@ -74,7 +74,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
             <div key={c.key} className="text-center space-y-1">
               <p className="text-xs text-muted-foreground">{t(`trade.trustCategory.${c.key}`)}</p>
               <TrustBadge score={score} category={c.key} size="sm" />
-              <p className="text-[10px] text-muted-foreground">{t("trade.trust.countSuffix", { count: c.count })}</p>
+              <p className="text-3xs text-muted-foreground">{t("trade.trust.countSuffix", { count: c.count })}</p>
             </div>
           ))}
         </div>
@@ -101,7 +101,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
                       <p className="text-sm font-medium truncate">
                         {r.reviewer?.display_name || r.reviewer?.username || t("trade.trust.anonymous")}
                       </p>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-3xs text-muted-foreground">
                         {formatRelative(r.created_at)}
                       </span>
                     </div>

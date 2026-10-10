@@ -66,7 +66,7 @@ export function ProfileBookmarks() {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                <div className="flex items-center gap-1 text-[10px] text-white/90 font-medium">
+                <div className="flex items-center gap-1 text-3xs text-white/90 font-medium">
                   {isRoom ? (
                     <>
                       <Sparkles className="w-3 h-3" /> {t("profileScreen.bookmarks.aiRoom")}

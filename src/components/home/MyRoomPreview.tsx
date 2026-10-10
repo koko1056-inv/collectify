@@ -176,7 +176,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             }}
             className={cn(
               "flex items-center gap-2 transition-colors",
-              isLiked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
+              isLiked ? "text-rose-500" : "text-muted-foreground hover:text-rose-500"
             )}
             disabled={!user || isOwnRoom}
           >

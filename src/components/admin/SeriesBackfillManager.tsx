@@ -181,7 +181,7 @@ export function SeriesBackfillManager() {
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <p className="text-sm font-medium break-words">{c.title}</p>
-                        <Badge variant="outline" className="shrink-0 text-[10px]">
+                        <Badge variant="outline" className="shrink-0 text-3xs">
                           {c.kind === "official_item"
                             ? t("screens.admin.seriesBackfill.kindOfficial")
                             : t("screens.admin.seriesBackfill.kindUser")}
@@ -198,15 +198,15 @@ export function SeriesBackfillManager() {
                           className="h-9 max-w-xs"
                         />
                         {c.isNew && nameFor(c).trim() && (
-                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px]">
+                          <Badge className="bg-warning-soft text-warning text-3xs">
                             {t("screens.admin.seriesBackfill.newName")}
                           </Badge>
                         )}
                         <span
                           className={
                             low
-                              ? "text-[11px] text-amber-600 dark:text-amber-400"
-                              : "text-[11px] text-muted-foreground"
+                              ? "text-2xs text-warning"
+                              : "text-2xs text-muted-foreground"
                           }
                         >
                           {t("screens.admin.seriesBackfill.confidence", {

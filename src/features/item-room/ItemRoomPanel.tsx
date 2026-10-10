@@ -97,7 +97,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
                 title: itemTitle ?? t("trade.room.defaultItemTitle"),
               })}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-3xs text-muted-foreground">
               {t("trade.room.headerSubtitle")}
             </p>
           </div>

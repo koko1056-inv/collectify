@@ -63,13 +63,13 @@ export function SlotUsageMeter({
   const barTone = isAtLimit
     ? "[&>div]:bg-destructive"
     : isAlmostFull
-      ? "[&>div]:bg-amber-500"
+      ? "[&>div]:bg-warning"
       : undefined;
 
   const countTone = isAtLimit
     ? "text-destructive"
     : isAlmostFull
-      ? "text-amber-600 dark:text-amber-400"
+      ? "text-warning"
       : "text-muted-foreground";
 
   const expandDialog = isCollection ? (

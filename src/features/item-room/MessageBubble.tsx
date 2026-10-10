@@ -102,7 +102,7 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
           )}
         </div>
 
-        <span className="text-[10px] text-muted-foreground mt-0.5 px-1">
+        <span className="text-3xs text-muted-foreground mt-0.5 px-1">
           {formatRelative(message.created_at)}
         </span>
       </div>

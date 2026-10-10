@@ -89,7 +89,7 @@ export function CollectionButton({
   return (
     <Button 
       variant={isInCollection ? "secondary" : "default"}
-      className={`w-full text-[10px] sm:text-sm h-7 sm:h-9 ${isInCollection ? 'bg-muted text-muted-foreground hover:bg-muted' : 'bg-foreground text-background hover:bg-foreground/90'}`}
+      className={`w-full text-3xs sm:text-sm h-7 sm:h-9 ${isInCollection ? 'bg-muted text-muted-foreground hover:bg-muted' : 'bg-foreground text-background hover:bg-foreground/90'}`}
       onClick={onAddToCollection}
       disabled={isInCollection}
     >

@@ -576,7 +576,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                 <span className="text-sm font-medium truncate max-w-full">
                   {u.display_name || u.username}
                 </span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-3xs text-muted-foreground">
                   {t("chrome.explore.followers", { n: u.followers_count || 0 })}
                 </span>
               </button>

@@ -183,12 +183,12 @@ export default function AiRoomsPage() {
                   {t("screens.aiRooms.studioTitle")}
                 </h1>
                 {totalCreations > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-3xs font-bold">
                     {totalCreations}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5 ml-9">
+              <p className="text-2xs text-muted-foreground mt-0.5 ml-9">
                 {t("screens.aiRooms.studioSubtitle")}
               </p>
             </div>
@@ -215,7 +215,7 @@ export default function AiRoomsPage() {
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-3xs font-bold text-foreground flex items-center gap-1">
                       <Home className="w-2.5 h-2.5" /> {t("screens.aiRooms.latestRoom")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
@@ -225,7 +225,7 @@ export default function AiRoomsPage() {
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
                     <Home className="w-6 h-6" />
-                    <span className="text-[10px]">{t("screens.aiRooms.noRoomYet")}</span>
+                    <span className="text-3xs">{t("screens.aiRooms.noRoomYet")}</span>
                   </div>
                 )}
               </button>
@@ -246,7 +246,7 @@ export default function AiRoomsPage() {
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-3xs font-bold text-foreground flex items-center gap-1">
                       <Shirt className="w-2.5 h-2.5" /> {t("screens.aiRooms.currentAvatar")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
@@ -256,7 +256,7 @@ export default function AiRoomsPage() {
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
                     <Shirt className="w-6 h-6" />
-                    <span className="text-[10px]">{t("screens.aiRooms.noAvatarYet")}</span>
+                    <span className="text-3xs">{t("screens.aiRooms.noAvatarYet")}</span>
                   </div>
                 )}
               </button>
@@ -275,7 +275,7 @@ export default function AiRoomsPage() {
                   <Home className="w-3.5 h-3.5" />
                   {t("screens.aiRooms.roomsTab")}
                   {rooms.length > 0 && (
-                    <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
+                    <span className="ml-0.5 px-1 py-px rounded text-3xs bg-muted text-muted-foreground">
                       {rooms.length}
                     </span>
                   )}
@@ -284,7 +284,7 @@ export default function AiRoomsPage() {
                   <Shirt className="w-3.5 h-3.5" />
                   {t("screens.aiRooms.avatarTab")}
                   {avatarsHook.avatars.length > 0 && (
-                    <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
+                    <span className="ml-0.5 px-1 py-px rounded text-3xs bg-muted text-muted-foreground">
                       {avatarsHook.avatars.length}
                     </span>
                   )}
@@ -332,7 +332,7 @@ export default function AiRoomsPage() {
                     <Home className="w-4 h-4 text-primary" />
                     {t("screens.aiRooms.myAiRooms")}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {t("screens.aiRooms.tapToEnlarge")}
                   </p>
                 </div>
@@ -541,7 +541,7 @@ function AvatarPanel({
             <Wand2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <p className="text-sm font-semibold">{t("screens.aiRooms.avatarGenerate")}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-2xs text-muted-foreground mt-0.5">
             {t("screens.aiRooms.avatarGenerateDesc")}
           </p>
         </button>
@@ -554,7 +554,7 @@ function AvatarPanel({
             <Shirt className="w-5 h-5 text-white" />
           </div>
           <p className="text-sm font-semibold">{t("screens.aiRooms.avatarDressUp")}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-2xs text-muted-foreground mt-0.5">
             {t("screens.aiRooms.avatarDressUpDesc")}
           </p>
         </button>
@@ -614,7 +614,7 @@ function AvatarPanel({
                   </button>
 
                   {isCurrent && (
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-3xs font-semibold">
                       {t("screens.aiRooms.inUse")}
                     </div>
                   )}
@@ -735,7 +735,7 @@ function RoomCard({
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
         {/* スタイルバッジ */}
         {preset && (
-          <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/50 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1">
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/50 backdrop-blur text-white text-3xs font-semibold flex items-center gap-1">
             <span>{preset.emoji}</span>
             <span>{preset.name}</span>
           </div>
@@ -743,9 +743,9 @@ function RoomCard({
         {/* 公開バッジ */}
         <div
           className={cn(
-            "absolute top-2 right-2 px-2 py-1 rounded-full backdrop-blur text-[10px] font-semibold flex items-center gap-1",
+            "absolute top-2 right-2 px-2 py-1 rounded-full backdrop-blur text-3xs font-semibold flex items-center gap-1",
             room.is_public
-              ? "bg-emerald-500/90 text-white"
+              ? "bg-success/90 text-success-foreground"
               : "bg-black/50 text-white"
           )}
         >

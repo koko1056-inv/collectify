@@ -34,7 +34,7 @@ export function PublicCollectionGoodsCard({
           className="p-3 space-y-1"
           onClick={() => setIsDetailsOpen(true)}
         >
-          <h3 className="text-[10px] font-medium text-foreground truncate">
+          <h3 className="text-3xs font-medium text-foreground truncate">
             {title}
           </h3>
           <CollectionGoodsCardContent

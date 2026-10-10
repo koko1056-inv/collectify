@@ -71,7 +71,7 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
               placeholder={t("profileScreen.editSheet.displayNamePlaceholder")}
               maxLength={30}
             />
-            <p className="text-[10px] text-muted-foreground text-right">
+            <p className="text-3xs text-muted-foreground text-right">
               {displayName.length}/30
             </p>
           </div>
@@ -87,7 +87,7 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
               maxLength={200}
               className="resize-none"
             />
-            <p className="text-[10px] text-muted-foreground text-right">
+            <p className="text-3xs text-muted-foreground text-right">
               {bio.length}/200
             </p>
           </div>

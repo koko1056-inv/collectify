@@ -36,7 +36,7 @@ const Admin = () => {
               {t("screens.admin.reportsTab")}
               {openReports > 0 && (
                 <span
-                  className="min-w-5 rounded-full bg-destructive px-1.5 text-center text-[11px] font-semibold leading-5 text-destructive-foreground"
+                  className="min-w-5 rounded-full bg-destructive px-1.5 text-center text-2xs font-semibold leading-5 text-destructive-foreground"
                   aria-label={t("admin.reports.pendingTitle")}
                 >
                   {openReports}

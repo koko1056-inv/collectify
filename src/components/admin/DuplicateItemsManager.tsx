@@ -171,8 +171,8 @@ export function DuplicateItemsManager() {
               </div>
 
               {!pending.merge.is_exact_dup && (
-                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="flex items-start gap-2 rounded-lg bg-warning-soft p-2.5">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
                   <p className="text-xs">{t("admin.duplicates.confirmDifferentImage")}</p>
                 </div>
               )}
@@ -226,7 +226,7 @@ function DuplicateGroup({
     <div
       className={cn(
         "space-y-2 rounded-xl border p-3",
-        nameOnly ? "border-amber-500/40 bg-amber-500/[0.03]" : "border-border"
+        nameOnly ? "border-warning/50 bg-warning-soft" : "border-border"
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
@@ -243,8 +243,8 @@ function DuplicateGroup({
 
       {/* 別商品を統合させないための注意書き。押す前に読ませる位置に置く */}
       {nameOnly && (
-        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-start gap-2 rounded-lg bg-warning-soft p-2.5">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
           <p className="text-xs">{t("admin.duplicates.nameOnlyWarning")}</p>
         </div>
       )}
@@ -269,7 +269,7 @@ function DuplicateGroup({
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm">{item.title}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 {t("admin.duplicates.usage", {
                   owners: item.owner_count,
                   wishes: item.wish_count,
@@ -277,8 +277,8 @@ function DuplicateGroup({
               </p>
               <p
                 className={cn(
-                  "mt-0.5 text-[11px]",
-                  item.is_exact_dup ? "text-primary" : "text-amber-600 dark:text-amber-400"
+                  "mt-0.5 text-2xs",
+                  item.is_exact_dup ? "text-primary" : "text-warning"
                 )}
               >
                 {item.is_exact_dup
@@ -287,7 +287,7 @@ function DuplicateGroup({
               </p>
             </div>
             {item.id === keepId ? (
-              <Badge className="shrink-0 text-[10px]">{t("admin.duplicates.keepBadge")}</Badge>
+              <Badge className="shrink-0 text-3xs">{t("admin.duplicates.keepBadge")}</Badge>
             ) : (
               <div className="flex shrink-0 flex-col gap-1">
                 <Button
@@ -304,7 +304,7 @@ function DuplicateGroup({
                   variant={item.is_exact_dup ? "outline" : "ghost"}
                   className={cn(
                     "h-7 text-xs",
-                    !item.is_exact_dup && "text-amber-600 dark:text-amber-400"
+                    !item.is_exact_dup && "text-warning"
                   )}
                   onClick={() => keep && onMerge(keep, item)}
                 >
@@ -323,7 +323,7 @@ function DuplicateGroup({
 function ComparePane({ label, item }: { label: string; item: DupItem }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-2xs text-muted-foreground">{label}</p>
       <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
         <img
           src={getOptimizedImageUrl(item.image, { width: 400 })}

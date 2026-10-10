@@ -126,7 +126,7 @@ function WishRow({
         />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-sm font-medium leading-snug">{wish.title}</p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             {t("trade.holders.count", { total: wish.holder_count, ok: wish.trade_ok_count })}
           </p>
         </div>
@@ -153,12 +153,12 @@ function WishRow({
                   <p className="truncate text-sm">{name}</p>
                   <div className="flex items-center gap-1.5">
                     {holder.for_trade ? (
-                      <Badge className="h-4 px-1.5 text-[10px]">{t("trade.holders.tradeOk")}</Badge>
+                      <Badge className="h-4 px-1.5 text-3xs">{t("trade.holders.tradeOk")}</Badge>
                     ) : (
-                      <span className="text-[10px] text-muted-foreground">{t("trade.holders.notListed")}</span>
+                      <span className="text-3xs text-muted-foreground">{t("trade.holders.notListed")}</span>
                     )}
                     {holder.trade_count > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-0.5 text-3xs text-muted-foreground">
                         <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
                         {t("trade.holders.tradeCount", { n: holder.trade_count })}
                       </span>
@@ -168,9 +168,9 @@ function WishRow({
               </button>
 
               {holder.busy ? (
-                <span className="shrink-0 text-[11px] text-muted-foreground">{t("trade.holders.busy")}</span>
+                <span className="shrink-0 text-2xs text-muted-foreground">{t("trade.holders.busy")}</span>
               ) : holder.already_requested ? (
-                <span className="shrink-0 text-[11px] text-muted-foreground">{t("trade.holders.requested")}</span>
+                <span className="shrink-0 text-2xs text-muted-foreground">{t("trade.holders.requested")}</span>
               ) : (
                 <Button
                   size="sm"

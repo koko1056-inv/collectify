@@ -34,7 +34,7 @@ export function DidYouMean({ options, onPick, className }: DidYouMeanProps) {
           className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         >
           <span className="truncate">{o.label}</span>
-          {o.hint && <span className="truncate text-[10px] text-muted-foreground">（{o.hint}）</span>}
+          {o.hint && <span className="truncate text-3xs text-muted-foreground">（{o.hint}）</span>}
         </button>
       ))}
     </div>

@@ -40,7 +40,7 @@ export function DeletePostDialog({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-destructive hover:bg-destructive/90"
           >
             {isDeleting ? t("social.posts.deleting") : t("social.posts.deleteConfirm")}
           </AlertDialogAction>

@@ -141,7 +141,7 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
               aria-selected={format === f}
               onClick={() => setFormat(f)}
               className={cn(
-                "rounded-md px-1 py-1.5 text-[11px] font-medium leading-tight transition-colors",
+                "rounded-md px-1 py-1.5 text-2xs font-medium leading-tight transition-colors",
                 format === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -184,7 +184,7 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
             <Link2 className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground text-center">{t("engage.share.inviteNote")}</p>
+        <p className="text-2xs text-muted-foreground text-center">{t("engage.share.inviteNote")}</p>
       </DialogContent>
     </Dialog>
   );

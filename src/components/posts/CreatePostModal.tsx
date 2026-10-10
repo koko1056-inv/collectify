@@ -112,7 +112,7 @@ export function CreatePostModal({
             </div>
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-            <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+            <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-3xs font-bold">
               2
             </div>
             <span>/ 2</span>
@@ -142,7 +142,7 @@ export function CreatePostModal({
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-[10px] text-center mt-1 line-clamp-1 text-muted-foreground">
+                    <p className="text-3xs text-center mt-1 line-clamp-1 text-muted-foreground">
                       {item.title}
                     </p>
                   </div>
@@ -194,7 +194,7 @@ export function CreatePostModal({
                   {/* カスタム画像バッジ */}
                   {previewUrl && (
                     <div className="absolute top-3 left-3">
-                      <div className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center gap-1">
+                      <div className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-3xs font-medium flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
                         {t("social.posts.customImage")}
                       </div>
@@ -251,7 +251,7 @@ export function CreatePostModal({
                   className="resize-none pr-12"
                   maxLength={500}
                 />
-                <span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">
+                <span className="absolute bottom-2 right-3 text-3xs text-muted-foreground">
                   {caption.length}/500
                 </span>
               </div>
@@ -279,7 +279,7 @@ export function CreatePostModal({
               </>
             )}
           </Button>
-          <p className="text-center text-[10px] text-muted-foreground mt-2">
+          <p className="text-center text-3xs text-muted-foreground mt-2">
             {t("social.posts.publicNote")}
           </p>
         </div>

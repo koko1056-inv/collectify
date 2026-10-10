@@ -79,10 +79,10 @@ export function CollectionDiffModal({ meId, otherId, open, onOpenChange }: Props
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DiffType)} className="flex-1 overflow-hidden flex flex-col">
             <TabsList className="w-full grid grid-cols-5 h-auto">
               {TAB_ORDER.map((tab) => (
-                <TabsTrigger key={tab} value={tab} className="flex-col gap-0.5 py-2 px-1 text-[10px] sm:text-xs">
+                <TabsTrigger key={tab} value={tab} className="flex-col gap-0.5 py-2 px-1 text-3xs sm:text-xs">
                   <span className="text-base">{DIFF_LABELS[tab].emoji}</span>
                   <span className="font-medium leading-tight">{t(`trade.diffTab.${tab}`)}</span>
-                  <Badge variant="secondary" className="h-4 px-1 text-[9px]">
+                  <Badge variant="secondary" className="h-4 px-1 text-3xs">
                     {grouped[tab].length}
                   </Badge>
                 </TabsTrigger>
@@ -110,9 +110,9 @@ export function CollectionDiffModal({ meId, otherId, open, onOpenChange }: Props
                               />
                             )}
                           </div>
-                          <p className="text-[11px] font-medium line-clamp-2 leading-tight">{item.title}</p>
+                          <p className="text-2xs font-medium line-clamp-2 leading-tight">{item.title}</p>
                           {item.content_name && (
-                            <p className="text-[10px] text-muted-foreground truncate">{item.content_name}</p>
+                            <p className="text-3xs text-muted-foreground truncate">{item.content_name}</p>
                           )}
                         </div>
                       );

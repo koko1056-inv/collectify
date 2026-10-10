@@ -55,9 +55,9 @@ export function SimilarItemsDialog({ items, onCancel, onProceed }: SimilarItemsD
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm">{item.title}</p>
                 {item.content_name && (
-                  <p className="truncate text-[11px] text-muted-foreground">{item.content_name}</p>
+                  <p className="truncate text-2xs text-muted-foreground">{item.content_name}</p>
                 )}
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   {t("admin.similar.usage", {
                     owners: item.owner_count,
                     wishes: item.wish_count,

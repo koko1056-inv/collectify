@@ -737,7 +737,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   alt="Preview"
                   className="w-full h-full object-contain"
                 />
-                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                <div className="absolute top-2 right-2 bg-success text-success-foreground px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   {t("misc.addItem.aiDone")}
                 </div>
@@ -806,8 +806,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             )}
 
             {similarItems.length > 0 && (
-              <Alert className="border-amber-500/40 bg-amber-500/10">
-                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <Alert className="border-warning/50 bg-warning-soft">
+                <AlertTriangle className="h-4 w-4 text-warning" />
                 <AlertDescription className="text-foreground">
                   <div className="font-semibold">{t("screens.quickAdd.similarHeading")}</div>
                   {/* カタログに登録しない選択のときは「重複を防げる」という理由が当てはまらないので、
@@ -1068,9 +1068,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.2 }}
-              className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center"
+              className="w-24 h-24 rounded-full bg-success flex items-center justify-center"
             >
-              <Check className="w-12 h-12 text-white" />
+              <Check className="w-12 h-12 text-success-foreground" />
             </motion.div>
 
             <div className="text-center space-y-2">
@@ -1078,7 +1078,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-2xl font-bold text-green-600"
+                className="text-2xl font-bold text-success"
               >
                 {t("misc.addItem.addedTitle")}
               </motion.h2>

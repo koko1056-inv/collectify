@@ -151,7 +151,7 @@ export function FavoriteItemsEditModal({
 
         {/* 選択中の枠 */}
         <div className="px-4 pt-3 pb-2">
-          <p className="text-[11px] font-semibold text-muted-foreground mb-2">
+          <p className="text-2xs font-semibold text-muted-foreground mb-2">
             {t("profileScreen.favorites.selected", {
               count: selectedIds.length,
               limit: FAVORITE_ITEMS_LIMIT,
@@ -181,7 +181,7 @@ export function FavoriteItemsEditModal({
                           alt={item.title}
                           className="w-full h-full object-contain"
                         />
-                        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-yellow-400 text-yellow-950 text-[10px] font-bold flex items-center justify-center shadow">
+                        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-yellow-400 text-yellow-950 text-3xs font-bold flex items-center justify-center shadow">
                           {idx + 1}
                         </div>
                         <button
@@ -193,7 +193,7 @@ export function FavoriteItemsEditModal({
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <span className="text-[10px]">
+                        <span className="text-3xs">
                           {t("profileScreen.favorites.rank", { rank: idx + 1 })}
                         </span>
                       </div>
@@ -289,7 +289,7 @@ export function FavoriteItemsEditModal({
                       </div>
                     )}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1">
-                      <p className="text-white text-[10px] font-medium line-clamp-1 text-left">
+                      <p className="text-white text-3xs font-medium line-clamp-1 text-left">
                         {item.title}
                       </p>
                     </div>

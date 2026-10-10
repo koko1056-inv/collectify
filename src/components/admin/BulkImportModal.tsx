@@ -604,7 +604,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                             </span>
                           )}
                           {existingTitles[item.title?.trim()] > 0 && (
-                            <span className="text-xs rounded bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                            <span className="text-xs rounded bg-warning-soft px-2 py-0.5 text-warning">
                               {t("misc.bulkImport.alreadyExists", {
                                 count: existingTitles[item.title.trim()],
                               })}

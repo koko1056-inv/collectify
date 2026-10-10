@@ -114,7 +114,7 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-muted-foreground" aria-hidden="true">
+      <div className="grid grid-cols-7 gap-1 text-center text-3xs text-muted-foreground" aria-hidden="true">
         {weekdays.map((w, i) => (
           <span key={i}>{w}</span>
         ))}
@@ -138,9 +138,9 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
               )}
             >
               <LazyImage src={photo.image_url} alt="" className="h-full w-full object-cover" />
-              <span className="absolute left-0.5 top-0.5 rounded bg-black/50 px-1 text-[9px] tabular-nums text-white">{day}</span>
+              <span className="absolute left-0.5 top-0.5 rounded bg-black/50 px-1 text-3xs tabular-nums text-white">{day}</span>
               {list && list.length > 1 && (
-                <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 text-[9px] tabular-nums text-white">
+                <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 text-3xs tabular-nums text-white">
                   {list.length}
                 </span>
               )}
@@ -149,7 +149,7 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
             <span
               key={date}
               className={cn(
-                "flex aspect-square items-start justify-start rounded-lg bg-muted/40 p-1 text-[10px] tabular-nums text-muted-foreground",
+                "flex aspect-square items-start justify-start rounded-lg bg-muted/40 p-1 text-3xs tabular-nums text-muted-foreground",
                 isToday && "ring-2 ring-primary/60"
               )}
             >

@@ -95,7 +95,7 @@ export function TagManageModalContent({
         {isUserItem && officialTags && officialTags.length > 0 && (
           <>
             <Separator className="my-4" />
-            <Card className="border-0 shadow-none bg-blue-50/30">
+            <Card className="border-0 shadow-none bg-info-soft">
               <CardContent className="p-4">
                 <OfficialTagsSection officialTags={officialTags} />
               </CardContent>
@@ -107,7 +107,7 @@ export function TagManageModalContent({
         {onContentChange && (
           <>
             <Separator className="my-4" />
-            <Card className="border-0 shadow-none bg-green-50/30">
+            <Card className="border-0 shadow-none bg-success-soft">
               <CardContent className="p-4">
                 <ContentNameSection 
                   contentName={contentName || null} 
@@ -135,7 +135,7 @@ export function TagManageModalContent({
         {pendingUpdates.length > 0 && (
           <>
             <Separator className="my-4" />
-            <Card className="border-0 shadow-none bg-amber-50/50">
+            <Card className="border-0 shadow-none bg-warning-soft">
               <CardContent className="p-4">
                 <PendingTagsList pendingUpdates={pendingUpdates} />
               </CardContent>

@@ -223,7 +223,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     variant="ghost"
                     size="sm"
                     onClick={handleLike}
-                    className={isLiked ? "text-red-500" : ""}
+                    className={isLiked ? "text-rose-500" : ""}
                   >
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
                     <span className="ml-1 text-sm">{likesCount}</span>

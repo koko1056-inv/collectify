@@ -293,7 +293,7 @@ export function PublicUserItemModal({
                       : t("itemDetails.publicItem.addToWishlist")}
                 </Button>
                 {!officialItemId && (
-                  <p className="text-[11px] text-muted-foreground text-center">
+                  <p className="text-2xs text-muted-foreground text-center">
                     {t("itemDetails.publicItem.noOfficialNote")}
                   </p>
                 )}

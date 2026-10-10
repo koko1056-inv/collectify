@@ -170,7 +170,7 @@ export function ImageEditDialog({
                       </div>
                     )}
                     {avatar.isProfile && (
-                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] px-1.5 rounded-full">
+                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-3xs px-1.5 rounded-full">
                         {t("social.posts.avatarMain")}
                       </div>
                     )}

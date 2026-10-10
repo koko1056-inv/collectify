@@ -46,7 +46,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
           {isLoading ? (
             <div className="text-center py-4">{t("social.posts.loading")}</div>
           ) : error ? (
-            <div className="text-center py-4 text-red-500">
+            <div className="text-center py-4 text-destructive">
               {t("social.posts.commentsLoadError")}
             </div>
           ) : comments && comments.length > 0 ? (

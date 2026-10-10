@@ -33,7 +33,7 @@ export function TitleSection({
           required
           className={cn(
             "font-medium text-lg",
-            hasSimilarItems && "border-yellow-500 focus-visible:ring-yellow-500"
+            hasSimilarItems && "border-warning/50 focus-visible:ring-warning"
           )}
         />
         {isChecking && (
@@ -44,15 +44,15 @@ export function TitleSection({
       </div>
       
       {hasSimilarItems && (
-        <Alert className="border-yellow-500 bg-yellow-50">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-800">
+        <Alert className="border-warning/50 bg-warning-soft">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
             <div className="font-semibold mb-2">{t("misc.itemForm.similarHeading")}</div>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {similarItems.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex items-center gap-3 p-2 bg-card rounded border border-yellow-200"
+                  className="flex items-center gap-3 p-2 bg-card rounded border border-warning/30"
                 >
                   <img 
                     src={item.image} 
@@ -63,7 +63,7 @@ export function TitleSection({
                 </div>
               ))}
             </div>
-            <p className="text-xs mt-2 text-yellow-700">
+            <p className="text-xs mt-2 text-warning">
               {t("misc.itemForm.similarNote")}
             </p>
           </AlertDescription>

@@ -35,7 +35,7 @@ export function DeleteConfirmDialog({
           <AlertDialogCancel>{t("collectionScreen.common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-destructive hover:bg-destructive/90"
           >
             {t("collectionScreen.common.deleteAction")}
           </AlertDialogAction>

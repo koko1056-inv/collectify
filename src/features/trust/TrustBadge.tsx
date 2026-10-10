@@ -39,7 +39,7 @@ export function TrustBadge({
   const tierLabel = t(`trade.trustTier.${tier.tier}`);
 
   const sizeClasses = {
-    xs: "text-[10px] px-1.5 py-0 h-4 gap-0.5",
+    xs: "text-3xs px-1.5 py-0 h-4 gap-0.5",
     sm: "text-xs px-2 py-0.5 h-5 gap-1",
     md: "text-sm px-2.5 py-1 h-6 gap-1",
   }[size];

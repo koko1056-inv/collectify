@@ -123,7 +123,7 @@ export function ProfilePage() {
                     )}
                   >
                     {isActive ? (
-                      <span className="text-[12px] sm:text-sm font-semibold whitespace-nowrap">{t(tab.labelKey)}</span>
+                      <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">{t(tab.labelKey)}</span>
                     ) : (
                       <>
                         <Icon className="w-4 h-4 shrink-0" />

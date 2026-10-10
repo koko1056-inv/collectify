@@ -74,7 +74,7 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
               </AnimatePresence>
             </div>
           </div>
-          <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground shadow">
+          <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-0.5 text-2xs font-bold text-primary-foreground shadow">
             Lv.{progress.level}
           </span>
         </div>
@@ -102,14 +102,14 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
                 transition={{ type: "spring", stiffness: 80, damping: 18 }}
               />
             </div>
-            <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+            <p className="mt-1 text-2xs tabular-nums text-muted-foreground">
               {progress.isMax
                 ? t("engage.oshi.maxLevel")
                 : t("engage.oshi.nextLevel", { n: progress.needed - progress.into })}
             </p>
           </div>
 
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-2xs text-muted-foreground">
             {doneCount === 3 ? t("engage.oshi.todayAllDone") : t("engage.oshi.todayProgress", { n: doneCount, max: DAILY_MAX_XP })}
           </p>
         </div>
@@ -170,7 +170,7 @@ function CareButton({
     >
       {done ? <Check className="h-4 w-4 text-primary" /> : icon}
       <span className="text-xs">{label}</span>
-      <span className="text-[10px] tabular-nums text-muted-foreground">{done ? "✓" : `${xp}xp`}</span>
+      <span className="text-3xs tabular-nums text-muted-foreground">{done ? "✓" : `${xp}xp`}</span>
     </Button>
   );
 }

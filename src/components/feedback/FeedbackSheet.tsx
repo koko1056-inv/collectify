@@ -189,7 +189,7 @@ export function FeedbackSheet({ open, onOpenChange, initialKind = "content", ini
 function StatusBadge({ status }: { status: FeedbackRequest["status"] }) {
   const { t } = useLanguage();
   return (
-    <Badge variant={status === "done" ? "default" : "secondary"} className="text-[10px]">
+    <Badge variant={status === "done" ? "default" : "secondary"} className="text-3xs">
       {t(`engage.feedback.status.${status}`)}
     </Badge>
   );
@@ -238,8 +238,8 @@ function BoardRow({ request, voted }: { request: FeedbackRequest; voted: boolean
         onClick={() => toggle.mutate({ requestId: request.id, voted })}
       >
         {voted ? <Check className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
-        <span className="text-[10px] tabular-nums">{request.vote_count}</span>
-        <span className="text-[10px]">{voted ? t("engage.feedback.voted") : t("engage.feedback.vote")}</span>
+        <span className="text-3xs tabular-nums">{request.vote_count}</span>
+        <span className="text-3xs">{voted ? t("engage.feedback.voted") : t("engage.feedback.vote")}</span>
       </Button>
     </div>
   );

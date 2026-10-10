@@ -260,13 +260,13 @@ export function TagCandidatesManager() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">{t("misc.admin.statusPending")}</Badge>;
+        return <Badge variant="outline" className="bg-warning-soft text-warning">{t("misc.admin.statusPending")}</Badge>;
       case "approved":
-        return <Badge variant="outline" className="bg-green-100 text-green-800">{t("misc.admin.statusApproved")}</Badge>;
+        return <Badge variant="outline" className="bg-success-soft text-success">{t("misc.admin.statusApproved")}</Badge>;
       case "rejected":
-        return <Badge variant="outline" className="bg-red-100 text-red-800">{t("misc.admin.statusRejected")}</Badge>;
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive">{t("misc.admin.statusRejected")}</Badge>;
       case "merged":
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">{t("misc.admin.statusMerged")}</Badge>;
+        return <Badge variant="outline" className="bg-info-soft text-info">{t("misc.admin.statusMerged")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -379,7 +379,7 @@ export function TagCandidatesManager() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:bg-red-50"
+                        className="text-destructive hover:bg-destructive/10"
                         onClick={() => rejectMutation.mutate(candidate.id)}
                         disabled={rejectMutation.isPending}
                       >

@@ -166,15 +166,15 @@ const Search = () => {
               </header>
             ) : (
             <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto h-auto py-1 sm:h-10 sm:py-1">
-              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
+              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Package className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("tabs.goods")}</span>
               </TabsTrigger>
-              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
+              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("screens.search.collectionsTab")}</span>
               </TabsTrigger>
-              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
+              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Users className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("tabs.friends")}</span>
               </TabsTrigger>
@@ -215,7 +215,7 @@ const Search = () => {
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-3xs flex items-center justify-center">
                       {activeFilterCount}
                     </span>
                   )}

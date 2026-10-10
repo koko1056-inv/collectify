@@ -24,13 +24,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const getIcon = () => {
     switch (notification.type) {
       case 'new_item':
-        return <Package className="h-4 w-4 text-blue-500" />;
+        return <Package className="h-4 w-4 text-info" />;
       case 'comment':
         return <MessageCircle className="h-4 w-4 text-primary" />;
       case 'reply':
         return <Reply className="h-4 w-4 text-primary" />;
       case 'like':
-        return <Heart className="h-4 w-4 text-red-500" />;
+        return <Heart className="h-4 w-4 text-rose-500" />;
       case 'greeting_stamp':
         return <Sticker className="h-4 w-4 text-primary" />;
       case 'match_success':
@@ -49,13 +49,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'admin_report':
         return <Flag className="h-4 w-4 text-destructive" />;
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        return <AlertTriangle className="h-4 w-4 text-warning" />;
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
-        return <Info className="h-4 w-4 text-blue-500" />;
+        return <Info className="h-4 w-4 text-info" />;
     }
   };
 
@@ -111,7 +111,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <div
       className={cn(
         "p-3 hover:bg-muted/50 cursor-pointer transition-colors min-h-[60px]",
-        !notification.is_read && "bg-blue-50/50"
+        !notification.is_read && "bg-info-soft"
       )}
       onClick={handleClick}
     >

@@ -256,7 +256,7 @@ export function InitialInterestSelection({
           {displayName(content)}
         </span>
         {count > 0 && (
-          <span className="text-[10px] tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
+          <span className="text-3xs tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
         )}
       </button>
     );

@@ -148,7 +148,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
           </div>
         )}
 
-        <p className="mt-1 text-[11px] text-muted-foreground">{t("misc.onboarding.starter.hint")}</p>
+        <p className="mt-1 text-2xs text-muted-foreground">{t("misc.onboarding.starter.hint")}</p>
 
         <div className="mt-2 min-h-0 flex-1 overflow-y-auto pb-4">
           {isLoading ? (
@@ -178,7 +178,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
                       footer={
                         <span
                           className={cn(
-                            "mt-auto rounded-md py-1 text-center text-[10px] font-semibold",
+                            "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
                             owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                           )}
                         >

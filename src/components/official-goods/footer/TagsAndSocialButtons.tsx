@@ -81,7 +81,7 @@ export function TagsAndSocialButtons({
           >
             <Users className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
-          <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{ownersCount}</span>
+          <span className="text-3xs sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{ownersCount}</span>
         </div>
       </div>
 
