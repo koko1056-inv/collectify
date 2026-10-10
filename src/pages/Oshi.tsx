@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Camera, Flame, Plus, Sprout } from "lucide-react";
+import { ArrowLeft, Camera, Flame, Plus, Sprout } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { BackButton } from "@/components/navigation/BackButton";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { MAX_COMPANIONS } from "@/utils/companion";
 /** 推しフォト（1日1枚の記録）と、相棒グッズ（育てる） */
 const Oshi = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const companions = useCompanions();
   const photos = useOshiPhotos();
   const remove = useRemoveCompanion();
@@ -47,12 +48,22 @@ const Oshi = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-lg px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-10">
-        {/* 以前は下部ナビも戻るボタンも無く、PWA では抜け出せなかった */}
-        <BackButton fallbackTo="/collection" className="-ml-4 mb-1" />
-        <header className="mb-4">
-          <h1 className="text-2xl font-bold">{t("engage.oshi.pageTitle")}</h1>
-          <p className="text-sm text-muted-foreground">{t("engage.oshi.pageSub")}</p>
+      <main className="mx-auto max-w-lg px-4 py-5 pb-nav">
+        {/* 戻るボタンは見出しの横に置く（見出しの上の小さな「戻る」では気づかれなかった） */}
+        <header className="mb-4 flex items-start gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-ml-2 mt-0.5 h-10 w-10 shrink-0 rounded-full"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/collection"))}
+            aria-label={t("chrome.common.back")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">{t("engage.oshi.pageTitle")}</h1>
+            <p className="text-sm text-muted-foreground">{t("engage.oshi.pageSub")}</p>
+          </div>
         </header>
 
         {/* 今日の1枚 */}
