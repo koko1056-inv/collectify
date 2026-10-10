@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
+import { checkRateLimit, corsHeadersFor, jsonResponse, rateLimitedResponse, readJson, requireUser } from '../_shared/security.ts'
 
 interface VisionAnnotation {
   description: string;
@@ -29,40 +25,43 @@ interface VisionWebPage {
 }
 
 serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req)
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { status: 204, headers: corsHeaders })
   }
 
-  try {
-    // 認証チェック
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      )
-    }
+  // 認証チェック: auth.getUser() で本物のログインユーザーか確かめる
+  // （Authorization ヘッダがあるだけでは通さない）
+  const auth = await requireUser(req, corsHeaders)
+  if (!auth.ok) return auth.response
 
+  try {
     const apiKey = Deno.env.get('GOOGLE_CLOUD_VISION_API_KEY')
     if (!apiKey) {
-      throw new Error('GOOGLE_CLOUD_VISION_API_KEY is not configured')
+      console.error('GOOGLE_CLOUD_VISION_API_KEY is not configured')
+      return jsonResponse(corsHeaders, { error: 'Image analysis is not available' }, 500)
     }
 
-    const { imageUrl, searchMode } = await req.json()
-    
-    if (!imageUrl) {
-      throw new Error('Image URL is required')
+    const body = await readJson(req)
+    const imageUrl = body?.imageUrl
+    const searchMode = body?.searchMode
+
+    if (!imageUrl || typeof imageUrl !== 'string') {
+      return jsonResponse(corsHeaders, { error: 'Image URL is required' }, 400)
     }
 
     // 入力サイズ制限（Base64で10MB以内）
-    if (typeof imageUrl === 'string' && imageUrl.length > 10 * 1024 * 1024) {
-      return new Response(
-        JSON.stringify({ error: 'Image data too large (max 10MB)' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+    if (imageUrl.length > 10 * 1024 * 1024) {
+      return jsonResponse(corsHeaders, { error: 'Image data too large (max 10MB)' }, 400)
     }
 
-    console.log('Starting Google Cloud Vision analysis, mode:', searchMode || 'all');
+    // Vision API は有料なので 10分に30回まで
+    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限に置き換えること（_shared/security.ts 参照）
+    const limit = checkRateLimit(`analyze-image:${auth.user.id}`, 30, 10 * 60 * 1000)
+    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec)
+
+    console.log('Starting Google Cloud Vision analysis, mode:', typeof searchMode === 'string' ? searchMode.slice(0, 20) : 'all');
 
     // Base64データからプレフィックスを除去
     let imageContent = imageUrl
@@ -180,12 +179,17 @@ serve(async (req) => {
     
     if (keywords.length > 0) {
       // キーワードでOR検索
-      const searchTerms = keywords.slice(0, 8)
+      // キーワードは外部サービス（Vision API）の出力なので、PostgREST のフィルタ文字列を
+      // 壊す文字を落としてから埋め込む
+      const searchTerms = keywords
+        .slice(0, 8)
+        .map(keyword => keyword.replace(/[%*,()\\"'`]/g, ' ').trim())
+        .filter(keyword => keyword.length > 0)
       const orConditions = searchTerms
         .map(keyword => `title.ilike.%${keyword}%,description.ilike.%${keyword}%`)
         .join(',')
       
-      const { data, error } = await supabase
+      const { data, error } = searchTerms.length === 0 ? { data: [], error: null } : await supabase
         .from('official_items')
         .select('*')
         .or(orConditions)
@@ -200,8 +204,7 @@ serve(async (req) => {
 
     console.log(`Found ${items.length} app items, ${visuallySimilarImages.length} web similar images`)
 
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(corsHeaders, {
         detection: {
           objects,
           labels,
@@ -216,17 +219,10 @@ serve(async (req) => {
         },
         keywords,
         items,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    })
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ 
-        error: 'An unexpected error occurred', 
-        details: error.message 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+    // 内部のエラー文言（details）はクライアントに返さない
+    return jsonResponse(corsHeaders, { error: 'An unexpected error occurred' }, 500)
   }
 })

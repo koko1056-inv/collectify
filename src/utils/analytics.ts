@@ -54,7 +54,6 @@ export const trackLogin = async (userId: string, method: string = 'email') => {
 
     safeIdentify(userId);
     safePeopleSet({
-      $email: userId,
       $last_login: new Date().toISOString(),
       username: profile?.username,
     });
@@ -79,7 +78,6 @@ export const trackSignup = async (userId: string, method: string = 'email') => {
 
     safeIdentify(userId);
     safePeopleSet({
-      $email: userId,
       $created: new Date().toISOString(),
       $last_login: new Date().toISOString(),
       username: profile?.username,
