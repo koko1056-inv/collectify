@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { hostMatches, mediaType, readBodyCapped, safeFetch, SsrfError } from "../_shared/ssrf.ts";
 
 // 画像だけを返す公開の中継なので、CORS は全許可のまま（認証なし・<img src> から直接呼ばれる）。
@@ -57,13 +58,39 @@ function supabaseHost(): string | null {
   }
 }
 
+/**
+ * カタログ（official_items）に管理者が登録した画像のホストは、DB の proxy_allowed_hosts に自動で入る
+ * （トリガー record_proxy_allowed_host）。取り込みで新しい取得元が増えても、ここを直さずに画像が出る。
+ * 一般ユーザーが登録した画像のホストは入らない。5分ごとに読み直す。
+ */
+let dbHosts: string[] = [];
+let dbHostsLoadedAt = 0;
+const DB_HOSTS_TTL_MS = 5 * 60 * 1000;
+
+async function refreshDbHosts(): Promise<void> {
+  if (Date.now() - dbHostsLoadedAt < DB_HOSTS_TTL_MS) return;
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+  try {
+    const { data, error } = await createClient(url, key).from("proxy_allowed_hosts").select("host");
+    if (error) throw error;
+    dbHosts = (data ?? []).map((r: { host: string }) => r.host).filter(Boolean);
+    dbHostsLoadedAt = Date.now();
+  } catch (e) {
+    // 読めないときは既定の一覧だけで動かす。次のリクエストでまた試す（連打しないよう少し待つ）
+    console.error("proxy-image: failed to load allowed hosts:", e instanceof Error ? e.message : e);
+    dbHostsLoadedAt = Date.now() - DB_HOSTS_TTL_MS + 30_000;
+  }
+}
+
 function allowedHosts(): string[] {
   const extra = (Deno.env.get("PROXY_IMAGE_ALLOWED_HOSTS") ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const own = supabaseHost();
-  return [...DEFAULT_ALLOWED_HOSTS, ...(own ? [own] : []), ...extra];
+  return [...DEFAULT_ALLOWED_HOSTS, ...dbHosts, ...(own ? [own] : []), ...extra];
 }
 
 /** 許可リストの検査。リダイレクトのホップごとにも呼ぶ。 */
@@ -179,6 +206,8 @@ serve(async (req) => {
     if (!targetUrl || typeof targetUrl !== "string") {
       return jsonError({ error: "URL is required" }, 400);
     }
+
+    await refreshDbHosts();
 
     // 入口で形と許可リストを検査する（DNS の検査と再確認は fetchWithRetry の中でホップごとに行う）
     try {

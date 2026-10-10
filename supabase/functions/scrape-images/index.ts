@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { checkRateLimit, corsHeadersFor, jsonResponse, rateLimitedResponse, readJson, requireUser } from '../_shared/security.ts'
+import { checkRateLimit, corsHeadersFor, jsonResponse, rateLimitedResponse, readJson, requireAdmin } from '../_shared/security.ts'
 import { mediaType, parsePublicHttpsUrl, readBodyCapped, safeFetch, SsrfError } from '../_shared/ssrf.ts'
 
 // 取得する HTML の上限（先頭1MBだけ読む。超えた分は打ち切り）
@@ -16,7 +16,7 @@ serve(async (req) => {
 
   // 認証チェック: auth.getUser() で本物のログインユーザーか確かめる
   // （Authorization ヘッダがあるだけでは通さない）
-  const auth = await requireUser(req, corsHeaders)
+  const auth = await requireAdmin(req, corsHeaders)
   if (!auth.ok) return auth.response
 
   try {
