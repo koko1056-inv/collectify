@@ -82,7 +82,8 @@
 ### 定期実行の設定（ルーティン）
 
 - 毎朝 6:47（日本時間）に、Supabase のコネクタ付きで実行される。プロンプトはこの文書が無くても完結するように書いてある（リポジトリが無い環境で動くため）。見張り先を足したら、ルーティンのプロンプトにも足すこと。
-- 取り込みは `import_official_batch()` を使う。結果は `catalog_import_log` に毎回1行残る（管理者だけが読める）: `select run_at, added, summary from catalog_import_log order by id desc limit 10;`
+- 見張り先（Shopify の公式ストア）: BMSG SHOP（`bmsg:`）、ホロライブ `shop.hololivepro.com`（`hololivepro:`）、ちいかわ `chiikawamarket.jp`（`chiikawamarket:`）、M!LK の PLUS GOODS STORE（`plusstore:`）と旧ストア（`sdstore:`）。いずれも robots.txt は許可。`products.json` の `published_at` が直近14日のものを送る。
+- 取り込みは `import_official_batch()` を使う。同じ ID に加えて、同じ作品の同じタイトル・同じ画像（`?` 以降を除く）の商品も自動で弾く（ホロライブは過去の取り込みと ID の形式が違うため。マイグレーション `20261010860000`）。結果は `catalog_import_log` に毎回1行残る（管理者だけが読める）: `select run_at, added, summary from catalog_import_log order by id desc limit 10;`
 - 実行環境からは、Cloudflare の確認画面で止まるサイトがある（例: STARDUST PLUS GOODS STORE）。その場合は飛ばし、別の取得元（M!LK なら旧ストア）を使う。確認画面を突破・回避はしない。
 
 ### 報告
