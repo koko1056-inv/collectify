@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 export interface OfficialItemSummary {
   id: string;
@@ -122,15 +123,11 @@ export function useAddOfficialItem({ onAdded }: { onAdded?: () => Promise<unknow
       }
 
       await onAdded?.();
-      for (const queryKey of [
-        ["user-items"],
-        ["item-owners-count", item.id],
-        ["userPoints"],
-        ["collectionCount"],
-        ["hero-stats", user.id],
-      ]) {
-        await queryClient.invalidateQueries({ queryKey, refetchType: "all" });
-      }
+      // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+      await Promise.all([
+        invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id }),
+        queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" }),
+      ]);
 
       toast.success(t("itemDetails.buttons.addedToCollection"), {
         description: result.pointsAwarded

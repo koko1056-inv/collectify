@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { addToCollection } from "@/utils/collection-actions";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
@@ -150,7 +151,8 @@ export default function ItemPublic() {
       });
       if (result.success) {
         toast.success(t("engage.itemPage.addedToast"));
-        await refresh();
+        // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+        await Promise.all([refresh(), invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id })]);
       } else {
         console.error("addToCollection failed:", result.error);
         toast.error(t("engage.itemPage.addFailed"));

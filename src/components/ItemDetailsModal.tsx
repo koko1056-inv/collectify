@@ -13,6 +13,7 @@ import { Tag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TagManageModal } from "./tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemNoteField } from "./item-details/ItemNoteField";
 import { QuantityInput } from "./item-details/QuantityInput";
@@ -258,18 +259,9 @@ export function ItemDetailsModal({
       } = await deleteUserItem(itemId);
       if (error) throw error;
 
-      queryClient.invalidateQueries({
-        queryKey: ["user-items"]
-      });
-
-      if (officialItemId) {
-        queryClient.invalidateQueries({
-          queryKey: ["user-item-exists", officialItemId, user?.id]
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["item-owners-count", officialItemId]
-        });
-      }
+      // コレクションから計算している数字（コンプ進捗・登録数など）をまとめて引き直す。
+      // 以前は ["user-items"] などしか引き直しておらず、削除してもコンプ進捗・登録数が古いまま残った
+      void invalidateCollectionChanged(queryClient, { userId: user?.id, officialItemId });
       toast.success(t("chrome.itemDetails.deletedTitle"), {
         description: t("chrome.itemDetails.deletedDesc"),
       });

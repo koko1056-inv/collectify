@@ -9,6 +9,7 @@ import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -178,11 +179,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
       await refetchIsInCollection();
       // refetchType: "all" で非アクティブなクエリも強制再フェッチ（検索→コレクションタブ遷移時に即反映）
-      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id], refetchType: "all" });
+      // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+      await invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: id });
       await queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       // 効果音を再生
       playSuccessSound();
