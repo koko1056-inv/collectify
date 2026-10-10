@@ -86,7 +86,7 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
       parentTitle: room.title,
     });
     toast.success(t("chrome.exploreCard.styleCloneToast"));
-    navigate("/my-room?tab=studio&from=explore");
+    navigate("/me?tab=ai&from=explore");
   };
 
   const handleRemix = (e?: React.MouseEvent) => {
@@ -107,7 +107,7 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
       parentTitle: room.title,
     });
     toast.success(t("chrome.exploreCard.remixToast"));
-    navigate("/my-room?tab=studio&from=explore");
+    navigate("/me?tab=ai&from=explore");
   };
 
   return (

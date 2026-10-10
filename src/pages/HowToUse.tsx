@@ -481,7 +481,7 @@ export default function HowToUse() {
                 size="lg"
                 variant="outline"
                 className="text-base px-8"
-                onClick={() => navigate("/my-room")}
+                onClick={() => navigate("/me?tab=ai")}
               >
                 <Home className="w-5 h-5 mr-2" />
                 {t("screens.howToUse.ctaMyRoom")}

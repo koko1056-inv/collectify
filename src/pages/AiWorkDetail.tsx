@@ -69,7 +69,7 @@ export default function AiWorkDetail() {
       parentTitle: room.title,
     });
     toast.success(t("screens.aiWorkDetail.styleCloneToast"));
-    navigate("/my-room?tab=studio&from=explore");
+    navigate("/me?tab=ai&from=explore");
   };
 
   const handleRemix = () => {
@@ -90,7 +90,7 @@ export default function AiWorkDetail() {
       parentTitle: room.title,
     });
     toast.success(t("screens.aiWorkDetail.remixToast"));
-    navigate("/my-room?tab=studio&from=explore");
+    navigate("/me?tab=ai&from=explore");
   };
 
   return (

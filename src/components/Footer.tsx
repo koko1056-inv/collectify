@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { isNavActive } from "@/components/navigation/navGroups";
 import { useState } from "react";
-import { ArrowLeftRight, Boxes, Compass, Home, Plus } from "lucide-react";
+import { ArrowLeftRight, Boxes, Compass, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -47,7 +47,7 @@ export function Footer() {
   ];
   const rightTabs = [
     { to: "/explore", icon: Compass, label: t("chrome.nav.explore") },
-    { to: "/my-room", icon: Home, label: t("chrome.nav.myRoom") },
+    { to: "/me", icon: User, label: t("chrome.nav.myPage") },
   ];
 
   const renderTab = ({ to, icon: Icon, label }: typeof leftTabs[number]) => {

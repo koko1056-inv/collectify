@@ -145,6 +145,7 @@ export const profileScreen = {
       posts: "投稿",
       wishlist: "ほしい",
       saved: "保存",
+      ai: "AI作品",
     },
     settings: {
       appearance: "表示テーマ",
@@ -154,6 +155,9 @@ export const profileScreen = {
       title: "設定",
       messages: "メッセージ一覧",
       howTo: "使い方",
+      display: "表示",
+      pointsAndInvite: "ポイント・招待",
+      app: "アプリ",
     },
     account: {
       heading: "アカウント",
@@ -378,6 +382,7 @@ export const profileScreen = {
       posts: "Posts",
       wishlist: "Wishlist",
       saved: "Saved",
+      ai: "AI works",
     },
     settings: {
       appearance: "Appearance",
@@ -387,6 +392,9 @@ export const profileScreen = {
       title: "Settings",
       messages: "Messages",
       howTo: "How to use",
+      display: "Display",
+      pointsAndInvite: "Points & invites",
+      app: "App",
     },
     account: {
       heading: "Account",

@@ -150,13 +150,16 @@ export const PAGE_TOURS: PageTour[] = [
     ],
   },
   {
-    id: "my-room-v1",
-    path: "/my-room",
+    // 以前の「マイルーム」は「マイページ」にまとめた
+    id: "me-v1",
+    path: "/me",
+    // 設定シート（?settings=1）を開いているあいだは出さない。シートの上に重なって裏の要素を指してしまう
+    query: { settings: null },
     steps: [
       {
-        target: "myroom-main",
-        titleKey: "tour.myRoom.main.title",
-        bodyKey: "tour.myRoom.main.body",
+        target: "me-tabs",
+        titleKey: "tour.me.tabs.title",
+        bodyKey: "tour.me.tabs.body",
       },
     ],
   },

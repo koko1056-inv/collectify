@@ -103,7 +103,7 @@ export function AiCreationPicker({ open, onOpenChange, onPick }: AiCreationPicke
         ) : items.length === 0 ? (
           <div className="space-y-3 py-6 text-center">
             <p className="text-sm text-muted-foreground">{t("engage.posts.aiPickerEmpty")}</p>
-            <Button size="sm" className="gap-1.5" onClick={() => navigate("/my-room?tab=studio&from=post")}>
+            <Button size="sm" className="gap-1.5" onClick={() => navigate("/me?tab=ai&from=post")}>
               <Wand2 className="h-4 w-4" />
               {t("engage.posts.aiOpenStudio")}
             </Button>
