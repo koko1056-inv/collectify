@@ -13,6 +13,13 @@ const CATALOG_THUMB_PREFIX = `${STORAGE_PUBLIC_PREFIX}catalog-thumbs/v1/`;
 /** サムネの大きさ（長辺 px）。これ以下の幅で表示するときだけサムネを使う */
 export const CATALOG_THUMB_MAX_WIDTH = 480;
 
+/**
+ * サムネを使うかどうか。全件のサムネ作り（バックフィル）が終わるまでは false にしておく。
+ * まだ無いサムネを先に取りに行くと 404 を待ってから元の経路に戻るため、今より遅くなる。
+ * バックフィルが終わったら true にする。
+ */
+export const CATALOG_THUMBS_ENABLED = false;
+
 const thumbCache = new Map<string, string>();
 
 /**
@@ -24,6 +31,7 @@ const thumbCache = new Map<string, string>();
  * （fallbackToOriginal / LazyImage はそうしている）。
  */
 export function getCatalogThumbUrl(src: string | null | undefined): string | null {
+  if (!CATALOG_THUMBS_ENABLED) return null;
   if (!src || !src.startsWith("https://")) return null;
   // 自前の Storage の画像は画像変換で縮めるので対象外（proxy-image 経由のURLは対象）
   if (src.includes("/storage/v1/")) return null;
