@@ -35,6 +35,7 @@ import { CollectionExplorer, type CollectionFacet } from "./collection/Collectio
 import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
 import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
 import { OnThisDayCard } from "./collection/OnThisDayCard";
+import { DailyHubCard } from "./daily/DailyHubCard";
 import { DuplicateCleanupBanner } from "./collection/DuplicateCleanupBanner";
 import { UniverseEntryCard } from "./universe/UniverseEntryCard";
 import { UniverseView } from "./universe/UniverseView";
@@ -445,6 +446,8 @@ export function UserCollection({
 
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      {isOwnCollection && <DailyHubCard />}
+
       {onThisDay && !onThisDayDismissed && (
         <OnThisDayCard
           memory={onThisDay}
