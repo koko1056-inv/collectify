@@ -19,6 +19,7 @@ import { engage } from './engage';
 import { universe } from './universe';
 import { pwa } from './pwa';
 import { safety } from './safety';
+import { cosmetics } from './cosmetics';
 
 export const moduleTranslations = {
   ja: {
@@ -41,6 +42,7 @@ export const moduleTranslations = {
     universe: universe.ja,
     pwa: pwa.ja,
     safety: safety.ja,
+    cosmetics: cosmetics.ja,
   },
   en: {
     admin: admin.en,
@@ -62,5 +64,6 @@ export const moduleTranslations = {
     universe: universe.en,
     pwa: pwa.en,
     safety: safety.en,
+    cosmetics: cosmetics.en,
   },
 };

@@ -373,3 +373,30 @@
     }
   }
 }
+
+/* 着せ替え（ポイントで解放する見た目）の動き。
+   ホログラムのカバーは色がゆっくり流れ、ホログラムの縁はゆっくり回る。
+   「視差効果を減らす」を選んでいる人には動かさない（止まった柄だけを見せる） */
+@media (prefers-reduced-motion: no-preference) {
+  .cosmetic-shimmer {
+    animation: cosmetic-shimmer 14s ease-in-out infinite alternate;
+  }
+  .cosmetic-spin {
+    animation: cosmetic-spin 9s linear infinite;
+  }
+}
+
+@keyframes cosmetic-shimmer {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes cosmetic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

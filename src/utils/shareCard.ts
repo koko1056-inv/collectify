@@ -9,6 +9,12 @@
  */
 
 import type { Universe } from "./universe/layout";
+import {
+  DEFAULT_SHARE_PALETTE,
+  SHARE_TEMPLATE_PALETTES,
+  type ShareCardPalette,
+  type ShareTemplateKey,
+} from "@/lib/cosmetics";
 
 export type ShareCardVariant = "series" | "status" | "universe";
 
@@ -53,18 +59,18 @@ export interface ShareCardInput {
   universe?: Universe;
   /** universe: 数字の見出しなど（画面の言語に合わせた文言） */
   universeLabels?: { goods: string; galaxies: string; biggest: string };
+  /** 限定デザイン（ポイントで解放）。省略時は標準。universe には効かない */
+  template?: ShareTemplateKey | null;
 }
 
 export const SHARE_CARD_WIDTH = 1080;
 export const SHARE_CARD_HEIGHT = 1350;
 // ストーリーズは上下をアプリのUIが覆うので、中身は縦長キャンバスの中央に 4:5 の領域として置く
 
-const INK = "#2A1F24";
-const MUTED = "#8A7B80";
-const PAPER = "#FBF7F2";
-const ROSE = "#D94A64";
-const ROSE_SOFT = "#F7DDE2";
-const GOLD = "#E0A21B";
+// 標準の色は DEFAULT_SHARE_PALETTE（限定デザインの色と一緒に lib/cosmetics.ts にまとめてある）。
+// QR は読み取りやすさを優先し、どのデザインでも白地に濃い色で描く。
+const INK = DEFAULT_SHARE_PALETTE.ink;
+const ROSE = DEFAULT_SHARE_PALETTE.accent;
 export const FONT =
   '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, system-ui, sans-serif';
 
@@ -125,13 +131,14 @@ function drawCover(
   x: number,
   y: number,
   size: number,
-  radius: number
+  radius: number,
+  bg = "#FFFFFF"
 ) {
   ctx.save();
   roundRect(ctx, x, y, size, size, radius);
   ctx.clip();
   // グッズは縦長・横長が混ざる。切り取らず全体が見えるよう、枠に収めて余白は白で埋める
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = bg;
   ctx.fillRect(x, y, size, size);
   const scale = Math.min(size / img.width, size / img.height);
   const w = img.width * scale;
@@ -146,18 +153,19 @@ function drawEmptyTile(
   y: number,
   size: number,
   radius: number,
-  label?: string
+  label?: string,
+  P: ShareCardPalette = DEFAULT_SHARE_PALETTE
 ) {
   ctx.save();
   roundRect(ctx, x, y, size, size, radius);
-  ctx.fillStyle = "#F4ECE7";
+  ctx.fillStyle = P.emptyFill;
   ctx.fill();
   ctx.setLineDash([14, 12]);
   ctx.lineWidth = 3;
-  ctx.strokeStyle = "#D9C9C2";
+  ctx.strokeStyle = P.emptyStroke;
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = "#C9B6AE";
+  ctx.fillStyle = P.emptyText;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `700 ${Math.round(size * 0.34)}px ${FONT}`;
@@ -169,10 +177,17 @@ function drawEmptyTile(
   ctx.restore();
 }
 
-function drawPlainTile(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, radius: number) {
+function drawPlainTile(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  radius: number,
+  fill: string = DEFAULT_SHARE_PALETTE.accentSoft
+) {
   ctx.save();
   roundRect(ctx, x, y, size, size, radius);
-  ctx.fillStyle = ROSE_SOFT;
+  ctx.fillStyle = fill;
   ctx.fill();
   ctx.restore();
 }
@@ -207,21 +222,145 @@ export async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: num
 }
 
 /** ロゴ: 角丸のバッジ + ワードマーク */
-export function drawLogo(ctx: CanvasRenderingContext2D, x: number, baseline: number, scale = 1) {
+export function drawLogo(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  baseline: number,
+  scale = 1,
+  colors: { badge: string; letter: string } = { badge: ROSE, letter: "#fff" }
+) {
   const s = 56 * scale;
   roundRect(ctx, x, baseline - s + 8 * scale, s, s, 16 * scale);
-  ctx.fillStyle = ROSE;
+  ctx.fillStyle = colors.badge;
   ctx.fill();
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = colors.letter;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `900 ${Math.round(38 * scale)}px ${FONT}`;
   ctx.fillText("C", x + s / 2, baseline - s / 2 + 8 * scale + 2);
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = ROSE;
+  ctx.fillStyle = colors.badge;
   ctx.font = `800 ${Math.round(40 * scale)}px ${FONT}`;
   ctx.fillText("Collectify", x + s + 16 * scale, baseline);
+}
+
+/** 決まった種から並べる疑似乱数（同じカードは何度描いても同じ星の並びになる） */
+function seeded(seed: number) {
+  let x = seed;
+  return () => {
+    x = (x * 1664525 + 1013904223) % 4294967296;
+    return x / 4294967296;
+  };
+}
+
+/**
+ * 背景の飾り（カード全体）。紙の色を塗った直後に呼ぶ。
+ *  - 夜空: 星を散らす
+ *  - 和紙: 細い二重の枠
+ *  - モノクロ: 上下の太い罫
+ */
+function drawBackdrop(ctx: CanvasRenderingContext2D, W: number, H: number, template?: ShareTemplateKey | null) {
+  ctx.save();
+  if (template === "share:night") {
+    const rnd = seeded(7);
+    const n = Math.round((W * H) / 9000);
+    for (let i = 0; i < n; i++) {
+      const r = rnd() < 0.12 ? 2.4 : rnd() < 0.5 ? 1.4 : 0.9;
+      ctx.globalAlpha = 0.35 + rnd() * 0.55;
+      ctx.fillStyle = rnd() < 0.2 ? "#F2D27C" : "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(rnd() * W, rnd() * H, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const glow = ctx.createRadialGradient(W * 0.85, H, 0, W * 0.85, H, W * 0.8);
+    glow.addColorStop(0, "rgba(150,120,230,0.28)");
+    glow.addColorStop(1, "rgba(150,120,230,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+  } else if (template === "share:washi") {
+    // 和紙の繊維のような、ごく薄い線
+    const rnd = seeded(11);
+    ctx.strokeStyle = "rgba(125,116,102,0.10)";
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 140; i++) {
+      const x = rnd() * W;
+      const y = rnd() * H;
+      const a = rnd() * Math.PI;
+      const l = 12 + rnd() * 36;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + 6, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "rgba(31,42,68,0.55)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(40, 40, W - 80, H - 80);
+  } else if (template === "share:mono") {
+    ctx.fillStyle = "#111111";
+    ctx.fillRect(0, 0, W, 18);
+    ctx.fillRect(0, H - 18, W, 18);
+  }
+  ctx.restore();
+}
+
+/** 右上の飾り。標準と夜空は丸、和紙は麻の葉を詰めた丸、モノクロは描かない */
+function drawCornerMotif(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  template: ShareTemplateKey | null | undefined,
+  P: ShareCardPalette
+) {
+  if (template === "share:mono") return;
+  ctx.save();
+  ctx.fillStyle = P.accentSoft;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  if (template === "share:washi") {
+    // 麻の葉: 三角形の格子と、各三角形の重心から頂点への線
+    ctx.clip();
+    ctx.strokeStyle = "rgba(31,42,68,0.22)";
+    ctx.lineWidth = 1.6;
+    const side = 54;
+    const t = (side * Math.sqrt(3)) / 2;
+    const X = (j: number, k: number) => k * side + (((j % 2) + 2) % 2) * (side / 2);
+    const line = (a: number[], b: number[]) => {
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+    };
+    const tri = (a: number[], b: number[], c: number[]) => {
+      const g = [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3];
+      line(a, b);
+      line(b, c);
+      line(c, a);
+      line(g, a);
+      line(g, b);
+      line(g, c);
+    };
+    ctx.beginPath();
+    const j0 = Math.floor((cy - r) / t) - 1;
+    const j1 = Math.ceil((cy + r) / t) + 1;
+    const k0 = Math.floor((cx - r) / side) - 1;
+    const k1 = Math.ceil((cx + r) / side) + 1;
+    for (let j = j0; j <= j1; j++) {
+      for (let k = k0; k <= k1; k++) {
+        const y0 = j * t;
+        const y1 = (j + 1) * t;
+        const a = [X(j, k), y0];
+        const b = [X(j, k + 1), y0];
+        const below = X(j + 1, k) > a[0] ? X(j + 1, k) : X(j + 1, k + 1);
+        tri(a, b, [below, y1]);
+      }
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
@@ -237,8 +376,9 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   canvas.height = dims.height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas unsupported");
+  const P = input.template ? SHARE_TEMPLATE_PALETTES[input.template] : DEFAULT_SHARE_PALETTE;
 
-  if (format === "wide") return renderWide(ctx, canvas, input);
+  if (format === "wide") return renderWide(ctx, canvas, input, P);
 
   const isSeries = input.variant === "series";
   // 正方形は縦が足りないので1行だけ。ほかは従来どおり
@@ -254,28 +394,26 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const bitmaps = await Promise.all(input.images.slice(0, slots).map(loadBitmap));
 
   // 背景
-  ctx.fillStyle = PAPER;
+  ctx.fillStyle = P.paper;
   ctx.fillRect(0, 0, dims.width, dims.height);
+  drawBackdrop(ctx, dims.width, dims.height, input.template);
   if (format === "story") ctx.translate(0, (dims.height - SHARE_CARD_HEIGHT_LOCAL) / 2);
-  ctx.fillStyle = ROSE_SOFT;
-  ctx.beginPath();
-  ctx.arc(SHARE_CARD_WIDTH - 40, -20, 330, 0, Math.PI * 2);
-  ctx.fill();
+  drawCornerMotif(ctx, SHARE_CARD_WIDTH - 40, -20, 330, input.template, P);
 
   // ヘッダー
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
-  drawLogo(ctx, margin, 108);
+  drawLogo(ctx, margin, 108, 1, { badge: P.accent, letter: P.logoText });
 
   ctx.textAlign = "right";
-  ctx.fillStyle = MUTED;
+  ctx.fillStyle = P.muted;
   ctx.font = `600 30px ${FONT}`;
   const owner = ctx.measureText(input.ownerName).width > 420 ? input.ownerName.slice(0, 12) + "…" : input.ownerName;
   ctx.fillText(owner, SHARE_CARD_WIDTH - margin, 106);
 
   // 見出し
   ctx.textAlign = "left";
-  ctx.fillStyle = INK;
+  ctx.fillStyle = P.ink;
   ctx.font = `800 68px ${FONT}`;
   const headLines = wrapText(ctx, input.headline, SHARE_CARD_WIDTH - margin * 2, 2);
   let y = 210;
@@ -293,18 +431,18 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
     // 大きな達成率
     y += 40;
-    ctx.fillStyle = input.complete ? GOLD : ROSE;
+    ctx.fillStyle = input.complete ? P.gold : P.accent;
     ctx.font = `900 200px ${FONT}`;
     ctx.fillText(`${pct}`, margin, y + 120);
     const numW = ctx.measureText(`${pct}`).width;
     ctx.font = `800 80px ${FONT}`;
     ctx.fillText("%", margin + numW + 8, y + 120);
 
-    ctx.fillStyle = INK;
+    ctx.fillStyle = P.ink;
     ctx.font = `700 44px ${FONT}`;
     ctx.textAlign = "right";
     ctx.fillText(`${owned} / ${total}`, SHARE_CARD_WIDTH - margin, y + 70);
-    ctx.fillStyle = MUTED;
+    ctx.fillStyle = P.muted;
     ctx.font = `600 30px ${FONT}`;
     ctx.fillText(input.collectedLabel ?? "collected", SHARE_CARD_WIDTH - margin, y + 118);
     ctx.textAlign = "left";
@@ -313,11 +451,11 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
     const barY = y + 160;
     const barW = SHARE_CARD_WIDTH - margin * 2;
     roundRect(ctx, margin, barY, barW, 26, 13);
-    ctx.fillStyle = "#EADCD6";
+    ctx.fillStyle = P.track;
     ctx.fill();
     if (pct > 0) {
       roundRect(ctx, margin, barY, Math.max(26, (barW * pct) / 100), 26, 13);
-      ctx.fillStyle = input.complete ? GOLD : ROSE;
+      ctx.fillStyle = input.complete ? P.gold : P.accent;
       ctx.fill();
     }
 
@@ -326,9 +464,9 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
       ctx.font = `800 34px ${FONT}`;
       const w = ctx.measureText(label).width + 56;
       roundRect(ctx, SHARE_CARD_WIDTH - margin - w, 150, w, 60, 30);
-      ctx.fillStyle = GOLD;
+      ctx.fillStyle = P.gold;
       ctx.fill();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = P.logoText;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(label, SHARE_CARD_WIDTH - margin - w / 2, 181);
@@ -345,13 +483,13 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
       const cx = margin + (i % 2) * (cellW + gap);
       const cy = top + Math.floor(i / 2) * 150;
       roundRect(ctx, cx, cy, cellW, 126, 28);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = P.card;
       ctx.fill();
-      ctx.fillStyle = ROSE;
+      ctx.fillStyle = P.accent;
       ctx.font = `900 62px ${FONT}`;
       ctx.textAlign = "left";
       ctx.fillText(s.value, cx + 32, cy + 70);
-      ctx.fillStyle = MUTED;
+      ctx.fillStyle = P.muted;
       ctx.font = `600 28px ${FONT}`;
       ctx.fillText(s.label, cx + 32, cy + 108);
     });
@@ -375,14 +513,14 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
     const ty = gridTop + Math.floor(i / cols) * (size + gap);
     const bmp = bitmaps[i];
     if (bmp) {
-      drawCover(ctx, bmp, x, ty, size, 28);
+      drawCover(ctx, bmp, x, ty, size, 28, P.tile);
     } else if (!isSeries) {
-      drawEmptyTile(ctx, x, ty, size, 28);
+      drawEmptyTile(ctx, x, ty, size, 28, undefined, P);
     } else if (i < owned) {
       // 持っているが画像が取れなかった枠。「未所持」に見せないよう、無地で置く
-      drawPlainTile(ctx, x, ty, size, 28);
+      drawPlainTile(ctx, x, ty, size, 28, P.accentSoft);
     } else if (i < total) {
-      drawEmptyTile(ctx, x, ty, size, 28, i === firstMissing ? input.missingLabel : undefined);
+      drawEmptyTile(ctx, x, ty, size, 28, i === firstMissing ? input.missingLabel : undefined, P);
     }
     // 総数を超える枠は描かない（コンプ済みで枠が余っても「?」を出さない）
   }
@@ -391,10 +529,10 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const qrSize = 150;
   const footerBottom = SHARE_CARD_HEIGHT_LOCAL - 44;
   ctx.textAlign = "left";
-  ctx.fillStyle = INK;
+  ctx.fillStyle = P.ink;
   ctx.font = `700 34px ${FONT}`;
   ctx.fillText(input.tagline, margin, footerBottom - 44);
-  ctx.fillStyle = ROSE;
+  ctx.fillStyle = P.accent;
   ctx.font = `600 26px ${FONT}`;
   const shortUrl = input.footerUrl.replace(/^https?:\/\//, "");
   ctx.fillText(wrapText(ctx, shortUrl, SHARE_CARD_WIDTH - margin * 2 - qrSize - 24, 1)[0] ?? shortUrl, margin, footerBottom);
@@ -414,7 +552,8 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 async function renderWide(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
-  input: ShareCardInput
+  input: ShareCardInput,
+  P: ShareCardPalette
 ): Promise<Blob> {
   const W = canvas.width;
   const H = canvas.height;
@@ -423,23 +562,21 @@ async function renderWide(
   const leftW = 540;
   const bitmaps = await Promise.all(input.images.slice(0, 6).map(loadBitmap));
 
-  ctx.fillStyle = PAPER;
+  ctx.fillStyle = P.paper;
   ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = ROSE_SOFT;
-  ctx.beginPath();
-  ctx.arc(W - 20, -30, 260, 0, Math.PI * 2);
-  ctx.fill();
+  drawBackdrop(ctx, W, H, input.template);
+  drawCornerMotif(ctx, W - 20, -30, 260, input.template, P);
 
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
-  drawLogo(ctx, margin, 96, 0.8);
+  drawLogo(ctx, margin, 96, 0.8, { badge: P.accent, letter: P.logoText });
 
-  ctx.fillStyle = MUTED;
+  ctx.fillStyle = P.muted;
   ctx.font = `600 24px ${FONT}`;
   const owner = ctx.measureText(input.ownerName).width > 300 ? input.ownerName.slice(0, 10) + "…" : input.ownerName;
   ctx.fillText(owner, margin + 2, 140);
 
-  ctx.fillStyle = INK;
+  ctx.fillStyle = P.ink;
   ctx.font = `800 42px ${FONT}`;
   const headLines = wrapText(ctx, input.headline, leftW, 2);
   let y = 204;
@@ -452,24 +589,24 @@ async function renderWide(
     const owned = input.owned ?? 0;
     const total = Math.max(input.total ?? 0, owned, 1);
     const pct = Math.min(100, Math.round((owned / total) * 100));
-    const color = input.complete ? GOLD : ROSE;
+    const color = input.complete ? P.gold : P.accent;
     ctx.fillStyle = color;
     ctx.font = `900 130px ${FONT}`;
     ctx.fillText(`${pct}`, margin, y + 96);
     const numW = ctx.measureText(`${pct}`).width;
     ctx.font = `800 52px ${FONT}`;
     ctx.fillText("%", margin + numW + 6, y + 96);
-    ctx.fillStyle = INK;
+    ctx.fillStyle = P.ink;
     ctx.font = `700 34px ${FONT}`;
     ctx.textAlign = "right";
     ctx.fillText(`${owned} / ${total}`, margin + leftW, y + 52);
-    ctx.fillStyle = MUTED;
+    ctx.fillStyle = P.muted;
     ctx.font = `600 22px ${FONT}`;
     ctx.fillText(input.collectedLabel ?? "collected", margin + leftW, y + 86);
     ctx.textAlign = "left";
     const barY = y + 118;
     roundRect(ctx, margin, barY, leftW, 20, 10);
-    ctx.fillStyle = "#EADCD6";
+    ctx.fillStyle = P.track;
     ctx.fill();
     if (pct > 0) {
       roundRect(ctx, margin, barY, Math.max(20, (leftW * pct) / 100), 20, 10);
@@ -481,9 +618,9 @@ async function renderWide(
       ctx.font = `800 24px ${FONT}`;
       const w = ctx.measureText(label).width + 40;
       roundRect(ctx, margin + leftW - w, 72, w, 44, 22);
-      ctx.fillStyle = GOLD;
+      ctx.fillStyle = P.gold;
       ctx.fill();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = P.logoText;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(label, margin + leftW - w / 2, 95);
@@ -498,12 +635,12 @@ async function renderWide(
       const cx = margin + (i % 2) * (cellW + gap);
       const cy = y - 6 + Math.floor(i / 2) * 118;
       roundRect(ctx, cx, cy, cellW, 100, 22);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = P.card;
       ctx.fill();
-      ctx.fillStyle = ROSE;
+      ctx.fillStyle = P.accent;
       ctx.font = `900 46px ${FONT}`;
       ctx.fillText(s.value, cx + 24, cy + 54);
-      ctx.fillStyle = MUTED;
+      ctx.fillStyle = P.muted;
       ctx.font = `600 22px ${FONT}`;
       ctx.fillText(s.label, cx + 24, cy + 86);
     });
@@ -521,18 +658,18 @@ async function renderWide(
     const x = gridLeft + (i % 3) * (size + gap);
     const ty = gridTop + Math.floor(i / 3) * (size + gap);
     const bmp = bitmaps[i];
-    if (bmp) drawCover(ctx, bmp, x, ty, size, 22);
-    else if (!isSeries) drawEmptyTile(ctx, x, ty, size, 22);
-    else if (i < owned) drawPlainTile(ctx, x, ty, size, 22);
-    else if (i < total) drawEmptyTile(ctx, x, ty, size, 22);
+    if (bmp) drawCover(ctx, bmp, x, ty, size, 22, P.tile);
+    else if (!isSeries) drawEmptyTile(ctx, x, ty, size, 22, undefined, P);
+    else if (i < owned) drawPlainTile(ctx, x, ty, size, 22, P.accentSoft);
+    else if (i < total) drawEmptyTile(ctx, x, ty, size, 22, undefined, P);
   }
 
   // フッター
   const qrSize = 150;
-  ctx.fillStyle = INK;
+  ctx.fillStyle = P.ink;
   ctx.font = `700 26px ${FONT}`;
   ctx.fillText(input.tagline, margin, H - 66);
-  ctx.fillStyle = ROSE;
+  ctx.fillStyle = P.accent;
   ctx.font = `600 22px ${FONT}`;
   const shortUrl = input.footerUrl.replace(/^https?:\/\//, "");
   ctx.fillText(wrapText(ctx, shortUrl, W - margin * 2 - qrSize - 24, 1)[0] ?? shortUrl, margin, H - 30);

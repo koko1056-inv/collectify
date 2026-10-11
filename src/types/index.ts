@@ -64,4 +64,8 @@ export interface Profile {
   x_username: string | null;
   featured_room_id?: string | null;
   featured_avatar_id?: string | null;
+  /** 着せ替え（ポイントで解放）: カバー柄・アイコンの縁・推し色。未設定は null */
+  profile_cover_key?: string | null;
+  avatar_frame_key?: string | null;
+  profile_oshi_color?: string | null;
 }

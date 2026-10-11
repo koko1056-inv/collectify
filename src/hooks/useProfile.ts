@@ -30,7 +30,10 @@ export function useProfile(userId: string | undefined) {
           interests,
           x_username,
           featured_room_id,
-          featured_avatar_id
+          featured_avatar_id,
+          profile_cover_key,
+          avatar_frame_key,
+          profile_oshi_color
         `)
         .eq("id", userId)
         .maybeSingle();

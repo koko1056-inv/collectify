@@ -1,0 +1,203 @@
+import { Check, Package, Sparkles, Tag as TagIcon } from "lucide-react";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PointIcon } from "@/components/ui/point-icon";
+import { IconTile } from "@/components/ui/icon-tile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
+import { useMyUnlocks } from "@/hooks/useCosmetics";
+import type { PointShopItem } from "@/hooks/usePointShop";
+import { CoverArt } from "@/components/cosmetics/CoverArt";
+import { AvatarFrame } from "@/components/cosmetics/AvatarFrame";
+import {
+  DEFAULT_SHARE_PALETTE,
+  SHARE_TEMPLATE_PALETTES,
+  cosmeticI18nId,
+  isCoverKey,
+  isFrameKey,
+  isShareTemplateKey,
+} from "@/lib/cosmetics";
+
+/** 棚の並び。DB の category と同じ値 */
+const CATEGORIES = ["cosmetic", "share", "capacity"] as const;
+
+/**
+ * ポイントで交換できるアイテムを棚（枠をふやす / 着せ替え / シェアカード）ごとに並べる。
+ * 着せ替えは小さな見本を添え、解放済みなら「所持済み」にする（買い切りなので二度は買えない）。
+ * 名前と説明は、着せ替えは翻訳から、枠などは DB の文言をそのまま出す。
+ */
+export function ShopItemGroups({
+  items,
+  currentPoints,
+  pending,
+  onExchange,
+}: {
+  items: PointShopItem[];
+  currentPoints: number;
+  pending: boolean;
+  /** 交換の確認を開く。名前・説明は画面の言語に合わせたものに差し替えて渡す */
+  onExchange: (item: PointShopItem) => void;
+}) {
+  const { t } = useLanguage();
+  const { owned } = useMyUnlocks();
+
+  const label = (item: PointShopItem) => {
+    const key = item.unlock_key;
+    if (!key) return { name: item.name, desc: item.description };
+    const id = cosmeticI18nId(key);
+    const kind = key.split(":")[0];
+    return {
+      name: t(`cosmetics.kind.${kind}`, { name: t(`cosmetics.items.${id}.name`) }),
+      desc: t(`cosmetics.items.${id}.desc`),
+    };
+  };
+
+  // 知らない棚の商品は「枠をふやす」に入れる（出し忘れを防ぐ）
+  const shelfOf = (i: PointShopItem) =>
+    (CATEGORIES as readonly string[]).includes(i.category) ? i.category : "capacity";
+  const groups = CATEGORIES.map((c) => ({
+    category: c,
+    items: items.filter((i) => shelfOf(i) === c),
+  })).filter((g) => g.items.length > 0);
+
+  return (
+    <div className="space-y-5">
+      {groups.map((g) => (
+        <div key={g.category}>
+          <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{t(`cosmetics.shop.${g.category}`)}</h3>
+          {g.category === "capacity" ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {g.items.map((item) => {
+                const affordable = currentPoints >= item.points_cost;
+                const { name, desc } = label(item);
+                return (
+                  <Card key={item.id}>
+                    <CardHeader className="flex-row items-start gap-3 space-y-0 pb-2">
+                      <ItemPreview item={item} />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <CardTitle className="text-base leading-snug">{name}</CardTitle>
+                        {desc && <CardDescription className="text-xs">{desc}</CardDescription>}
+                      </div>
+                    </CardHeader>
+                    <CardFooter className="flex items-center justify-between pt-0">
+                      <PriceBadge cost={item.points_cost} />
+                      <Button
+                        size="sm"
+                        disabled={!affordable || pending}
+                        onClick={() => onExchange({ ...item, name, description: desc })}
+                      >
+                        {affordable
+                          ? t("screens.pointShop.exchangeBuy")
+                          : t("screens.pointShop.exchangeInsufficient")}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            // 着せ替え・シェアカードは見本が主役。数が多いので2列（広い画面は3列）の小さな札で並べる
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {g.items.map((item) => {
+                const isOwned = !!item.unlock_key && owned.has(item.unlock_key);
+                const affordable = currentPoints >= item.points_cost;
+                const { name, desc } = label(item);
+                const shortName = item.unlock_key
+                  ? t(`cosmetics.items.${cosmeticI18nId(item.unlock_key)}.name`)
+                  : name;
+                return (
+                  <Card key={item.id} className="flex flex-col gap-2 p-2">
+                    <ItemPreview item={item} large />
+                    <div className="flex min-w-0 items-center justify-between gap-1 px-0.5">
+                      <span className="truncate text-sm font-semibold">{shortName}</span>
+                      <span className="flex shrink-0 items-center gap-0.5 text-xs font-semibold tabular-nums">
+                        <PointIcon size={12} />
+                        {item.points_cost}
+                      </span>
+                    </div>
+                    {isOwned ? (
+                      <span className="flex h-8 items-center justify-center gap-1 rounded-md bg-success-soft text-xs font-medium text-success">
+                        <Check className="h-3.5 w-3.5" />
+                        {t("cosmetics.shop.owned")}
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant={affordable ? "default" : "secondary"}
+                        className="h-8 w-full text-xs"
+                        disabled={!affordable || pending}
+                        onClick={() => onExchange({ ...item, name, description: desc })}
+                        aria-label={`${name} ${item.points_cost}pt`}
+                      >
+                        {affordable
+                          ? t("screens.pointShop.exchangeBuy")
+                          : t("screens.pointShop.exchangeInsufficient")}
+                      </Button>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PriceBadge({ cost }: { cost: number }) {
+  return (
+    <Badge variant="secondary" className="gap-1 tabular-nums">
+      <PointIcon size={14} />
+      {cost}pt
+    </Badge>
+  );
+}
+
+/** 小さな見本。カバーは柄、縁はアイコンの輪、シェアカードは紙と色の札、枠は印 */
+function ItemPreview({ item, large }: { item: PointShopItem; large?: boolean }) {
+  const key = item.unlock_key;
+  const box = large ? "h-20 w-full" : "h-12 w-16";
+  if (isCoverKey(key)) {
+    return (
+      <span className={cn("relative block shrink-0 overflow-hidden rounded-lg ring-1 ring-inset ring-foreground/10", box)}>
+        <CoverArt coverKey={key} />
+      </span>
+    );
+  }
+  if (isFrameKey(key)) {
+    return (
+      <span className={cn("flex shrink-0 items-center justify-center rounded-lg bg-muted/60", box)}>
+        <AvatarFrame frameKey={key} thickness={large ? 4 : 3}>
+          <span className={cn("block rounded-full border-2 border-card bg-muted", large ? "h-12 w-12" : "h-8 w-8")} />
+        </AvatarFrame>
+      </span>
+    );
+  }
+  if (isShareTemplateKey(key)) {
+    const p = SHARE_TEMPLATE_PALETTES[key] ?? DEFAULT_SHARE_PALETTE;
+    return (
+      <span className={cn("flex shrink-0 items-center justify-center rounded-lg bg-muted/60", box)}>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "relative block overflow-hidden rounded ring-1 ring-inset ring-foreground/10 shadow-sm",
+            large ? "h-16 w-12" : "h-10 w-8"
+          )}
+          style={{ backgroundColor: p.paper }}
+        >
+          <span className="absolute left-1 right-1 top-1.5 h-1 rounded-full" style={{ backgroundColor: p.ink, opacity: 0.8 }} />
+          <span className="absolute left-1 top-3.5 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.accent }} />
+          <span className="absolute bottom-1.5 left-1 right-1 h-1 rounded-full" style={{ backgroundColor: p.track }} />
+        </span>
+      </span>
+    );
+  }
+  const Icon = item.item_type === "custom_tags" ? TagIcon : item.item_type === "collection_slots" ? Package : Sparkles;
+  return (
+    <IconTile tone="primary" size="md">
+      <Icon />
+    </IconTile>
+  );
+}
