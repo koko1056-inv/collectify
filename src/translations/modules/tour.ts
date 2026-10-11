@@ -23,7 +23,9 @@ export const tour = {
     collection: {
       nav: {
         title: "ここがあなたの棚です",
-        body: "下のタブは左から コレクション / 交換 / 追加 / みんな / マイルーム の5つです。中央の丸いボタンから、いつでもグッズを追加できます。",
+        body: "下のタブは左から コレクション / 交換 / 追加 / みんな / マイページ の5つです。中央の丸いボタンから、いつでもグッズを追加できます。",
+        // PC など広い画面では下タブが無く、同じ並びが画面上のメニューになる
+        bodyWide: "上のメニューは左から コレクション / 交換 / 追加 / みんな / マイページ の5つです。「追加」から、いつでもグッズを追加できます。",
       },
       checklist: {
         title: "まずはここを埋めていけばOK",
@@ -141,7 +143,8 @@ export const tour = {
     collection: {
       nav: {
         title: "This is your shelf",
-        body: "Five tabs along the bottom: Collection, Trade, Add, People and My Room. The round button in the middle adds goods at any time.",
+        body: "Five tabs along the bottom: Collection, Trade, Add, People and Me. The round button in the middle adds goods at any time.",
+        bodyWide: "Five items in the menu at the top: Collection, Trade, Add, People and Me. Use \"Add\" to add goods at any time.",
       },
       checklist: {
         title: "Start by working through this",

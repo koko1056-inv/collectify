@@ -36,16 +36,20 @@ export function OnboardingStepHeader({
   );
 }
 
-/** 画面下に固定する操作バー。ステップの縦並び（flex-col）の最後に置く */
+/**
+ * 画面下に固定する操作バー。ステップの縦並び（flex-col）の最後に置く。
+ * 横の余白（px-4）は内側の max-w-lg の中に取り、上の中身（mx-auto max-w-lg px-4）と端をそろえる。
+ * 以前は外側に取っていたため、max-w-lg が効く広い画面（PC）でボタンだけが中身より左右 16px ずつはみ出していた。
+ */
 export function OnboardingBottomBar({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div
       className={cn(
-        "shrink-0 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur",
+        "shrink-0 border-t bg-background/95 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur",
         className
       )}
     >
-      <div className="mx-auto max-w-lg">{children}</div>
+      <div className="mx-auto max-w-lg px-4">{children}</div>
     </div>
   );
 }

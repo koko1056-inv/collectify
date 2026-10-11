@@ -41,7 +41,8 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        // PC など広い画面では画面いっぱいに広げず、アプリの列の幅で中央に出す（下から出るシート sheet.tsx と同じ）
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background sm:mx-auto sm:max-w-xl",
         className
       )}
       {...props}

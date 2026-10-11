@@ -37,6 +37,8 @@ export const PAGE_TOURS: PageTour[] = [
         target: "nav-bar",
         titleKey: "tour.collection.nav.title",
         bodyKey: "tour.collection.nav.body",
+        // PC では下タブではなく画面上のメニューを指すので、説明もそちらに合わせる
+        wideBodyKey: "tour.collection.nav.bodyWide",
         padding: 4,
       },
       {
