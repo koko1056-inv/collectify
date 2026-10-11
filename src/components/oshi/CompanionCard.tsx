@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
-import { Camera, Check, Hand, Sparkles, X } from "lucide-react";
+import { Camera, Check, Gift, Hand, Heart, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useCareCompanion, type Companion } from "@/hooks/useOshi";
+import { useNavigate } from "react-router-dom";
+import {
+  giftErrorCode,
+  useCareCompanion,
+  useCompanionGiftKinds,
+  useGiveCompanionGift,
+  useTodayGiftCounts,
+  type Companion,
+  type GiftKind,
+} from "@/hooks/useOshi";
+import { CompanionGiftSheet } from "@/components/oshi/CompanionGiftSheet";
 import { frameClass, levelProgress, todayJst } from "@/utils/companion";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +30,7 @@ type CareAction = "pat" | "polish";
 /** 1回の反応で出す飾り（ハート・きらめき・+xp）。位置は毎回少しずらして、生きている感じを出す */
 interface Burst {
   id: number;
-  kind: CareAction;
+  kind: CareAction | "gift";
   xp: number;
 }
 
@@ -41,10 +51,16 @@ const ACTION_TONE = {
  * - 撫でる: 画像そのものをタップしても撫でられる。ふにっと揺れて、ハートが舞う
  * - 磨く: 画像に光の帯が走り、きらめきが出る
  * - どちらも「+1」が浮かび、なかよし度のバーが伸びる
+ * - プレゼント: ポイントで贈る（毎日のお世話とは別。1日の回数に上限）。贈ると跳ねて、ハートと「+xp」が出る
  */
 export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardProps) {
   const { t } = useLanguage();
   const care = useCareCompanion();
+  const give = useGiveCompanionGift();
+  const giftKinds = useCompanionGiftKinds();
+  const giftCounts = useTodayGiftCounts();
+  const navigate = useNavigate();
+  const [giftOpen, setGiftOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const imageControls = useAnimationControls();
   const [bursts, setBursts] = useState<Burst[]>([]);
@@ -55,14 +71,27 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
   const polishDone = companion.last_polish_on === today;
   const photoDone = companion.last_photo_on === today;
   const doneCount = [patDone, polishDone, photoDone].filter(Boolean).length;
+  // 今日あと何回プレゼントを贈れるか（種類の合計）。上限はサーバーが確かめる
+  const giftLeft = (giftKinds.data ?? []).reduce(
+    (sum, g) => sum + Math.max(0, g.daily_limit - (giftCounts.data?.[`${companion.user_item_id}:${g.kind}`] ?? 0)),
+    0
+  );
 
-  const react = (kind: CareAction) => {
+  const react = (kind: CareAction | "gift", xp = 1) => {
     const id = Date.now() + Math.random();
-    setBursts((prev) => [...prev, { id, kind, xp: 1 }]);
+    setBursts((prev) => [...prev, { id, kind, xp }]);
     setTimeout(() => setBursts((prev) => prev.filter((b) => b.id !== id)), 1400);
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     if (reduceMotion) return;
-    if (kind === "pat") {
+    if (kind === "gift") {
+      // 受け取って、うれしそうに跳ねる
+      setShine((n) => n + 1);
+      void imageControls.start({
+        y: [0, -10, 0, -4, 0],
+        scale: [1, 1.06, 0.98, 1.02, 1],
+        transition: { duration: 0.7, ease: "easeOut" },
+      });
+    } else if (kind === "pat") {
       // ふにっと縮んで、左右に小さく揺れる
       void imageControls.start({
         scale: [1, 0.93, 1.05, 1],
@@ -95,6 +124,43 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
     }
   };
 
+  /** プレゼントを贈る。成功したら true（シートを閉じる） */
+  const handleGive = async (gift: GiftKind): Promise<boolean> => {
+    if (give.isPending) return false;
+    const giftName = t(`engage.oshi.giftKind.${gift.kind}.name`);
+    try {
+      const result = await give.mutateAsync({ itemId: companion.user_item_id, kind: gift.kind });
+      // シートが閉じてから演出が見えるよう、少しだけ待つ
+      setTimeout(() => react("gift", result.gain), reduceMotion ? 0 : 220);
+      if (result.leveled_up && result.level) {
+        toast.success(t("engage.oshi.levelUp", { name: companion.title, level: result.level }), {
+          description: t(`engage.oshi.levelTitle.${result.level}`),
+          duration: 6000,
+        });
+      } else {
+        toast.success(t("engage.oshi.giftDone", { name: companion.title, gift: giftName }), {
+          description: t("engage.oshi.giftDoneDesc", { xp: result.gain }),
+        });
+      }
+      return true;
+    } catch (e) {
+      const code = giftErrorCode(e);
+      if (code === "insufficient_points") {
+        toast.error(t("engage.oshi.giftInsufficient"), {
+          action: { label: t("engage.oshi.giftToShop"), onClick: () => navigate("/point-shop") },
+        });
+      } else if (code === "gift_daily_limit") {
+        toast.error(t("engage.oshi.giftLimit"));
+      } else if (code === "max_level") {
+        toast.error(t("engage.oshi.giftMax"));
+      } else {
+        console.error("gift failed:", e);
+        toast.error(t("engage.oshi.careFailed"));
+      }
+      return false;
+    }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border bg-card p-4">
       <div className="flex gap-4">
@@ -121,7 +187,9 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
                   <motion.span
                     key={shine}
                     initial={{ x: "-120%" }}
-                    animate={{ x: "120%" }}
+                    // 帯の幅は画像の半分なので、自分の幅の 260% 動かして画像の外まで抜ける。
+                    // 以前は 120% で止まり、止まった位置が画像の真ん中で、白い帯が残ったままになっていた
+                    animate={{ x: "260%" }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.75, ease: "easeInOut" }}
                     className="pointer-events-none absolute inset-y-0 -left-1/4 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/80 to-transparent"
@@ -196,7 +264,7 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-4 gap-2">
         <CareButton
           icon={<Hand className="h-5 w-5" />}
           tone={ACTION_TONE.pat}
@@ -227,14 +295,49 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
           onClick={() => onPhoto(companion)}
           doneLabel={t("engage.oshi.careDone")}
         />
+        {/* プレゼント（ポイントで贈る）。お世話とちがい1日に何回か贈れるので、終わっても「チェック」にはしない */}
+        <CareButton
+          icon={<Gift className="h-5 w-5" />}
+          tone="bg-points-soft text-points"
+          label={t("engage.oshi.gift")}
+          xp={progress.isMax ? t("engage.oshi.giftMaxShort") : giftKinds.data ? t("engage.oshi.giftLeft", { n: giftLeft }) : ""}
+          done={false}
+          busy={give.isPending}
+          onClick={() => {
+            // 前のレベルアップの通知が残っていると、シートの「贈る」ボタンに重なる
+            toast.dismiss();
+            setGiftOpen(true);
+          }}
+          doneLabel={t("engage.oshi.careDone")}
+          ariaLabel={t("engage.oshi.giftAria", { name: companion.title })}
+          subMuted={progress.isMax || giftLeft === 0}
+        />
       </div>
+
+      <CompanionGiftSheet
+        open={giftOpen}
+        onOpenChange={setGiftOpen}
+        companion={companion}
+        onGive={handleGive}
+        busy={give.isPending}
+      />
     </div>
   );
 }
 
 /** 撫でたときのハート／磨いたときのきらめきと、「+1」の浮かび上がり */
 function BurstFx({ burst, reduceMotion }: { burst: Burst; reduceMotion: boolean }) {
-  const symbols = burst.kind === "pat" ? ["💗", "💕", "💗"] : ["✨", "⭐", "✨"];
+  // プレゼントは絵文字ではなくアイコン（アプリのアイコンの決まりに合わせる）
+  const symbols: React.ReactNode[] =
+    burst.kind === "gift"
+      ? [
+          <Heart key="a" className="h-5 w-5 fill-primary text-primary" />,
+          <Gift key="b" className="h-5 w-5 text-points" />,
+          <Heart key="c" className="h-4 w-4 fill-primary text-primary" />,
+        ]
+      : burst.kind === "pat"
+        ? ["💗", "💕", "💗"]
+        : ["✨", "⭐", "✨"];
   return (
     <span className="pointer-events-none absolute inset-0" aria-hidden="true">
       {!reduceMotion &&
@@ -273,6 +376,8 @@ function CareButton({
   busy,
   onClick,
   doneLabel,
+  ariaLabel,
+  subMuted = false,
 }: {
   icon: React.ReactNode;
   tone: string;
@@ -282,6 +387,9 @@ function CareButton({
   busy: boolean;
   onClick: () => void;
   doneLabel: string;
+  ariaLabel?: string;
+  /** 下の小さな文字を目立たせない（プレゼントを贈りきった・最大レベル） */
+  subMuted?: boolean;
 }) {
   return (
     <motion.button
@@ -289,6 +397,7 @@ function CareButton({
       whileTap={done || busy ? undefined : { scale: 0.94 }}
       disabled={done || busy}
       onClick={onClick}
+      aria-label={ariaLabel}
       className={cn(
         "flex flex-col items-center gap-1 rounded-2xl border px-1 py-2.5 transition-colors",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
@@ -305,7 +414,7 @@ function CareButton({
         {done ? <Check className="h-5 w-5" /> : icon}
       </span>
       <span className="text-xs font-bold">{label}</span>
-      <span className={cn("text-3xs tabular-nums", done ? "text-muted-foreground" : "font-bold text-points")}>
+      <span className={cn("text-3xs tabular-nums", done || subMuted ? "text-muted-foreground" : "font-bold text-points")}>
         {done ? doneLabel : `${xp}`}
       </span>
     </motion.button>

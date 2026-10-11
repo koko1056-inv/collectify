@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      companion_gift_kinds: {
+        Row: {
+          daily_limit: number
+          is_active: boolean
+          kind: string
+          label: string
+          price: number
+          sort_order: number
+          xp: number
+        }
+        Insert: {
+          daily_limit: number
+          is_active?: boolean
+          kind: string
+          label: string
+          price: number
+          sort_order?: number
+          xp: number
+        }
+        Update: {
+          daily_limit?: number
+          is_active?: boolean
+          kind?: string
+          label?: string
+          price?: number
+          sort_order?: number
+          xp?: number
+        }
+        Relationships: []
+      }
+      companion_gifts: {
+        Row: {
+          created_at: string
+          given_on: string
+          id: string
+          kind: string
+          points_spent: number
+          user_id: string
+          user_item_id: string
+          xp_gained: number
+        }
+        Insert: {
+          created_at?: string
+          given_on?: string
+          id?: string
+          kind: string
+          points_spent: number
+          user_id: string
+          user_item_id: string
+          xp_gained: number
+        }
+        Update: {
+          created_at?: string
+          given_on?: string
+          id?: string
+          kind?: string
+          points_spent?: number
+          user_id?: string
+          user_item_id?: string
+          xp_gained?: number
+        }
+        Relationships: []
+      }
       companion_goods: {
         Row: {
           created_at: string
@@ -4036,6 +4099,10 @@ export type Database = {
         Args: { _action: string; _user_item_id: string }
         Returns: Json
       }
+      give_companion_gift: {
+        Args: { _kind: string; _user_item_id: string }
+        Returns: Json
+      }
       set_companion: {
         Args: { _user_item_id: string }
         Returns: Json
@@ -4140,6 +4207,17 @@ export type Database = {
           owned: number
           series_label: string
           total: number
+        }[]
+      }
+      get_profile_companions: {
+        Args: { _profile_id: string }
+        Returns: {
+          content_name: string | null
+          image: string
+          level: number
+          title: string
+          user_item_id: string
+          xp: number
         }[]
       }
       get_profile_featured_avatar: {

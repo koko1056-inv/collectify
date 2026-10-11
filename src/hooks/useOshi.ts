@@ -25,6 +25,46 @@ export interface OshiPhoto {
   created_at: string;
 }
 
+/** プレゼントの種類。値段・xp・1日の回数は DB（companion_gift_kinds）だけが正で、ここでは表示に使うだけ */
+export interface GiftKind {
+  kind: string;
+  price: number;
+  xp: number;
+  daily_limit: number;
+}
+
+export interface GiftResult {
+  ok: boolean;
+  kind: string;
+  xp: number;
+  gain: number;
+  level: number;
+  leveled_up: boolean;
+  points_left: number;
+  remaining_today: number;
+}
+
+/** give_companion_gift が返すエラー（RAISE の文言）。それ以外は unknown */
+export type GiftErrorCode = "insufficient_points" | "gift_daily_limit" | "max_level" | "not_companion" | "unknown";
+
+export function giftErrorCode(e: unknown): GiftErrorCode {
+  const message = e instanceof Error ? e.message : ((e as { message?: string })?.message ?? "");
+  for (const code of ["insufficient_points", "gift_daily_limit", "max_level", "not_companion"] as const) {
+    if (message.includes(code)) return code;
+  }
+  return "unknown";
+}
+
+/** 他の人のプロフィールにも出す相棒（グッズの名前・写真・なかよし度だけ） */
+export interface ProfileCompanion {
+  user_item_id: string;
+  title: string;
+  image: string;
+  content_name: string | null;
+  xp: number;
+  level: number;
+}
+
 export interface CareResult {
   ok: boolean;
   already?: boolean;
@@ -86,7 +126,91 @@ export function useCareCompanion() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
+    },
+  });
+}
+
+/** プレゼントの種類（おやつ・特別なプレゼント） */
+export function useCompanionGiftKinds() {
+  return useQuery({
+    queryKey: ["companion-gift-kinds"],
+    staleTime: 1000 * 60 * 60,
+    queryFn: async (): Promise<GiftKind[]> => {
+      const { data, error } = await supabase
+        .from("companion_gift_kinds")
+        .select("kind, price, xp, daily_limit")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+/**
+ * 今日（日本時間）すでに贈った回数。相棒ごと・種類ごと。キーは `${user_item_id}:${kind}`。
+ * 回数の上限はサーバーが確かめる。ここは「あと何回」を出すためだけ。
+ */
+export function useTodayGiftCounts() {
+  const { user } = useAuth();
+  const today = todayJst();
+  return useQuery({
+    queryKey: ["companion-gifts-today", user?.id, today],
+    enabled: !!user?.id,
+    staleTime: 1000 * 30,
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase
+        .from("companion_gifts")
+        .select("user_item_id, kind")
+        .eq("user_id", user!.id)
+        .eq("given_on", today);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const row of data ?? []) {
+        const key = `${row.user_item_id}:${row.kind}`;
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+      return counts;
+    },
+  });
+}
+
+/** プレゼントを贈る。値段は送らない（種類だけ。値段・残高・回数はサーバーが決めて確かめる） */
+export function useGiveCompanionGift() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, kind }: { itemId: string; kind: string }): Promise<GiftResult> => {
+      const { data, error } = await supabase.rpc("give_companion_gift", { _user_item_id: itemId, _kind: kind });
+      if (error) throw error;
+      return data as unknown as GiftResult;
+    },
+    onSettled: () => {
+      // 失敗（残高不足・回数切れ）でも、画面の数字がずれていた可能性があるので取り直す
+      void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["companion-gifts-today", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["userPoints"] });
+      void qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+    },
+  });
+}
+
+/**
+ * プロフィールに出す相棒（最大3つ）。本人以外でも、プロフィールを見られる人には見える。
+ * companion_goods は本人しか読めないので、表示に要る列だけを返す get_profile_companions を使う。
+ */
+export function useProfileCompanions(profileId: string | undefined) {
+  return useQuery({
+    queryKey: ["profile-companions", profileId],
+    enabled: !!profileId,
+    staleTime: 1000 * 60,
+    queryFn: async (): Promise<ProfileCompanion[]> => {
+      const { data, error } = await supabase.rpc("get_profile_companions", { _profile_id: profileId! });
+      if (error) throw error;
+      return data ?? [];
     },
   });
 }
@@ -99,7 +223,10 @@ export function useSetCompanion() {
       const { error } = await supabase.rpc("set_companion", { _user_item_id: itemId });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["companions", user?.id] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+    },
   });
 }
 
@@ -111,7 +238,10 @@ export function useRemoveCompanion() {
       const { error } = await supabase.rpc("remove_companion", { _user_item_id: itemId });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["companions", user?.id] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+    },
   });
 }
 
@@ -175,6 +305,7 @@ export function useUploadOshiPhoto() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["oshi-photos", user?.id] });
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
     },
   });

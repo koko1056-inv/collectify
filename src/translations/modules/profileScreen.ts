@@ -79,6 +79,7 @@ export const profileScreen = {
         collection_slot_expand: "コレクション枠の拡張",
         ai_room_generation: "AIルーム生成",
         custom_tag_create: "カスタムタグ作成",
+        companion_gift: "相棒へのプレゼント",
       },
     },
     collectors: {
@@ -200,6 +201,12 @@ export const profileScreen = {
       errorSubscription: "購読の解約に失敗したため、退会を中止しました。時間をおいてもう一度お試しください",
       errorGeneric: "退会に失敗しました。時間をおいてもう一度お試しください",
     },
+    companions: {
+      title: "相棒グッズ",
+      raise: "育てる",
+      emptyOwn: "相棒グッズを迎えて育てると、ここに飾られます",
+      openItem: "{name} の詳細を開く",
+    },
     showcase: {
       title: "マイステージ",
       setRoom: "お気に入りルームを設定",
@@ -316,6 +323,7 @@ export const profileScreen = {
         collection_slot_expand: "Collection slots expanded",
         ai_room_generation: "AI room generation",
         custom_tag_create: "Custom tag created",
+        companion_gift: "Gift for a companion",
       },
     },
     collectors: {
@@ -436,6 +444,12 @@ export const profileScreen = {
       errorAdmin: "Admin accounts can't be deleted. Remove the admin role first",
       errorSubscription: "We couldn't cancel your subscription, so your account was not deleted. Please try again later",
       errorGeneric: "Couldn't delete your account. Please try again later",
+    },
+    companions: {
+      title: "Companions",
+      raise: "Raise",
+      emptyOwn: "Welcome and raise companion goods to display them here",
+      openItem: "Open details for {name}",
     },
     showcase: {
       title: "My Stage",
