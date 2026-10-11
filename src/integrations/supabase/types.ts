@@ -3394,6 +3394,63 @@ export type Database = {
           },
         ]
       }
+      trade_spotlight_plans: {
+        Row: {
+          duration: string
+          hours: number
+          is_active: boolean
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          duration: string
+          hours: number
+          is_active?: boolean
+          price: number
+          sort_order?: number
+        }
+        Update: {
+          duration?: string
+          hours?: number
+          is_active?: boolean
+          price?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      trade_spotlights: {
+        Row: {
+          created_at: string
+          duration: string
+          ends_at: string
+          id: string
+          item_ids: string[] | null
+          points_spent: number
+          starts_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration: string
+          ends_at: string
+          id?: string
+          item_ids?: string[] | null
+          points_spent: number
+          starts_at: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration?: string
+          ends_at?: string
+          id?: string
+          item_ids?: string[] | null
+          points_spent?: number
+          starts_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achieved_at: string
@@ -4079,6 +4136,18 @@ export type Database = {
           partner_id: string
           title: string
         }[]
+      }
+      buy_trade_spotlight: {
+        Args: { _duration: string; _item_ids?: string[] | null }
+        Returns: Json
+      }
+      get_my_trade_spotlight: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_trade_spotlight_users: {
+        Args: { _user_ids: string[] }
+        Returns: string[]
       }
       search_official_items: {
         Args: { _limit?: number; _offset?: number; _q: string }

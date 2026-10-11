@@ -16,6 +16,7 @@ import {
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 import { TradeSectionHeader } from "./TradeSectionHeader";
+import { SpotlightChip } from "./TradeSpotlight";
 
 export interface HolderRequestTarget {
   userId: string;
@@ -143,6 +144,8 @@ function WishRow({
                 <div className="min-w-0">
                   <p className="truncate text-sm">{name}</p>
                   <div className="flex items-center gap-1.5">
+                    {/* 注目中の人はサーバー側で先頭に並んでいる */}
+                    {holder.spotlight && <SpotlightChip />}
                     {holder.for_trade ? (
                       <Badge className="h-4 px-1.5 text-3xs">{t("trade.holders.tradeOk")}</Badge>
                     ) : (
