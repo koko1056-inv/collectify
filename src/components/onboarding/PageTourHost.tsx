@@ -53,7 +53,10 @@ export function PageTourHost() {
     <SpotlightTour
       key={tour.id}
       steps={tour.steps}
-      onClose={() => markTourDone(tour.id)}
+      onClose={(reason) => {
+        // 1歩も見せられなかったとき（対象が出てこなかった）は記録しない。次にこの画面へ来たらもう一度試す
+        if (reason !== "unavailable") markTourDone(tour.id);
+      }}
       onDisableAll={disableAllTours}
     />
   );

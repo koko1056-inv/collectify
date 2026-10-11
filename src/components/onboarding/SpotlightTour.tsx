@@ -31,6 +31,11 @@ export interface TourStep {
   /** 本文の翻訳キー。 */
   bodyKey: string;
   /**
+   * 下タブが出ない広い画面（PC など）での本文の翻訳キー。省略すると bodyKey。
+   * 「下のタブ」「中央の丸いボタン」のように、スマホの見た目を前提にした説明が PC では指す物と食い違うため。
+   */
+  wideBodyKey?: string;
+  /**
    * "click" にすると、ユーザーが対象を実際に押したときだけ次へ進む。
    * 「次へ」ボタンは出さず、代わりに押すよう促す。
    */
@@ -41,10 +46,17 @@ export interface TourStep {
   padding?: number;
 }
 
+/**
+ * 閉じた理由。"unavailable" は、どのステップの対象も見つからず、1歩も見せないまま終わったとき。
+ * 見ていないのに「見終わった」と記録すると、その画面のガイドは二度と出ない
+ * （画面の読み込みが遅い回線や PC で、マイページのガイドが一度も出ずに記録だけ残っていた）。
+ */
+export type TourCloseReason = "finished" | "skipped" | "unavailable";
+
 interface SpotlightTourProps {
   steps: TourStep[];
-  /** 完走・スキップのどちらでも呼ぶ。 */
-  onClose: (reason: "finished" | "skipped") => void;
+  /** 完走・スキップ・1歩も見せられなかったときに呼ぶ。 */
+  onClose: (reason: TourCloseReason) => void;
   /** 「ガイドをすべてオフ」を押したとき。未指定なら表示しない。 */
   onDisableAll?: () => void;
 }
@@ -64,6 +76,16 @@ const CARD_WIDTH = 320;
 const GUTTER = 16;
 /** 下タブ（中央ボタンが張り出す）に隠れない余白。説明カードを画面下に固定するとき使う */
 const BOTTOM_NAV_CLEARANCE = 104;
+/** 下タブが出ない広い画面（Footer の sm:hidden と同じ境目）で、説明カードを画面下に固定するときの余白 */
+const WIDE_BOTTOM_CLEARANCE = 32;
+const WIDE_QUERY = "(min-width: 640px)";
+/** ステップの対象を待つ時間。1歩目は画面の読み込み中のことが多いので長めに待つ */
+const STEP_WAIT_MS = 600;
+const FIRST_STEP_WAIT_MS = 2000;
+/** 説明カードを対象の上下に置くのに要る高さ（カードの高さを測れるまでの目安） */
+const CARD_ROOM = 220;
+/** 大きな対象を送るとき、頭の上に残す余白（説明カードを対象の上に置ける高さ） */
+const TALL_TOP_ROOM = 240;
 
 /**
  * data-tour は同じ名前がレスポンシブで2箇所に付くことがある
@@ -82,6 +104,11 @@ function findTarget(name: string): HTMLElement | null {
   );
 }
 
+/** 下タブが出ない広い画面か（Footer の sm:hidden と同じ境目） */
+function isWideScreen(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.(WIDE_QUERY).matches === true;
+}
+
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -95,7 +122,11 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
   const [rect, setRect] = useState<Rect | null>(null);
   /** 対象を探している間は暗幕を出さない（空の暗転を見せない）。 */
   const [resolved, setResolved] = useState(false);
+  /** 指していた対象が画面から消えたら増やして、探し直す */
+  const [lookup, setLookup] = useState(0);
   const closedRef = useRef(false);
+  /** 1歩でも見せたか（見せずに終わったら "unavailable" で閉じる） */
+  const shownRef = useRef(false);
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
@@ -111,7 +142,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  const close = useCallback((reason: "finished" | "skipped") => {
+  const close = useCallback((reason: TourCloseReason) => {
     if (closedRef.current) return;
     closedRef.current = true;
     onCloseRef.current(reason);
@@ -136,11 +167,14 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     setRect(null);
 
     if (!step.target) {
+      shownRef.current = true;
       setResolved(true);
       return;
     }
 
-    const deadline = Date.now() + (step.waitMs ?? 600);
+    // まだ1歩も見せていないうちは、画面の読み込みが終わっていないことが多いので長めに待つ
+    // （PC の広い画面は一度に読み込む量が多く、マイページの1歩目が 600ms では間に合わずに飛ばされていた）
+    const deadline = Date.now() + (step.waitMs ?? (shownRef.current ? STEP_WAIT_MS : FIRST_STEP_WAIT_MS));
 
     const measure = () => {
       if (cancelled) return;
@@ -148,7 +182,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       if (!el) {
         if (Date.now() > deadline) {
           // 見つからないステップは飛ばす。最後のステップならツアー終了。
-          if (index + 1 >= steps.length) close("finished");
+          if (index + 1 >= steps.length) close(shownRef.current ? "finished" : "unavailable");
           else setIndex(index + 1);
           return;
         }
@@ -157,15 +191,29 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       }
 
       const box = el.getBoundingClientRect();
-      // 画面外なら中央まで送ってから測り直す。
-      const offscreen = box.top < GUTTER || box.bottom > window.innerHeight - GUTTER;
+      const vh = window.innerHeight;
+      // 大きな対象（検索結果の一覧・みんなのフィード全体など）を中央へ送ると、
+      // 一覧の途中だけが映って上の見出しや検索欄が画面外へ出たうえ、上下どちらにも説明カードの
+      // 置き場が無くなり、カードが一覧の中身に重なっていた（PC の広い画面で目立った）。
+      // 大きな対象は頭が画面の上半分に見えていれば送らない。見えていないとき（または頭の上に余白を
+      // 残しても全体が収まるのにはみ出しているとき）は、頭の上に説明カードが入る余白を残して送る。
+      const big = box.height > vh - CARD_ROOM * 2;
+      const fitsWithRoom = box.height + TALL_TOP_ROOM + GUTTER <= vh;
+      const offscreen = big
+        ? box.top < 0 || box.top > vh / 2 || (fitsWithRoom && box.bottom > vh - GUTTER)
+        : box.top < GUTTER || box.bottom > vh - GUTTER;
       if (offscreen) {
+        // scrollIntoView は scroll-margin を見るので、送るあいだだけ頭の上の余白として付ける
+        const prevMargin = el.style.scrollMarginTop;
+        if (big) el.style.scrollMarginTop = `${Math.min(TALL_TOP_ROOM, vh / 2)}px`;
         el.scrollIntoView({
-          block: "center",
+          block: big ? "start" : "center",
           behavior: prefersReducedMotion() ? "auto" : "smooth",
         });
+        if (big) window.setTimeout(() => (el.style.scrollMarginTop = prevMargin), 1000);
       }
       setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
+      shownRef.current = true;
       setResolved(true);
     };
 
@@ -173,7 +221,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     return () => {
       cancelled = true;
     };
-  }, [step, index, steps.length, close]);
+  }, [step, index, steps.length, close, lookup]);
 
   // スクロール・リサイズ・レイアウト変化に穴を追従させる。
   useEffect(() => {
@@ -182,6 +230,13 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     if (!el) return;
 
     const sync = () => {
+      // 指していた対象が消えた（読み込みが終わって出し分けが変わった、など）。
+      // そのまま測ると矩形が 0 になり、穴と説明カードが画面の左上に飛ぶ
+      // （交換画面の「準備」カードが、読み込み後に消えて左上を指していた）。探し直す。
+      if (!el.isConnected) {
+        setLookup((n) => n + 1);
+        return;
+      }
       const box = el.getBoundingClientRect();
       setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
     };
@@ -190,6 +245,11 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     window.addEventListener("resize", sync);
     const ro = new ResizeObserver(sync);
     ro.observe(el);
+    // 対象が DOM から外されたことは ResizeObserver では分からないので、外れたときだけ拾う
+    const mo = new MutationObserver(() => {
+      if (!el.isConnected) sync();
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
     // スムーススクロールの着地点を拾うため、少し遅れてもう一度測る。
     const settle = window.setTimeout(sync, 350);
 
@@ -197,6 +257,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       window.removeEventListener("scroll", sync, true);
       window.removeEventListener("resize", sync);
       ro.disconnect();
+      mo.disconnect();
       window.clearTimeout(settle);
     };
   }, [step, resolved]);
@@ -236,6 +297,18 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
   }, [close, goNext, step]);
 
   // ── 説明カードの位置 ────────────────────────────────
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState(0);
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const sync = () => setCardHeight(el.offsetHeight);
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [resolved, index]);
+
   const cardStyle = useMemo<React.CSSProperties>(() => {
     if (!rect) {
       return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
@@ -255,11 +328,16 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       vw - width - GUTTER
     );
 
-    if (spaceBelow > 220) return { top: visibleBottom + 12, left, width };
-    if (spaceAbove > 220) return { bottom: vh - visibleTop + 12, left, width };
+    // 説明カードが収まるか。カードの高さは文言の長さと「ガイドをすべて表示しない」の有無で変わるので、
+    // 測れたら実際の高さで判断する（決め打ちの 220px だと、PC の検索画面で 207px 空いているのに入らない扱いになり、
+    // カードが一覧の上に重なっていた）。
+    const need = cardHeight > 0 ? cardHeight + 20 : CARD_ROOM;
+    if (spaceBelow > need) return { top: visibleBottom + 12, left, width };
+    if (spaceAbove > need) return { bottom: vh - visibleTop + 12, left, width };
     // どちらにも収まらない: 画面下に固定する（下タブに隠れない高さ）。
-    return { bottom: BOTTOM_NAV_CLEARANCE, left, width };
-  }, [rect, padding]);
+    // 下タブの無い広い画面では、そのぶん浮かせると画面の真ん中に出て一覧の中身に重なるので、下に寄せる。
+    return { bottom: isWideScreen() ? WIDE_BOTTOM_CLEARANCE : BOTTOM_NAV_CLEARANCE, left, width };
+  }, [rect, padding, cardHeight]);
 
   if (!step || !resolved) return null;
 
@@ -313,7 +391,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
 
       {/* 説明カード */}
       <div className="fixed z-[9995]" style={cardStyle}>
-        <div className="rounded-2xl bg-card text-card-foreground shadow-2xl border border-border p-4 space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
+        <div ref={cardRef} className="rounded-2xl bg-card text-card-foreground shadow-2xl border border-border p-4 space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
           <div className="flex items-start justify-between gap-2">
             <h2 className="text-sm font-bold leading-snug">{t(step.titleKey)}</h2>
             <button
@@ -326,7 +404,9 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
             </button>
           </div>
 
-          <p className="text-xs leading-relaxed text-muted-foreground">{t(step.bodyKey)}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {t(step.wideBodyKey && isWideScreen() ? step.wideBodyKey : step.bodyKey)}
+          </p>
 
           <div className="flex items-center gap-2">
             {/* 進捗。何歩で終わるかが見えないと離脱する。 */}

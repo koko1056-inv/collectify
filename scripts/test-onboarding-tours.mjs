@@ -91,7 +91,7 @@ for (const anchor of [...anchors].sort()) {
 
 // ── 4. 文言キーが ja / en 両方で引けるか ──
 const copyKeys = new Set(
-  PAGE_TOURS.flatMap((t) => t.steps.flatMap((s) => [s.titleKey, s.bodyKey]))
+  PAGE_TOURS.flatMap((t) => t.steps.flatMap((s) => [s.titleKey, s.bodyKey, s.wideBodyKey].filter(Boolean)))
 );
 // エンジン自身が使う固定文言も一緒に見る。
 for (const k of [

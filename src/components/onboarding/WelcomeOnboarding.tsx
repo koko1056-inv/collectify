@@ -169,94 +169,99 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="fixed inset-0 z-[100] flex flex-col bg-background">
-        {/* アプリのヘッダーと同じ形: 左にロゴ、右にスキップ。下に細い進捗バー */}
-        <header className="shrink-0 border-b bg-background pt-[env(safe-area-inset-top)]">
-          <div className={cn("mx-auto flex h-12 max-w-lg items-center gap-1 pr-2", showBar ? "pl-1" : "pl-4")}>
-            {showBar && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goPrev}
-                className="h-10 w-10 rounded-full text-muted-foreground"
-                aria-label={t("misc.common.back")}
-              >
-                <ChevronLeft className="!size-5" />
-              </Button>
-            )}
-            <span className="logo-text text-xl">Collectify</span>
-            <div className="flex-1" />
-            {showBar && (
-              <Button variant="ghost" size="sm" onClick={skipToEnd} className="text-muted-foreground">
-                {t("misc.common.skip")}
-              </Button>
-            )}
-          </div>
-          <div
-            className="h-1 overflow-hidden bg-muted"
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={allSteps.length}
-            aria-valuenow={stepIndex + 1}
-          >
-            <motion.div
-              className="h-full bg-primary"
-              initial={false}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
-          </div>
-        </header>
+      {/* スマホでは画面全体を使う。PC など広い画面（sm 以上）では、画面全体に広げると
+          細い列の上下が大きく空き、主ボタンが画面の最下部まで離れてしまうので、
+          アプリの列の幅（max-w-xl）のパネルにして画面の中央に出す */}
+      <div className="fixed inset-0 z-[100] flex flex-col bg-background sm:items-center sm:justify-center sm:bg-muted sm:p-8">
+        <div className="flex min-h-0 w-full flex-1 flex-col bg-background sm:max-h-[46rem] sm:max-w-xl sm:overflow-hidden sm:rounded-3xl sm:border sm:shadow-xl">
+          {/* アプリのヘッダーと同じ形: 左にロゴ、右にスキップ。下に細い進捗バー */}
+          <header className="shrink-0 border-b bg-background pt-[env(safe-area-inset-top)]">
+            <div className={cn("mx-auto flex h-12 max-w-lg items-center gap-1 pr-2", showBar ? "pl-1" : "pl-4")}>
+              {showBar && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goPrev}
+                  className="h-10 w-10 rounded-full text-muted-foreground"
+                  aria-label={t("misc.common.back")}
+                >
+                  <ChevronLeft className="!size-5" />
+                </Button>
+              )}
+              <span className="logo-text text-xl">Collectify</span>
+              <div className="flex-1" />
+              {showBar && (
+                <Button variant="ghost" size="sm" onClick={skipToEnd} className="text-muted-foreground">
+                  {t("misc.common.skip")}
+                </Button>
+              )}
+            </div>
+            <div
+              className="h-1 overflow-hidden bg-muted"
+              role="progressbar"
+              aria-valuemin={1}
+              aria-valuemax={allSteps.length}
+              aria-valuenow={stepIndex + 1}
+            >
+              <motion.div
+                className="h-full bg-primary"
+                initial={false}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              />
+            </div>
+          </header>
 
-        <main className="relative min-h-0 flex-1 overflow-hidden">
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            {step === "welcome" && (
-              <StepFrame key="welcome" direction={direction}>
-                <WelcomeStep
-                  displayName={displayName}
-                  onDisplayNameChange={setDisplayName}
-                  onNext={handleWelcomeNext}
-                  isLoading={isLoadingProfile}
-                />
-              </StepFrame>
-            )}
+          <main className="relative min-h-0 flex-1 overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              {step === "welcome" && (
+                <StepFrame key="welcome" direction={direction}>
+                  <WelcomeStep
+                    displayName={displayName}
+                    onDisplayNameChange={setDisplayName}
+                    onNext={handleWelcomeNext}
+                    isLoading={isLoadingProfile}
+                  />
+                </StepFrame>
+              )}
 
-            {step === "interests" && (
-              <StepFrame key="interests" direction={direction}>
-                <InterestsStep friendlyName={friendlyName} onDone={goNext} />
-              </StepFrame>
-            )}
+              {step === "interests" && (
+                <StepFrame key="interests" direction={direction}>
+                  <InterestsStep friendlyName={friendlyName} onDone={goNext} />
+                </StepFrame>
+              )}
 
-            {step === "starter" && (
-              <StepFrame key="starter" direction={direction}>
-                <StarterGoodsStep
-                  onDone={(count, images) => {
-                    setAddedCount(count);
-                    setAddedImages(images);
-                    goNext();
-                  }}
-                  onPhoto={() => {
-                    // 写真から登録したい人は、このウェルカムを終えて登録画面へ
-                    setAddedCount(0);
-                    setAddedImages([]);
-                    setStep("celebrate");
-                  }}
-                />
-              </StepFrame>
-            )}
+              {step === "starter" && (
+                <StepFrame key="starter" direction={direction}>
+                  <StarterGoodsStep
+                    onDone={(count, images) => {
+                      setAddedCount(count);
+                      setAddedImages(images);
+                      goNext();
+                    }}
+                    onPhoto={() => {
+                      // 写真から登録したい人は、このウェルカムを終えて登録画面へ
+                      setAddedCount(0);
+                      setAddedImages([]);
+                      setStep("celebrate");
+                    }}
+                  />
+                </StepFrame>
+              )}
 
-            {step === "celebrate" && (
-              <StepFrame key="celebrate" direction={direction}>
-                <CelebrateStep
-                  friendlyName={friendlyName}
-                  addedCount={addedCount}
-                  addedImages={addedImages}
-                  onFinish={handleFinish}
-                />
-              </StepFrame>
-            )}
-          </AnimatePresence>
-        </main>
+              {step === "celebrate" && (
+                <StepFrame key="celebrate" direction={direction}>
+                  <CelebrateStep
+                    friendlyName={friendlyName}
+                    addedCount={addedCount}
+                    addedImages={addedImages}
+                    onFinish={handleFinish}
+                  />
+                </StepFrame>
+              )}
+            </AnimatePresence>
+          </main>
+        </div>
       </div>
     </MotionConfig>
   );

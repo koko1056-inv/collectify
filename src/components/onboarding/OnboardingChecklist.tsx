@@ -478,83 +478,89 @@ export function OnboardingChecklist() {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-3 overflow-hidden"
+                className="overflow-hidden"
               >
-                {(Object.keys(groupedItems) as ChecklistItem['group'][]).map((groupKey) => {
-                  const groupItems = groupedItems[groupKey];
-                  if (groupItems.length === 0) return null;
-                  const meta = GROUP_META[groupKey];
-                  const GroupIcon = meta.icon;
-                  const groupCompleted = groupItems.filter((i) => i.completed).length;
-                  return (
-                    <div key={groupKey} className="space-y-1.5">
-                      {/* Group header */}
-                      <div className="flex items-center gap-1.5 px-1">
-                        <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
-                        <span className="text-2xs font-bold text-foreground/80 uppercase tracking-wider">
-                          {t(meta.labelKey)}
-                        </span>
-                        <span className="text-3xs text-muted-foreground ml-auto">
-                          {groupCompleted}/{groupItems.length}
-                        </span>
-                      </div>
-                      {/* Group items */}
-                      <div className="space-y-1.5">
-                        {groupItems.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={item.completed ? undefined : item.action}
-                              disabled={item.completed}
-                              className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
-                                item.completed
-                                  ? 'bg-primary/5 opacity-60'
-                                  : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
-                              }`}
-                            >
-                              {item.completed ? (
-                                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                              ) : (
-                                <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <p
-                                    className={`text-sm font-medium ${
-                                      item.completed ? 'line-through text-muted-foreground' : ''
-                                    }`}
-                                  >
-                                    {t(item.labelKey)}
+                {/* PC など広い画面では2列に分ける（はじめる・集める ｜ AI・みんな）。
+                    1列のままだと、画面幅いっぱいに伸びた行が10個縦に並び、
+                    項目名と右端のポイントが離れて読みにくく、開くとコレクションが画面の下へ押し出されていた。
+                    列の頭がそろうよう、広い画面では space-y をやめて各グループの下に余白を取る */}
+                <div className="space-y-3 md:columns-2 md:gap-6 md:space-y-0">
+                  {(Object.keys(groupedItems) as ChecklistItem['group'][]).map((groupKey) => {
+                    const groupItems = groupedItems[groupKey];
+                    if (groupItems.length === 0) return null;
+                    const meta = GROUP_META[groupKey];
+                    const GroupIcon = meta.icon;
+                    const groupCompleted = groupItems.filter((i) => i.completed).length;
+                    return (
+                      <div key={groupKey} className="space-y-1.5 md:mb-3 md:break-inside-avoid">
+                        {/* Group header */}
+                        <div className="flex items-center gap-1.5 px-1">
+                          <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
+                          <span className="text-2xs font-bold text-foreground/80 uppercase tracking-wider">
+                            {t(meta.labelKey)}
+                          </span>
+                          <span className="text-3xs text-muted-foreground ml-auto">
+                            {groupCompleted}/{groupItems.length}
+                          </span>
+                        </div>
+                        {/* Group items */}
+                        <div className="space-y-1.5">
+                          {groupItems.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={item.completed ? undefined : item.action}
+                                disabled={item.completed}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
+                                  item.completed
+                                    ? 'bg-primary/5 opacity-60'
+                                    : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
+                                }`}
+                              >
+                                {item.completed ? (
+                                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                                ) : (
+                                  <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <p
+                                      className={`text-sm font-medium ${
+                                        item.completed ? 'line-through text-muted-foreground' : ''
+                                      }`}
+                                    >
+                                      {t(item.labelKey)}
+                                    </p>
+                                    {!item.completed && item.freeTrial && (
+                                      <span className="text-3xs font-bold text-points bg-points-soft px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                        <Gift className="w-2.5 h-2.5" />
+                                        {t('misc.common.freeFirstTime')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {t(item.descriptionKey)}
                                   </p>
-                                  {!item.completed && item.freeTrial && (
-                                    <span className="text-3xs font-bold text-points bg-points-soft px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                                      <Gift className="w-2.5 h-2.5" />
-                                      {t('misc.common.freeFirstTime')}
-                                    </span>
-                                  )}
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {t(item.descriptionKey)}
-                                </p>
-                              </div>
-                              {item.completed ? (
-                                <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  +{item.points}pt
-                                </span>
-                              ) : (
-                                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
-                                  +{item.points}pt
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
+                                {item.completed ? (
+                                  <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    +{item.points}pt
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
+                                    +{item.points}pt
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
