@@ -29,6 +29,8 @@ export interface PointShopItem {
   icon: string | null;
   sort_order: number;
   created_at: string;
+  /** item_type = 'unlock' のとき、何を解放するか（例: 'cover:starry'） */
+  unlock_key?: string | null;
 }
 
 export interface UserLimits {
@@ -168,6 +170,9 @@ export function usePurchaseShopItem() {
         if (error.message?.includes("Insufficient points")) {
           throw new Error(t("notices.points.insufficient"));
         }
+        if (error.message?.includes("Already owned")) {
+          throw new Error(t("cosmetics.alreadyOwned"));
+        }
         throw error;
       }
 
@@ -179,6 +184,7 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["userLimits"] });
       queryClient.invalidateQueries({ queryKey: ["userPurchases"] });
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["userUnlocks"] });
       
       toast.success(t("notices.shop.purchasedTitle"), {
         description: t("notices.shop.purchasedDesc", { name: data.item.name }),

@@ -13,6 +13,7 @@ import {
   MessageCircle,
   ImagePlus,
   Loader2,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
@@ -26,6 +27,11 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { IconTile, type IconTileTone } from "@/components/ui/icon-tile";
+import { CoverArt } from "@/components/cosmetics/CoverArt";
+import { AvatarFrame } from "@/components/cosmetics/AvatarFrame";
+import { DefaultCover } from "@/components/cosmetics/DefaultCover";
+import { CosmeticsSheet } from "@/components/cosmetics/CosmeticsSheet";
+import { getCoverLook, isCoverKey, isFrameKey, resolveOshiColor } from "@/lib/cosmetics";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -60,6 +66,7 @@ export function ProfileHero({
   const [showChat, setShowChat] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [cosmeticsOpen, setCosmeticsOpen] = useState(false);
 
   const handleCoverUpload = async (file: File) => {
     if (!isOwnProfile || !user?.id) return;
@@ -87,7 +94,8 @@ export function ProfileHero({
       const publicUrl = urlData.publicUrl;
       const { error: updErr } = await supabase
         .from("profiles")
-        .update({ cover_image_url: publicUrl })
+        // 写真を選んだら、着せ替えのカバー柄は外す（あとから選んだほうを見せる）
+        .update({ cover_image_url: publicUrl, profile_cover_key: null })
         .eq("id", user.id);
       if (updErr) throw updErr;
       setCoverPreview(publicUrl);
@@ -151,68 +159,45 @@ export function ProfileHero({
   const displayName = profile.display_name || profile.username || t("profileScreen.hero.defaultName");
   const avatarSrc = previewUrl || profile.avatar_url || undefined;
   const coverSrc = coverPreview || profile.cover_image_url || null;
-  const hasCustomCover = !!coverSrc;
-  // カバーの上のボタン。写真のカバーでは暗い半透明（白い印）、無地のカバーでは明るい面（文字色の印）にする
-  const coverButton = hasCustomCover
+  // 着せ替え（ポイントで解放）。写真を選び直している最中は写真を優先する
+  const oshiColor = resolveOshiColor(profile.profile_oshi_color);
+  const themeCover = !coverPreview && isCoverKey(profile.profile_cover_key) ? profile.profile_cover_key : null;
+  const frameKey = isFrameKey(profile.avatar_frame_key) ? profile.avatar_frame_key : null;
+  const darkCover = themeCover ? getCoverLook(themeCover, oshiColor).dark : !!coverSrc;
+  // カバーの上のボタン。写真・暗い柄では暗い半透明（白い印）、無地・明るい柄では明るい面（文字色の印）にする
+  const coverButton = darkCover
     ? "bg-black/30 hover:bg-black/50 text-white"
     : "bg-background/70 hover:bg-background/90 text-foreground ring-1 ring-inset ring-foreground/5";
 
   return (
     <>
       <div className="relative overflow-hidden rounded-b-3xl sm:rounded-3xl">
-        {/* カバー: カスタム画像 or 無地。
+        {/* カバー: 着せ替えの柄 > カスタム画像 > 無地。
             無地のときは primary をごく薄く敷き、細かな点の地模様と上からのやわらかな光だけを置く。
             以前はランク色のグラデーションの上に ✨💖🌸⭐🎀 の絵文字が浮遊していた */}
-        <div
-          className={cn(
-            "relative h-32 sm:h-44 overflow-hidden",
-            !hasCustomCover && "bg-primary/10 dark:bg-primary/15"
-          )}
-        >
-          {hasCustomCover && (
-            <>
-              <img
-                src={coverSrc!}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
-            </>
-          )}
-          {!hasCustomCover && (
-            <>
-              <div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.22) 1px, transparent 0)",
-                  backgroundSize: "14px 14px",
-                  maskImage: "linear-gradient(to bottom, black, transparent 85%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black, transparent 85%)",
-                }}
-              />
-              {/* 上からのやわらかな光。ライトでは白っぽく明るく、ダークでは primary を少しだけ灯す */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 dark:hidden"
-                style={{
-                  backgroundImage: "radial-gradient(90% 120% at 50% 0%, hsl(var(--background) / 0.55), transparent 70%)",
-                }}
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 hidden dark:block"
-                style={{
-                  backgroundImage: "radial-gradient(90% 120% at 50% 0%, hsl(var(--primary) / 0.14), transparent 70%)",
-                }}
-              />
-            </>
+        <div className="relative h-32 sm:h-44 overflow-hidden">
+          {themeCover ? (
+            <CoverArt coverKey={themeCover} oshiColor={oshiColor} />
+          ) : (
+            <DefaultCover imageUrl={coverSrc} />
           )}
 
           {/* 44px は Apple の指針の下限。ログアウトが隣にあるので、
                 当たり判定を広げるのではなく実サイズを上げ、隙間も確保する */}
           <div className="absolute top-3 right-3 flex gap-2 z-10">
+            {/* 着せ替え（カバー柄・アイコンの縁）。本人だけ */}
+            {isOwnProfile && (
+              <button
+                type="button"
+                onClick={() => setCosmeticsOpen(true)}
+                className={cn("w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors", coverButton)}
+                aria-label={t("cosmetics.open")}
+                title={t("cosmetics.open")}
+                data-tour="me-cosmetics"
+              >
+                <Palette className="w-5 h-5" />
+              </button>
+            )}
             {isOwnProfile && (
               <label
                 className={cn(
@@ -271,12 +256,15 @@ export function ProfileHero({
             <label className={cn("relative block group", isOwnProfile && !isUploading && "cursor-pointer")}>
               {/* 以前はアバターの後ろでランク色の光が脈打ち、右下にもランクのピンが付いていた。
                   ランクは名前の横に1つだけ出す */}
-              <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-4 border-card bg-card shadow-md">
-                <AvatarImage src={avatarSrc} className="object-cover" />
-                <AvatarFallback className="bg-primary/10 text-primary font-bold text-2xl">
-                  {displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {/* 着せ替えの縁（ポイントで解放）。付けていなければそのまま */}
+              <AvatarFrame frameKey={frameKey} oshiColor={oshiColor} className="-m-1">
+                <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-4 border-card bg-card shadow-md">
+                  <AvatarImage src={avatarSrc} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-2xl">
+                    {displayName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </AvatarFrame>
               {isOwnProfile && onAvatarUpload && (
                 <>
                   <input
@@ -399,6 +387,10 @@ export function ProfileHero({
           <FollowList userId={profile.id} type="following" />
         </DialogContent>
       </Dialog>
+
+      {isOwnProfile && (
+        <CosmeticsSheet open={cosmeticsOpen} onOpenChange={setCosmeticsOpen} profile={profile} />
+      )}
 
       {/* 他人プロフィールのみ: メッセージモーダル */}
       {!isOwnProfile && user && (

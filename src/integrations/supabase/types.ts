@@ -2439,6 +2439,7 @@ export type Database = {
           name: string
           points_cost: number
           sort_order: number
+          unlock_key: string | null
           value: number
         }
         Insert: {
@@ -2452,6 +2453,7 @@ export type Database = {
           name: string
           points_cost: number
           sort_order?: number
+          unlock_key?: string | null
           value?: number
         }
         Update: {
@@ -2465,6 +2467,7 @@ export type Database = {
           name?: string
           points_cost?: number
           sort_order?: number
+          unlock_key?: string | null
           value?: number
         }
         Relationships: []
@@ -2728,6 +2731,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_frame_key: string | null
           avatar_url: string | null
           bio: string | null
           completed_tours: string[]
@@ -2745,6 +2749,8 @@ export type Database = {
           interests: string[] | null
           is_admin: boolean | null
           onboarded_at: string | null
+          profile_cover_key: string | null
+          profile_oshi_color: string | null
           privacy_level: Database["public"]["Enums"]["profile_privacy"]
           referred_by: string | null
           themes: string[] | null
@@ -2752,6 +2758,7 @@ export type Database = {
           x_username: string | null
         }
         Insert: {
+          avatar_frame_key?: string | null
           avatar_url?: string | null
           bio?: string | null
           completed_tours?: string[]
@@ -2769,6 +2776,8 @@ export type Database = {
           interests?: string[] | null
           is_admin?: boolean | null
           onboarded_at?: string | null
+          profile_cover_key?: string | null
+          profile_oshi_color?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           referred_by?: string | null
           themes?: string[] | null
@@ -2776,6 +2785,7 @@ export type Database = {
           x_username?: string | null
         }
         Update: {
+          avatar_frame_key?: string | null
           avatar_url?: string | null
           bio?: string | null
           completed_tours?: string[]
@@ -2793,6 +2803,8 @@ export type Database = {
           interests?: string[] | null
           is_admin?: boolean | null
           onboarded_at?: string | null
+          profile_cover_key?: string | null
+          profile_oshi_color?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           referred_by?: string | null
           themes?: string[] | null
@@ -3760,6 +3772,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_unlocks: {
+        Row: {
+          created_at: string
+          unlock_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          unlock_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          unlock_key?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_points: {
         Row: {

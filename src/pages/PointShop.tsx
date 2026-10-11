@@ -36,6 +36,7 @@ import {
   type PointShopItem,
 } from "@/hooks/usePointShop";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
+import { ShopItemGroups } from "@/components/shop/ShopItemGroups";
 import { PointIcon } from "@/components/ui/point-icon";
 import { IconTile } from "@/components/ui/icon-tile";
 import { QueryErrorState } from "@/components/ui/query-error-state";
@@ -257,10 +258,10 @@ export default function PointShop() {
               </div>
             </div>
 
-            {/* 枠の使用状況。枠を買うかどうかの判断材料になるのでここに出す。 */}
-            <div className="mt-4 pt-4 border-t border-border grid gap-3 sm:grid-cols-2">
+            {/* 枠の使用状況。枠を買うかどうかの判断材料になるのでここに出す。
+                マイルームの枠は上限として使われておらず、増やす商品も販売をやめたので出さない */}
+            <div className="mt-4 pt-4 border-t border-border">
               <SlotUsageMeter type="collection" compact />
-              <SlotUsageMeter type="room" compact />
             </div>
           </CardContent>
         </Card>
@@ -344,36 +345,13 @@ export default function PointShop() {
               onRetry={() => refetchShopItems()}
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {shopItems!.map((item) => {
-                const affordable = currentPoints >= item.points_cost;
-                return (
-                  <Card key={item.id}>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">{item.name}</CardTitle>
-                      {item.description && (
-                        <CardDescription>{item.description}</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardFooter className="flex items-center justify-between pt-0">
-                      <Badge variant="secondary" className="gap-1 tabular-nums">
-                        <PointIcon size={14} />
-                        {item.points_cost}pt
-                      </Badge>
-                      <Button
-                        size="sm"
-                        disabled={!affordable || purchaseShopItem.isPending}
-                        onClick={() => setConfirmItem(item)}
-                      >
-                        {affordable
-                          ? t("screens.pointShop.exchangeBuy")
-                          : t("screens.pointShop.exchangeInsufficient")}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-            </div>
+            // 棚（着せ替え / シェアカード / 枠）ごとに見出しを付けて並べる。着せ替えは見本つき
+            <ShopItemGroups
+              items={shopItems!}
+              currentPoints={currentPoints}
+              pending={purchaseShopItem.isPending}
+              onExchange={setConfirmItem}
+            />
           )}
         </section>
         )}
