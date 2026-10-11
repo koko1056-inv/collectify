@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Check, Package, Sparkles, Tag as TagIcon } from "lucide-react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useMyUnlocks } from "@/hooks/useCosmetics";
 import type { PointShopItem } from "@/hooks/usePointShop";
 import { CoverArt } from "@/components/cosmetics/CoverArt";
+import { RoomSetPreview } from "@/components/oshi/room/RoomSetPreview";
 import { AvatarFrame } from "@/components/cosmetics/AvatarFrame";
 import {
   DEFAULT_SHARE_PALETTE,
@@ -16,11 +18,16 @@ import {
   cosmeticI18nId,
   isCoverKey,
   isFrameKey,
+  isRoomSetKey,
   isShareTemplateKey,
 } from "@/lib/cosmetics";
+import type { RoomSet } from "@/lib/oshiRoom";
 
-/** 棚の並び。DB の category と同じ値 */
-const CATEGORIES = ["cosmetic", "share", "capacity"] as const;
+/**
+ * 棚の並び。DB の category と同じ値。ただし「お部屋」（推しの部屋のセット）は DB では category = 'cosmetic' のまま入れていて
+ * （棚の CHECK を広げずに足すため）、unlock_key の頭（room:）で分ける
+ */
+const CATEGORIES = ["room", "cosmetic", "share", "capacity"] as const;
 
 /**
  * ポイントで交換できるアイテムを棚（枠をふやす / 着せ替え / シェアカード）ごとに並べる。
@@ -32,10 +39,13 @@ export function ShopItemGroups({
   currentPoints,
   pending,
   onExchange,
+  highlightKey,
 }: {
   items: PointShopItem[];
   currentPoints: number;
   pending: boolean;
+  /** 推しの部屋の鍵の案内から来たとき、その商品を目立たせる（unlock_key） */
+  highlightKey?: string | null;
   /** 交換の確認を開く。名前・説明は画面の言語に合わせたものに差し替えて渡す */
   onExchange: (item: PointShopItem) => void;
 }) {
@@ -55,7 +65,11 @@ export function ShopItemGroups({
 
   // 知らない棚の商品は「枠をふやす」に入れる（出し忘れを防ぐ）
   const shelfOf = (i: PointShopItem) =>
-    (CATEGORIES as readonly string[]).includes(i.category) ? i.category : "capacity";
+    isRoomSetKey(i.unlock_key)
+      ? "room"
+      : (CATEGORIES as readonly string[]).includes(i.category)
+        ? i.category
+        : "capacity";
   const groups = CATEGORIES.map((c) => ({
     category: c,
     items: items.filter((i) => shelfOf(i) === c),
@@ -106,8 +120,13 @@ export function ShopItemGroups({
                 const shortName = item.unlock_key
                   ? t(`cosmetics.items.${cosmeticI18nId(item.unlock_key)}.name`)
                   : name;
+                const highlighted = !!highlightKey && item.unlock_key === highlightKey;
                 return (
-                  <Card key={item.id} className="flex flex-col gap-2 p-2">
+                  <Card
+                    key={item.id}
+                    id={item.unlock_key ? `shop-${item.unlock_key.replace(":", "-")}` : undefined}
+                    className={cn("flex flex-col gap-2 p-2 transition-shadow", highlighted && "ring-2 ring-primary ring-offset-2 ring-offset-background")}
+                  >
                     <ItemPreview item={item} large />
                     <div className="flex min-w-0 items-center justify-between gap-1 px-0.5">
                       <span className="truncate text-sm font-semibold">{shortName}</span>
@@ -116,7 +135,15 @@ export function ShopItemGroups({
                         {item.points_cost}
                       </span>
                     </div>
-                    {isOwned ? (
+                    {isOwned && isRoomSetKey(item.unlock_key) ? (
+                      // お部屋のセットは、買ったらすぐ部屋で使えるよう、推しの部屋へ送る
+                      <Button asChild size="sm" variant="secondary" className="h-8 w-full gap-1 text-xs">
+                        <Link to="/oshi">
+                          <Check className="h-3.5 w-3.5 text-success" />
+                          {t("cosmetics.shop.useRoom")}
+                        </Link>
+                      </Button>
+                    ) : isOwned ? (
                       <span className="flex h-8 items-center justify-center gap-1 rounded-md bg-success-soft text-xs font-medium text-success">
                         <Check className="h-3.5 w-3.5" />
                         {t("cosmetics.shop.owned")}
@@ -159,6 +186,14 @@ function PriceBadge({ cost }: { cost: number }) {
 function ItemPreview({ item, large }: { item: PointShopItem; large?: boolean }) {
   const key = item.unlock_key;
   const box = large ? "h-20 w-full" : "h-12 w-16";
+  if (isRoomSetKey(key)) {
+    // 部屋は縦長なので、札では下のほう（家具・フレーム・床）を横長に切り取って見せる
+    return (
+      <span className={cn("relative flex shrink-0 items-end overflow-hidden rounded-lg ring-1 ring-inset ring-foreground/10", large ? "h-32 w-full" : "h-12 w-16")}>
+        <RoomSetPreview set={key.slice("room:".length) as RoomSet} className="w-full shrink-0" />
+      </span>
+    );
+  }
   if (isCoverKey(key)) {
     return (
       <span className={cn("relative block shrink-0 overflow-hidden rounded-lg ring-1 ring-inset ring-foreground/10", box)}>

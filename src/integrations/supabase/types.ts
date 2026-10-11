@@ -137,6 +137,54 @@ export type Database = {
         }
         Relationships: []
       }
+      oshi_room_assets: {
+        Row: {
+          created_at: string
+          key: string
+          kind: string
+          set_key: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          kind: string
+          set_key: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          kind?: string
+          set_key?: string
+        }
+        Relationships: []
+      }
+      oshi_rooms: {
+        Row: {
+          created_at: string
+          floor_key: string
+          layout: Json
+          updated_at: string
+          user_id: string
+          wallpaper_key: string
+        }
+        Insert: {
+          created_at?: string
+          floor_key?: string
+          layout?: Json
+          updated_at?: string
+          user_id: string
+          wallpaper_key?: string
+        }
+        Update: {
+          created_at?: string
+          floor_key?: string
+          layout?: Json
+          updated_at?: string
+          user_id?: string
+          wallpaper_key?: string
+        }
+        Relationships: []
+      }
       feedback_requests: {
         Row: {
           admin_note: string | null
@@ -4319,6 +4367,16 @@ export type Database = {
           xp: number
         }[]
       }
+      get_profile_oshi_room: {
+        Args: { _profile_id: string }
+        Returns: {
+          floor_key: string | null
+          layout: Json | null
+          oshi_color: string | null
+          updated_at: string | null
+          wallpaper_key: string | null
+        }[]
+      }
       get_profile_oshi_goods: {
         Args: { _profile_id: string }
         Returns: {
@@ -4487,6 +4545,10 @@ export type Database = {
       }
       normalize_item_title: { Args: { _title: string }; Returns: string }
       purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
+      save_oshi_room: {
+        Args: { _floor_key: string; _layout: Json; _wallpaper_key: string }
+        Returns: Json
+      }
       redeem_invite_code: { Args: { _code: string }; Returns: Json }
       report_trade_receipt: { Args: { _trade_id: string }; Returns: Json }
       report_trade_shipment: { Args: { _trade_id: string }; Returns: Json }

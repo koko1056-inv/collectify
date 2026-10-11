@@ -92,8 +92,8 @@ export const engage = {
       requestIt: "運営にリクエスト",
     },
     oshi: {
-      pageTitle: "推しフォト",
-      pageSub: "今日の推しを1枚。推しグッズを育てよう",
+      pageTitle: "推しの部屋",
+      pageSub: "推しを飾って、毎日お世話しよう",
       tabCompanion: "推しグッズ",
       tabPhoto: "フォト",
       streak: "{n}日連続",
@@ -430,8 +430,8 @@ export const engage = {
       requestIt: "Request it",
     },
     oshi: {
-      pageTitle: "Oshi Photo",
-      pageSub: "One photo of your fave a day. Raise your oshi goods",
+      pageTitle: "Oshi Room",
+      pageSub: "Display your oshi and care for them daily",
       tabCompanion: "Oshi goods",
       tabPhoto: "Photos",
       streak: "{n}-day streak",

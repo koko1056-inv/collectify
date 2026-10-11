@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Pencil, Plus, Star } from "lucide-react";
+import { ChevronRight, DoorOpen, Pencil, Plus, Star } from "lucide-react";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -12,10 +12,13 @@ import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-imag
 import { cn } from "@/lib/utils";
 import { OshiGoodsEditModal } from "./OshiGoodsEditModal";
 import { RankBadge } from "@/components/oshi/RankBadge";
+import { OshiRoomViewDialog } from "@/components/oshi/room/OshiRoomViewDialog";
 
 interface ProfileOshiGoodsProps {
   profileId: string;
   isOwnProfile: boolean;
+  /** 他の人のプロフィールで「お部屋を見る」の見出しに使う名前 */
+  ownerName?: string;
 }
 
 /**
@@ -27,13 +30,15 @@ interface ProfileOshiGoodsProps {
  *  - 相棒グッズ（推しフォトで育てる3つ。なかよし度つき）
  * 推しグッズに1つにまとめたので、ここも1つにした。
  * - 本人: 「編集」で選ぶ・並べ替える画面を開く。空なら、選ぶよう控えめに案内する
- * - 他の人: 空なら何も出さない。見られるかどうかは get_profile_oshi_goods（プロフィールと同じ公開範囲）
+ * - 他の人: 空なら何も出さない。見られるかどうかは get_profile_oshi_goods（プロフィールと同じ公開範囲）。
+ *   「お部屋を見る」で、その人の推しの部屋を読み取りだけで開ける（本人は「育てる」から自分の部屋へ）
  */
-export function ProfileOshiGoods({ profileId, isOwnProfile }: ProfileOshiGoodsProps) {
+export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: ProfileOshiGoodsProps) {
   const { t } = useLanguage();
   const { data: items = [], isLoading } = useProfileOshiGoods(profileId);
   const [editOpen, setEditOpen] = useState(false);
   const [detail, setDetail] = useState<OshiGoodsItem | null>(null);
+  const [roomOpen, setRoomOpen] = useState(false);
 
   if (isLoading) {
     if (!isOwnProfile) return null;
@@ -83,6 +88,12 @@ export function ProfileOshiGoods({ profileId, isOwnProfile }: ProfileOshiGoodsPr
               {items.length}/{MAX_OSHI_GOODS}
             </span>
           </div>
+          {!isOwnProfile && (
+            <Button size="sm" variant="ghost" onClick={() => setRoomOpen(true)} className="h-8 shrink-0 gap-1 px-2 text-xs">
+              <DoorOpen className="h-3.5 w-3.5" />
+              {t("oshiRoom.view.open")}
+            </Button>
+          )}
           {isOwnProfile && (
             <div className="flex shrink-0 items-center gap-0.5">
               <Link
@@ -117,7 +128,7 @@ export function ProfileOshiGoods({ profileId, isOwnProfile }: ProfileOshiGoodsPr
               aria-label={t("profileScreen.oshiGoods.openItem", { rank: item.rank, name: item.title })}
               className="group w-[6.25rem] shrink-0 text-left focus-visible:outline-none"
             >
-              {/* 枠は推しフォトの画面と同じ（レベルが高いほど華やか） */}
+              {/* 枠はレベルが高いほど華やか（推しの部屋では、同じ段階でフレームのまわりが光る） */}
               <span
                 className={cn(
                   "relative block rounded-2xl p-[3px] transition-transform group-focus-visible:ring-2 group-focus-visible:ring-ring",
@@ -161,6 +172,8 @@ export function ProfileOshiGoods({ profileId, isOwnProfile }: ProfileOshiGoodsPr
       </div>
 
       {editor}
+
+      {!isOwnProfile && <OshiRoomViewDialog profileId={profileId} name={ownerName} open={roomOpen} onOpenChange={setRoomOpen} />}
 
       {detail && (
         <ItemDetailsModal

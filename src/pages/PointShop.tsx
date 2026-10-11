@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -61,7 +61,7 @@ const SPEND_GUIDE = [
   { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: 30 },
   { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: 50 },
   { icon: Home, label: "screens.pointShop.spendAiRoom", cost: 100 },
-  // 推しグッズへのプレゼント（推しフォトの画面から贈る）。値段は companion_gift_kinds と揃える
+  // 推しグッズへのプレゼント（推しの部屋から贈る）。値段は companion_gift_kinds と揃える
   { icon: Cookie, label: "screens.pointShop.spendCompanionSnack", cost: 30 },
   { icon: Gift, label: "screens.pointShop.spendCompanionSpecial", cost: 100 },
 ];
@@ -86,6 +86,17 @@ export default function PointShop() {
     refetch: refetchShopItems,
   } = usePointShopItems();
   const purchaseShopItem = usePurchaseShopItem();
+  // 推しの部屋の「鍵の付いた物」から来たとき（?item=room:sakura）、その商品までスクロールして目立たせる
+  const [searchParams] = useSearchParams();
+  const highlightKey = searchParams.get("item");
+  useEffect(() => {
+    if (!highlightKey || !shopItems?.length) return;
+    // 棚が描かれてから探す
+    const timer = window.setTimeout(() => {
+      document.getElementById(`shop-${highlightKey.replace(":", "-")}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [highlightKey, shopItems]);
   const { data: loginTiers, isLoading: tiersLoading } = useLoginBonusTiers();
 
   // Load RevenueCat offerings once on native platforms.
@@ -351,6 +362,7 @@ export default function PointShop() {
               currentPoints={currentPoints}
               pending={purchaseShopItem.isPending}
               onExchange={setConfirmItem}
+              highlightKey={highlightKey}
             />
           )}
         </section>

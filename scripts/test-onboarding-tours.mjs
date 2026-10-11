@@ -154,6 +154,7 @@ const lookupCases = [
   ["/me", "", "me-v1"],
   // 設定シートを開いているときはマイページのツアーを重ねない
   ["/me", "?settings=1", undefined],
+  ["/oshi", "", "oshi-room-v1"],
   ["/login", "", undefined],
 ];
 for (const [path, search, want] of lookupCases) {
