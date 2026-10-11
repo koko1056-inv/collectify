@@ -25,7 +25,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
-interface FavoriteItemsEditModalProps {
+interface OshiGoodsEditModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
@@ -38,11 +38,17 @@ interface SimpleItem {
   content_name: string | null;
 }
 
-export function FavoriteItemsEditModal({
+/**
+ * 推しグッズを選ぶ・並べ替える（最大5つ。順番 = 順位）。
+ * プロフィールの「推しグッズ」と、推しフォトの画面の両方からこの1つを開く。
+ * 以前は「お気に入りTOP5の編集」と「相棒を迎える」（1つずつ選ぶ別の画面）があった。
+ * 保存すると、サーバーが育ち具合（なかよし度）の行を用意する。外したグッズのなかよし度は残り、また選ぶと戻る
+ */
+export function OshiGoodsEditModal({
   open,
   onOpenChange,
   userId,
-}: FavoriteItemsEditModalProps) {
+}: OshiGoodsEditModalProps) {
   const { t } = useLanguage();
   const { data: currentFavorites = [] } = useFavoriteItems(userId);
   const updateMutation = useUpdateFavoriteItems(userId);
@@ -108,7 +114,7 @@ export function FavoriteItemsEditModal({
       }
       if (prev.length >= FAVORITE_ITEMS_LIMIT) {
         toast.error(
-          t("profileScreen.favorites.limitToast", { count: FAVORITE_ITEMS_LIMIT })
+          t("profileScreen.oshiGoods.limitToast", { count: FAVORITE_ITEMS_LIMIT })
         );
         return prev;
       }
@@ -141,19 +147,19 @@ export function FavoriteItemsEditModal({
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
-            {/* お気に入りの星は primary（金色の points はポイントと評価の星だけ。FavoriteItemsTop5 と同じ決まり） */}
+            {/* 推しグッズの星は primary（金色の points はポイントと評価の星だけ） */}
             <Star className="w-5 h-5 text-primary fill-primary" />
-            {t("profileScreen.favorites.editTitle", { count: FAVORITE_ITEMS_LIMIT })}
+            {t("profileScreen.oshiGoods.editTitle", { count: FAVORITE_ITEMS_LIMIT })}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            {t("profileScreen.favorites.editDesc", { count: FAVORITE_ITEMS_LIMIT })}
+            {t("profileScreen.oshiGoods.editDesc", { count: FAVORITE_ITEMS_LIMIT })}
           </DialogDescription>
         </DialogHeader>
 
         {/* 選択中の枠 */}
         <div className="px-4 pt-3 pb-2">
           <p className="text-2xs font-bold text-muted-foreground mb-2">
-            {t("profileScreen.favorites.selected", {
+            {t("profileScreen.oshiGoods.selected", {
               count: selectedIds.length,
               limit: FAVORITE_ITEMS_LIMIT,
             })}
@@ -186,7 +192,9 @@ export function FavoriteItemsEditModal({
                           {idx + 1}
                         </div>
                         <button
+                          type="button"
                           onClick={() => removeItem(item.id)}
+                          aria-label={t("profileScreen.oshiGoods.remove", { name: item.title })}
                           className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center"
                         >
                           <X className="w-3 h-3" />
@@ -195,7 +203,7 @@ export function FavoriteItemsEditModal({
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                         <span className="text-3xs">
-                          {t("profileScreen.favorites.rank", { rank: idx + 1 })}
+                          {t("profileScreen.oshiGoods.rank", { rank: idx + 1 })}
                         </span>
                       </div>
                     )}
@@ -203,15 +211,19 @@ export function FavoriteItemsEditModal({
                   {item && (
                     <div className="flex gap-0.5">
                       <button
+                        type="button"
                         onClick={() => moveItem(idx, -1)}
                         disabled={idx === 0}
+                        aria-label={t("profileScreen.oshiGoods.moveLeft", { rank: idx + 1 })}
                         className="w-7 h-5 rounded bg-muted hover:bg-muted-foreground/10 disabled:opacity-30 flex items-center justify-center"
                       >
                         <ArrowLeft className="w-3 h-3" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => moveItem(idx, 1)}
                         disabled={idx === selectedIds.length - 1}
+                        aria-label={t("profileScreen.oshiGoods.moveRight", { rank: idx + 1 })}
                         className="w-7 h-5 rounded bg-muted hover:bg-muted-foreground/10 disabled:opacity-30 flex items-center justify-center"
                       >
                         <ArrowRight className="w-3 h-3" />
@@ -231,7 +243,7 @@ export function FavoriteItemsEditModal({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("profileScreen.favorites.searchPlaceholder")}
+              placeholder={t("profileScreen.oshiGoods.searchPlaceholder")}
               className="pl-8 h-9 text-sm"
             />
           </div>
@@ -250,8 +262,8 @@ export function FavoriteItemsEditModal({
               icon={search ? Search : Star}
               title={
                 search
-                  ? t("profileScreen.favorites.noMatch")
-                  : t("profileScreen.favorites.emptyCollection")
+                  ? t("profileScreen.oshiGoods.noMatch")
+                  : t("profileScreen.oshiGoods.emptyCollection")
               }
             />
           ) : (

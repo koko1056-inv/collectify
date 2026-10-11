@@ -6,7 +6,7 @@ import type { OnboardingStepId } from "./steps";
  *
  * 項目を押すと `path` に `?guide=<id>` を付けて移動し、GuideHost がその画面の
  * 操作する場所（data-tour）を光らせて「ここを押す」と案内する。
- * 以前は行き先がおおまか（例: お気に入りTOP5 → コレクション画面）で、
+ * 以前は行き先がおおまか（例: 推しグッズ（当時のお気に入りTOP5） → コレクション画面）で、
  * 着いた画面のどこを押せばいいのか分からなかった。
  */
 export interface GuideTask {
@@ -26,7 +26,7 @@ export const GUIDE_TASKS: Partial<Record<OnboardingStepId, GuideTask>> = {
   },
   favorites: {
     path: "/me",
-    steps: [{ target: "me-top5", titleKey: "tour.guide.favorites.title", bodyKey: "tour.guide.favorites.body", advance: "click", waitMs: 3000 }],
+    steps: [{ target: "me-oshi-goods", titleKey: "tour.guide.favorites.title", bodyKey: "tour.guide.favorites.body", advance: "click", waitMs: 3000 }],
   },
   wishlist: {
     path: "/search",

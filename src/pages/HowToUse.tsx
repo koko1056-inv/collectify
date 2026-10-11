@@ -18,6 +18,8 @@ import {
   Package,
   UserCircle2,
   Wand2,
+  Star,
+  Camera,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -86,6 +88,17 @@ const featureShowcase = [
 // title/description は翻訳キー（描画時に t() で解決）。
 // 以前は1枚ずつ blue / pink / orange… の原色ベタ塗りの丸だった。IconTile の primary にそろえる。
 const quickTips = [
+  // 推しグッズ（以前の「お気に入りTOP5」と「相棒グッズ」をまとめたもの）と、それを育てる推しフォト
+  {
+    icon: Star,
+    title: "screens.howToUse.tip.oshiGoods.title",
+    description: "screens.howToUse.tip.oshiGoods.description",
+  },
+  {
+    icon: Camera,
+    title: "screens.howToUse.tip.oshiPhoto.title",
+    description: "screens.howToUse.tip.oshiPhoto.description",
+  },
   {
     icon: Plus,
     title: "screens.howToUse.tip.add.title",

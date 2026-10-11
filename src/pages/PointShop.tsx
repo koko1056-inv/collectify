@@ -61,7 +61,7 @@ const SPEND_GUIDE = [
   { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: 30 },
   { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: 50 },
   { icon: Home, label: "screens.pointShop.spendAiRoom", cost: 100 },
-  // 相棒へのプレゼント（推しフォトの画面から贈る）。値段は companion_gift_kinds と揃える
+  // 推しグッズへのプレゼント（推しフォトの画面から贈る）。値段は companion_gift_kinds と揃える
   { icon: Cookie, label: "screens.pointShop.spendCompanionSnack", cost: 30 },
   { icon: Gift, label: "screens.pointShop.spendCompanionSpecial", cost: 100 },
 ];

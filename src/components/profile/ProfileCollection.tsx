@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ProfileCollection({ userId }: { userId: string }) {
@@ -53,8 +52,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3 my-0 mx-0 px-0 py-px">
-      {/* お気に入り TOP5 */}
-      <FavoriteItemsTop5 userId={userId} isOwnProfile={isOwnProfile} />
+      {/* 以前ここにあった「お気に入り TOP5」は、プロフィール上部の「推しグッズ」にまとめた */}
 
       {/* 自分のプロフィールでは枠の使用状況を常に表示する */}
       {isOwnProfile && <SlotUsageMeter type="collection" className="mx-4" />}

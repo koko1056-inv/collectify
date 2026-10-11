@@ -33,8 +33,8 @@ export const notices = {
       visibilityFailed: "公開設定の変更に失敗しました",
     },
     favorites: {
-      updated: "お気に入りを更新しました",
-      updateFailed: "お気に入りの更新に失敗しました",
+      updated: "推しグッズを更新しました",
+      updateFailed: "推しグッズの更新に失敗しました",
     },
     invite: {
       created: "招待コードを作成しました: {code}",
@@ -233,8 +233,8 @@ export const notices = {
       visibilityFailed: "Couldn't change the visibility",
     },
     favorites: {
-      updated: "Favorites updated",
-      updateFailed: "Couldn't update favorites",
+      updated: "Oshi goods updated",
+      updateFailed: "Couldn't update your oshi goods",
     },
     invite: {
       created: "Invite code created: {code}",

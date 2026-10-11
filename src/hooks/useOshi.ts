@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 import { streakFromDates, todayJst } from "@/utils/companion";
 
+/** 推しグッズ1つ（推しフォトの画面で育てる）。rank は 1〜5 の順位 */
 export interface Companion {
+  rank: number;
   user_item_id: string;
   xp: number;
   last_pat_on: string | null;
@@ -55,8 +57,9 @@ export function giftErrorCode(e: unknown): GiftErrorCode {
   return "unknown";
 }
 
-/** 他の人のプロフィールにも出す相棒（グッズの名前・写真・なかよし度だけ） */
-export interface ProfileCompanion {
+/** プロフィールに出す推しグッズ（順位・グッズの名前・写真・なかよし度だけ） */
+export interface ProfileOshiGoods {
+  rank: number;
   user_item_id: string;
   title: string;
   image: string;
@@ -74,7 +77,11 @@ export interface CareResult {
   leveled_up?: boolean;
 }
 
-/** 相棒グッズ（最大3つ）と、グッズの名前・写真 */
+/**
+ * 自分の推しグッズ（最大5つ・順位の順）と、育ち具合・今日のお世話。
+ * 以前は companion_goods（相棒・最大3つ）を迎えた順に読んでいた。いまは推しグッズ（profiles.favorite_item_ids）が正で、
+ * 並びも数もそちらに合わせるため、順位と育ち具合を1回で返す get_my_oshi_goods を使う。
+ */
 export function useCompanions() {
   const { user } = useAuth();
   return useQuery({
@@ -82,35 +89,19 @@ export function useCompanions() {
     enabled: !!user?.id,
     staleTime: 1000 * 30,
     queryFn: async (): Promise<Companion[]> => {
-      const { data, error } = await supabase
-        .from("companion_goods")
-        .select("user_item_id, xp, last_pat_on, last_polish_on, last_photo_on, created_at")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: true });
+      const { data, error } = await supabase.rpc("get_my_oshi_goods");
       if (error) throw error;
-      const rows = data ?? [];
-      if (rows.length === 0) return [];
-      const { data: items, error: itemError } = await supabase
-        .from("user_items")
-        .select("id, title, image, content_name")
-        .in("id", rows.map((r) => r.user_item_id));
-      if (itemError) throw itemError;
-      const byId = new Map((items ?? []).map((i) => [i.id as string, i]));
-      return rows
-        .filter((r) => byId.has(r.user_item_id))
-        .map((r) => {
-          const it = byId.get(r.user_item_id)!;
-          return {
-            user_item_id: r.user_item_id,
-            xp: r.xp,
-            last_pat_on: r.last_pat_on,
-            last_polish_on: r.last_polish_on,
-            last_photo_on: r.last_photo_on,
-            title: it.title as string,
-            image: it.image as string,
-            content_name: (it.content_name as string | null) ?? null,
-          };
-        });
+      return (data ?? []).map((r) => ({
+        rank: r.rank_no,
+        user_item_id: r.user_item_id,
+        xp: r.xp,
+        last_pat_on: r.last_pat_on,
+        last_polish_on: r.last_polish_on,
+        last_photo_on: r.last_photo_on,
+        title: r.title,
+        image: r.image,
+        content_name: r.content_name ?? null,
+      }));
     },
   });
 }
@@ -126,7 +117,7 @@ export function useCareCompanion() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
-      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
     },
   });
@@ -150,7 +141,7 @@ export function useCompanionGiftKinds() {
 }
 
 /**
- * 今日（日本時間）すでに贈った回数。相棒ごと・種類ごと。キーは `${user_item_id}:${kind}`。
+ * 今日（日本時間）すでに贈った回数。推しグッズごと・種類ごと。キーは `${user_item_id}:${kind}`。
  * 回数の上限はサーバーが確かめる。ここは「あと何回」を出すためだけ。
  */
 export function useTodayGiftCounts() {
@@ -191,7 +182,7 @@ export function useGiveCompanionGift() {
       // 失敗（残高不足・回数切れ）でも、画面の数字がずれていた可能性があるので取り直す
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
       void qc.invalidateQueries({ queryKey: ["companion-gifts-today", user?.id] });
-      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
       void qc.invalidateQueries({ queryKey: ["pointTransactions"] });
     },
@@ -199,51 +190,33 @@ export function useGiveCompanionGift() {
 }
 
 /**
- * プロフィールに出す相棒（最大3つ）。本人以外でも、プロフィールを見られる人には見える。
- * companion_goods は本人しか読めないので、表示に要る列だけを返す get_profile_companions を使う。
+ * プロフィールに出す推しグッズ（最大5つ・順位の順）。本人以外でも、プロフィールを見られる人には見える。
+ * companion_goods は本人しか読めないので、表示に要る列だけを返す get_profile_oshi_goods を使う。
+ * 以前は get_profile_companions（相棒・最大3つ）だった。古いアプリのためにそちらも同じ中身で残してある
  */
-export function useProfileCompanions(profileId: string | undefined) {
+export function useProfileOshiGoods(profileId: string | undefined) {
   return useQuery({
-    queryKey: ["profile-companions", profileId],
+    queryKey: ["profile-oshi-goods", profileId],
     enabled: !!profileId,
     staleTime: 1000 * 60,
-    queryFn: async (): Promise<ProfileCompanion[]> => {
-      const { data, error } = await supabase.rpc("get_profile_companions", { _profile_id: profileId! });
+    queryFn: async (): Promise<ProfileOshiGoods[]> => {
+      const { data, error } = await supabase.rpc("get_profile_oshi_goods", { _profile_id: profileId! });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((r) => ({
+        rank: r.rank_no,
+        user_item_id: r.user_item_id,
+        title: r.title,
+        image: r.image,
+        content_name: r.content_name ?? null,
+        xp: r.xp,
+        level: r.level,
+      }));
     },
   });
 }
 
-export function useSetCompanion() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (itemId: string) => {
-      const { error } = await supabase.rpc("set_companion", { _user_item_id: itemId });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
-      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
-    },
-  });
-}
-
-export function useRemoveCompanion() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (itemId: string) => {
-      const { error } = await supabase.rpc("remove_companion", { _user_item_id: itemId });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
-      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
-    },
-  });
-}
+// 以前ここにあった useSetCompanion / useRemoveCompanion（相棒を1つずつ迎える・はずす）はなくした。
+// 推しグッズは、選ぶ・並べ替えるを1つの画面（OshiGoodsEditModal）でまとめて保存する
 
 /** 推しフォト（直近の分。カレンダーと連続日数に使う） */
 export function useOshiPhotos(days = 400) {
@@ -305,7 +278,7 @@ export function useUploadOshiPhoto() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["oshi-photos", user?.id] });
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
-      void qc.invalidateQueries({ queryKey: ["profile-companions", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
     },
   });
