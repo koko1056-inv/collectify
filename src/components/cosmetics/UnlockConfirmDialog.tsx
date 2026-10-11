@@ -63,7 +63,7 @@ export function UnlockConfirmDialog({
           <AlertDialogTitle>{t("cosmetics.confirmTitle", { name: title })}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-3">
-              <p className="flex items-center gap-1.5 text-foreground">
+              <p className="flex items-center justify-center gap-1.5 text-foreground sm:justify-start">
                 <PointIcon size={18} />
                 <span className="text-lg font-bold tabular-nums">{cost}</span>
                 <span className="text-sm text-muted-foreground">pt</span>

@@ -197,7 +197,8 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
         </div>
 
         {supportsTemplate && (
-          <div>
+          // min-w-0: 横に流す札の列が、ダイアログの幅を押し広げないように
+          <div className="min-w-0">
             <p className="mb-1.5 text-2xs font-semibold text-muted-foreground">{t("cosmetics.shareTemplate.label")}</p>
             <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
               <TemplateChip

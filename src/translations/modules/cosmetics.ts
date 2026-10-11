@@ -21,7 +21,7 @@ export const cosmetics = {
     unlockFor: "{cost}pt で解放",
     insufficient: "ポイントが足りません",
     getPoints: "ポイントを手に入れる",
-    confirmTitle: "「{name}」を解放しますか？",
+    confirmTitle: "{name}を解放しますか？",
     confirmDesc: "{cost}pt を使って解放します（残り {balance}pt）。一度解放すれば、ずっと使えます。",
     confirm: "解放する",
     cancel: "キャンセル",
@@ -75,7 +75,6 @@ export const cosmetics = {
     shareTemplate: {
       label: "デザイン",
       standard: "標準",
-      unlockTitle: "デザイン「{name}」を解放しますか？",
     },
   },
   en: {
@@ -93,7 +92,7 @@ export const cosmetics = {
     unlockFor: "Unlock for {cost}pt",
     insufficient: "Not enough points",
     getPoints: "Get points",
-    confirmTitle: "Unlock \"{name}\"?",
+    confirmTitle: "Unlock {name}?",
     confirmDesc: "This uses {cost}pt ({balance}pt left). Once unlocked, it's yours to keep.",
     confirm: "Unlock",
     cancel: "Cancel",
@@ -147,7 +146,6 @@ export const cosmetics = {
     shareTemplate: {
       label: "Design",
       standard: "Standard",
-      unlockTitle: "Unlock the \"{name}\" design?",
     },
   },
 };

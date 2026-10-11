@@ -109,27 +109,29 @@ export function CosmeticsSheet({
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-4">
-            {/* プレビュー: 選んでいる柄・縁をそのまま当てる */}
-            <div className="rounded-2xl border border-border overflow-hidden bg-card" aria-label={t("cosmetics.previewLabel")}>
-              <div className="relative h-24 overflow-hidden">
-                {cover ? (
-                  <CoverArt coverKey={cover} oshiColor={color} />
-                ) : (
-                  <DefaultCover imageUrl={profile.cover_image_url} />
-                )}
-              </div>
-              <div className="relative h-12">
-                <div className="absolute -top-9 left-4">
-                  <AvatarFrame frameKey={frame} oshiColor={color} thickness={3}>
-                    <Avatar className="w-16 h-16 border-[3px] border-card bg-card">
-                      <AvatarImage src={profile.avatar_url ?? undefined} className="object-cover" />
-                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                        {displayName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </AvatarFrame>
+            {/* プレビュー: 選んでいる柄・縁をそのまま当てる。下の一覧や推し色を選ぶあいだも見えるよう上に留める */}
+            <div className="sticky top-0 z-10 -mx-5 bg-background px-5 pb-2">
+              <div className="rounded-2xl border border-border overflow-hidden bg-card" aria-label={t("cosmetics.previewLabel")}>
+                <div className="relative h-24 overflow-hidden">
+                  {cover ? (
+                    <CoverArt coverKey={cover} oshiColor={color} />
+                  ) : (
+                    <DefaultCover imageUrl={profile.cover_image_url} />
+                  )}
                 </div>
-                <p className="absolute left-[6.25rem] top-2 right-3 truncate text-sm font-bold">{displayName}</p>
+                <div className="relative h-12">
+                  <div className="absolute -top-9 left-4">
+                    <AvatarFrame frameKey={frame} oshiColor={color} thickness={3}>
+                      <Avatar className="w-16 h-16 border-[3px] border-card bg-card">
+                        <AvatarImage src={profile.avatar_url ?? undefined} className="object-cover" />
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                          {displayName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </AvatarFrame>
+                  </div>
+                  <p className="absolute left-[6.25rem] top-2 right-3 truncate text-sm font-bold">{displayName}</p>
+                </div>
               </div>
             </div>
 
@@ -262,7 +264,7 @@ export function CosmeticsSheet({
 
       <UnlockConfirmDialog
         item={unlocking ? byKey.get(unlocking) ?? null : null}
-        title={unlocking ? name(unlocking) : ""}
+        title={unlocking ? t(`cosmetics.kind.${unlocking.split(":")[0]}`, { name: name(unlocking) }) : ""}
         onOpenChange={(o) => !o && setUnlocking(null)}
         onUnlocked={(key) => {
           // 解放したら、そのまま付ける
@@ -331,7 +333,7 @@ function FrameSample({ frameKey, color }: { frameKey: FrameKey | null; color: Os
   return (
     <div className="flex aspect-[16/10] items-center justify-center rounded-lg bg-muted/60">
       <AvatarFrame frameKey={frameKey} oshiColor={color} thickness={3}>
-        <span className="block h-9 w-9 rounded-full border-2 border-card bg-primary/15" />
+        <span className="block h-9 w-9 rounded-full border-2 border-card bg-muted" />
       </AvatarFrame>
     </div>
   );
