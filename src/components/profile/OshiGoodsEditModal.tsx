@@ -169,8 +169,10 @@ export function OshiGoodsEditModal({
               const id = selectedIds[idx];
               const item = id ? itemMap.get(id) : null;
               return (
+                // 枠はグッズの id で見分ける。以前は順番（idx）だったので、並べ替えると画像の src が入れ替わり、
+                // 読み込み直すあいだ代わりの文字（グッズ名）が見えていた
                 <div
-                  key={idx}
+                  key={id ?? `empty-${idx}`}
                   className="w-20 shrink-0 flex flex-col items-center gap-1"
                 >
                   <div
