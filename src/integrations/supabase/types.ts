@@ -4319,6 +4319,37 @@ export type Database = {
           xp: number
         }[]
       }
+      get_profile_oshi_goods: {
+        Args: { _profile_id: string }
+        Returns: {
+          content_name: string | null
+          image: string
+          level: number
+          rank_no: number
+          title: string
+          user_item_id: string
+          xp: number
+        }[]
+      }
+      get_my_oshi_goods: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          content_name: string | null
+          image: string
+          last_pat_on: string | null
+          last_photo_on: string | null
+          last_polish_on: string | null
+          level: number
+          rank_no: number
+          title: string
+          user_item_id: string
+          xp: number
+        }[]
+      }
+      is_my_oshi_goods: {
+        Args: { _item: string }
+        Returns: boolean
+      }
       get_profile_featured_avatar: {
         Args: { _profile_id: string }
         Returns: {
