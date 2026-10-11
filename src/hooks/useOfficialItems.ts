@@ -150,7 +150,10 @@ export const FEED_PAGE = 200;
  * 件数は先頭ページと一緒にサーバーが数えた全体の数。
  */
 export function useCatalogFeed(term: string, enabled = true) {
-  const q = term.trim().replace(/\s+/g, " ");
+  const normalized = term.trim().replace(/\s+/g, " ");
+  // 1文字（「ミ」など）では検索しない。ほぼ全件に当たってサーバーが時間切れになり、
+  // 「データの読み込みに失敗しました」が出ていた（サーバー側も2文字未満は空を返す）。2文字目までは新しい順の一覧のまま
+  const q = normalized.replace(/ /g, "").length >= 2 ? normalized : "";
   const query = useInfiniteQuery({
     queryKey: ["official-items-feed", q],
     enabled,
