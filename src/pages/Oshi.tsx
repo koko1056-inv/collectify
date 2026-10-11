@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Camera, Flame, Plus, Sprout } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, ArrowUpDown, Camera, Flame, Star } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
@@ -10,22 +9,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconTile } from "@/components/ui/icon-tile";
 import { CompanionCard } from "@/components/oshi/CompanionCard";
-import { CompanionPicker } from "@/components/oshi/CompanionPicker";
 import { PhotoCalendar } from "@/components/oshi/PhotoCalendar";
 import { TodayPhotoDialog } from "@/components/oshi/TodayPhotoDialog";
+import { OshiGoodsEditModal } from "@/components/profile/OshiGoodsEditModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useCompanions, useOshiPhotos, useRemoveCompanion, type Companion } from "@/hooks/useOshi";
-import { MAX_COMPANIONS } from "@/utils/companion";
+import { useCompanions, useOshiPhotos, type Companion } from "@/hooks/useOshi";
+import { MAX_OSHI_GOODS } from "@/utils/companion";
 
-/** 推しフォト（1日1枚の記録）と、相棒グッズ（育てる） */
+/**
+ * 推しフォト（1日1枚の記録）と、推しグッズ（最大5つ・順位の順に育てる）。
+ * 以前はここで「相棒」（最大3つ）を1つずつ迎えて・はずしていた。推しグッズにまとめたので、
+ * 選ぶ・並べ替えるはプロフィールと同じ画面（OshiGoodsEditModal）に1つにした
+ */
 const Oshi = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const companions = useCompanions();
   const photos = useOshiPhotos();
-  const remove = useRemoveCompanion();
   const [tab, setTab] = useState("companion");
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoItem, setPhotoItem] = useState<string | null>(null);
 
@@ -34,16 +38,6 @@ const Oshi = () => {
   const openPhoto = (c?: Companion) => {
     setPhotoItem(c?.user_item_id ?? null);
     setPhotoOpen(true);
-  };
-
-  const handleRemove = async (c: Companion) => {
-    if (!window.confirm(t("engage.oshi.removeConfirm", { name: c.title }))) return;
-    try {
-      await remove.mutateAsync(c.user_item_id);
-    } catch (e) {
-      console.error("remove companion failed:", e);
-      toast.error(t("engage.oshi.careFailed"));
-    }
   };
 
   return (
@@ -101,22 +95,31 @@ const Oshi = () => {
               <Skeleton className="h-52 w-full rounded-2xl" />
             ) : list.length === 0 ? (
               <EmptyState
-                icon={Sprout}
+                icon={Star}
                 title={t("engage.oshi.emptyCompanionTitle")}
-                description={t("engage.oshi.emptyCompanionDesc")}
+                description={t("engage.oshi.emptyCompanionDesc", { max: MAX_OSHI_GOODS })}
+                action={
+                  <Button className="gap-1.5 rounded-xl" onClick={() => setEditorOpen(true)}>
+                    <Star className="h-4 w-4" />
+                    {t("engage.oshi.chooseOshiGoods")}
+                  </Button>
+                }
                 className="py-8"
               />
             ) : (
-              list.map((c) => <CompanionCard key={c.user_item_id} companion={c} onPhoto={openPhoto} onRemove={handleRemove} />)
-            )}
-            {list.length < MAX_COMPANIONS && (
-              <Button variant="outline" className="w-full gap-1.5 rounded-2xl" onClick={() => setPickerOpen(true)}>
-                <Plus className="h-4 w-4" />
-                {t("engage.oshi.addCompanion")}
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {t("engage.oshi.companions", { n: list.length, max: MAX_COMPANIONS })}
-                </span>
-              </Button>
+              <>
+                {list.map((c) => (
+                  <CompanionCard key={c.user_item_id} companion={c} onPhoto={openPhoto} />
+                ))}
+                {/* 選ぶ・並べ替えるはプロフィールと同じ画面。外してもなかよし度は残る（また選べば戻る） */}
+                <Button variant="outline" className="w-full gap-1.5 rounded-2xl" onClick={() => setEditorOpen(true)}>
+                  <ArrowUpDown className="h-4 w-4" />
+                  {t("engage.oshi.editOshiGoods")}
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {t("engage.oshi.companions", { n: list.length, max: MAX_OSHI_GOODS })}
+                  </span>
+                </Button>
+              </>
             )}
           </TabsContent>
 
@@ -133,7 +136,7 @@ const Oshi = () => {
         </Tabs>
       </main>
 
-      <CompanionPicker open={pickerOpen} onOpenChange={setPickerOpen} excludeIds={list.map((c) => c.user_item_id)} />
+      {user && <OshiGoodsEditModal open={editorOpen} onOpenChange={setEditorOpen} userId={user.id} />}
       <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} />
       <Footer />
     </div>

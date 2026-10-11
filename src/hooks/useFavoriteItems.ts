@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { MAX_OSHI_GOODS } from "@/utils/companion";
 
-export const FAVORITE_ITEMS_LIMIT = 5;
+/** 推しグッズの数。以前の「お気に入りTOP5」と同じ5つ（相棒グッズとまとめた） */
+export const FAVORITE_ITEMS_LIMIT = MAX_OSHI_GOODS;
 
 export interface FavoriteItem {
   id: string;
@@ -13,8 +15,9 @@ export interface FavoriteItem {
 }
 
 /**
- * ユーザーのお気に入りグッズ（最大5個）を、profiles.favorite_item_ids の順番を保ったまま返す。
+ * 推しグッズ（最大5個）を、profiles.favorite_item_ids の順番（= 順位）を保ったまま返す。選ぶ画面で使う。
  * 削除済みのアイテムIDは表示から除外される。
+ * プロフィールや推しフォトの画面では、なかよし度も一緒に返す RPC（useOshi の useProfileOshiGoods / useCompanions）を使う。
  */
 export function useFavoriteItems(userId?: string | null) {
   return useQuery({
@@ -73,6 +76,9 @@ export function useUpdateFavoriteItems(userId?: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["favorite-items", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      // 推しグッズは推しフォトの画面（育てる）とプロフィールにも出る。保存するとサーバーが育ち具合の行も用意する
+      queryClient.invalidateQueries({ queryKey: ["companions", userId] });
+      queryClient.invalidateQueries({ queryKey: ["profile-oshi-goods", userId] });
       toast.success(t("notices.favorites.updated"));
     },
     onError: (err) => {

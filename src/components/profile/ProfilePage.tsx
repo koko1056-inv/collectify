@@ -15,11 +15,10 @@ import { ProfileEditSheet } from "./ProfileEditSheet";
 import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 import { ProfileInterests } from "./interests";
 import { MyStudioPanel } from "./MyStudioPanel";
-import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
 import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ProfileBookmarks } from "./ProfileBookmarks";
 import { ProfileShowcase } from "./ProfileShowcase";
-import { ProfileCompanions } from "./ProfileCompanions";
+import { ProfileOshiGoods } from "./ProfileOshiGoods";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "./ProfileTabs";
@@ -116,13 +115,9 @@ export function ProfilePage() {
             />
           </div>
 
-          {/* お気に入り TOP5（マイページにまとめたときに、自分では選べなくなっていたので戻す） */}
-          <div className="mt-6">
-            <FavoriteItemsTop5 userId={user.id} isOwnProfile />
-          </div>
-
-          {/* 相棒グッズ（推しフォトで育てている相棒。他の人のプロフィールにも出る） */}
-          <ProfileCompanions profileId={user.id} isOwnProfile />
+          {/* 推しグッズ（最大5つ・順位つき。推しフォトで育てる）。
+              以前は「お気に入り TOP5」と「相棒グッズ」の2つの欄が並んでいた */}
+          <ProfileOshiGoods profileId={user.id} isOwnProfile />
 
           {/* ショーケース: お気に入りルーム / アバター */}
           <ProfileShowcase

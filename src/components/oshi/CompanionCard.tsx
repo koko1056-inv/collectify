@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "framer-motion";
-import { Camera, Check, Gift, Hand, Heart, Sparkles, X } from "lucide-react";
+import { Camera, Check, Gift, Hand, Heart, Sparkles, Star } from "lucide-react";
 import { toast } from "sonner";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,14 +15,14 @@ import {
   type GiftKind,
 } from "@/hooks/useOshi";
 import { CompanionGiftSheet } from "@/components/oshi/CompanionGiftSheet";
+import { RankBadge } from "@/components/oshi/RankBadge";
 import { frameClass, levelProgress, todayJst } from "@/utils/companion";
 import { cn } from "@/lib/utils";
 
 interface CompanionCardProps {
   companion: Companion;
-  /** 「撮る」を押したとき（この相棒を選んだ状態で写真の画面を開く） */
+  /** 「撮る」を押したとき（この推しグッズを選んだ状態で写真の画面を開く） */
   onPhoto: (companion: Companion) => void;
-  onRemove: (companion: Companion) => void;
 }
 
 type CareAction = "pat" | "polish";
@@ -44,7 +44,7 @@ const ACTION_TONE = {
 /* eslint-enable no-restricted-syntax */
 
 /**
- * 相棒グッズ。撫でる・磨く・撮る を1日に1回ずつすると、なかよし度（xp）が増えてレベルが上がる。
+ * 推しグッズ1つ（左上に順位）。撫でる・磨く・撮る を1日に1回ずつすると、なかよし度（xp）が増えてレベルが上がる。
  * レベルに応じて枠が華やかになる。放置しても減らない。
  *
  * 触った手応えを大事にする:
@@ -52,8 +52,11 @@ const ACTION_TONE = {
  * - 磨く: 画像に光の帯が走り、きらめきが出る
  * - どちらも「+1」が浮かび、なかよし度のバーが伸びる
  * - プレゼント: ポイントで贈る（毎日のお世話とは別。1日の回数に上限）。贈ると跳ねて、ハートと「+xp」が出る
+ *
+ * 以前はカードの右上に「相棒をはずす」（×）があった。推しグッズにまとめてからは、
+ * 選ぶ・外す・並べ替えるはまとめて1つの画面（OshiGoodsEditModal）でする
  */
-export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardProps) {
+export function CompanionCard({ companion, onPhoto }: CompanionCardProps) {
   const { t } = useLanguage();
   const care = useCareCompanion();
   const give = useGiveCompanionGift();
@@ -206,6 +209,9 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
             </span>
           </motion.button>
 
+          {/* 順位（プロフィールの推しグッズと同じ丸） */}
+          <RankBadge rank={companion.rank} className="pointer-events-none absolute -left-1.5 -top-1.5" />
+
           {/* ハート・きらめき・+xp */}
           <AnimatePresence>
             {bursts.map((b) => (
@@ -219,17 +225,10 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start gap-1">
-            <p className="line-clamp-2 flex-1 text-sm font-bold">{companion.title}</p>
-            <button
-              type="button"
-              onClick={() => onRemove(companion)}
-              aria-label={t("engage.oshi.removeCompanion")}
-              className="-mr-1 -mt-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <p className="line-clamp-2 text-sm font-bold">
+            <span className="sr-only">{t("engage.oshi.rankAria", { rank: companion.rank })} </span>
+            {companion.title}
+          </p>
           <p className="text-xs font-medium text-primary">{t(`engage.oshi.levelTitle.${progress.level}`)}</p>
 
           <div className="mt-2" aria-label={t("engage.oshi.xpLabel")}>
@@ -327,7 +326,7 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
 
 /** 撫でたときのハート／磨いたときのきらめきと、「+1」の浮かび上がり */
 function BurstFx({ burst, reduceMotion }: { burst: Burst; reduceMotion: boolean }) {
-  // プレゼントは絵文字ではなくアイコン（アプリのアイコンの決まりに合わせる）
+  // 絵文字ではなくアイコン（アプリのアイコンの決まりに合わせる）。以前は撫でる・磨くだけハートときらめきの絵文字だった
   const symbols: React.ReactNode[] =
     burst.kind === "gift"
       ? [
@@ -336,8 +335,16 @@ function BurstFx({ burst, reduceMotion }: { burst: Burst; reduceMotion: boolean 
           <Heart key="c" className="h-4 w-4 fill-primary text-primary" />,
         ]
       : burst.kind === "pat"
-        ? ["💗", "💕", "💗"]
-        : ["✨", "⭐", "✨"];
+        ? [
+            <Heart key="a" className="h-5 w-5 fill-primary text-primary" />,
+            <Heart key="b" className="h-4 w-4 fill-primary/70 text-primary/70" />,
+            <Heart key="c" className="h-5 w-5 fill-primary text-primary" />,
+          ]
+        : [
+            <Sparkles key="a" className="h-5 w-5 text-points" />,
+            <Star key="b" className="h-4 w-4 fill-points text-points" />,
+            <Sparkles key="c" className="h-5 w-5 text-points" />,
+          ];
   return (
     <span className="pointer-events-none absolute inset-0" aria-hidden="true">
       {!reduceMotion &&

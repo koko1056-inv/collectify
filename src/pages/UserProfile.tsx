@@ -12,11 +12,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
-import { FavoriteItemsCircleStrip } from "@/components/profile/FavoriteItemsCircleStrip";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
 import { ProfileShowcase } from "@/components/profile/ProfileShowcase";
-import { ProfileCompanions } from "@/components/profile/ProfileCompanions";
+import { ProfileOshiGoods } from "@/components/profile/ProfileOshiGoods";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
@@ -156,9 +155,6 @@ export default function UserProfile() {
             onShare={() => setShareOpen(true)}
           />
 
-          {/* 推し（お気に入りグッズ）を丸アイコンで横並び表示 */}
-          {userId && <FavoriteItemsCircleStrip userId={userId} />}
-
           {/* 信頼バッジ＆スタンプ送信 */}
           {userId && (
             <div className="px-4 mt-3 flex items-center gap-2 flex-wrap">
@@ -187,8 +183,9 @@ export default function UserProfile() {
             </div>
           )}
 
-          {/* 相棒グッズ（なかよし度つき）。いなければ出さない */}
-          {userId && <ProfileCompanions profileId={userId} isOwnProfile={isOwnProfile} />}
+          {/* 推しグッズ（順位・なかよし度つき）。選んでいなければ出さない。
+              以前は上部の「推し」の丸アイコンの列・ここの「相棒グッズ」・コレクションタブの「お気に入り TOP5」の3か所に分かれていた */}
+          {userId && <ProfileOshiGoods profileId={userId} isOwnProfile={isOwnProfile} />}
 
           {/* ショーケース: お気に入りルーム / アバター */}
           {userId && (

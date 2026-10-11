@@ -93,7 +93,7 @@ export const tour = {
     guide: {
       profile: { title: "プロフィールを整えよう", body: "ここからアイコン・名前・自己紹介を設定できます。押してみましょう。" },
       firstItem: { title: "最初のグッズを登録しよう", body: "この＋から、写真を撮るか一覧から選んでグッズを登録できます。" },
-      favorites: { title: "お気に入りTOP5を選ぼう", body: "「編集」を押して、いちばん好きなグッズを5つまで選びます。マイページの目立つ場所に並びます。" },
+      favorites: { title: "推しグッズを選ぼう", body: "ここを押して、いちばん好きなグッズを5つまで選びます。順位つきでマイページに飾られ、推しフォトで育てられます。" },
       wishlist: { title: "ほしいものを追加しよう", body: "気になるグッズを開いて「ほしい」を押すと、ほしいものリストに入ります。交換相手も見つかりやすくなります。" },
       aiRoom: { title: "AIで推しルームを作ろう", body: "ここから、コレクションのグッズを並べた部屋をAIが描きます。初回は無料です。" },
       avatar: { title: "AIアバターを作ろう", body: "ここから、写真や好きなイメージをもとにAIがアバターを作ります。初回は無料です。" },
@@ -211,7 +211,7 @@ export const tour = {
     guide: {
       profile: { title: "Set up your profile", body: "Set your icon, name and bio here. Give it a tap." },
       firstItem: { title: "Add your first goods", body: "Tap + to take a photo or pick from the catalog." },
-      favorites: { title: "Pick your top 5", body: "Tap \"Edit\" and choose up to 5 favorite goods. They're shown prominently on your page." },
+      favorites: { title: "Choose your oshi goods", body: "Tap here and choose up to 5 goods you love most. They're shown ranked on your page, and you can raise them in Oshi Photo." },
       wishlist: { title: "Add to your wishlist", body: "Open a goods item you like and tap \"Want\". It also helps you find trade partners." },
       aiRoom: { title: "Make an AI room", body: "Start here and AI draws a room filled with your goods. Your first one is free." },
       avatar: { title: "Make an AI avatar", body: "Start here and AI creates an avatar from your photo or an idea. Your first one is free." },

@@ -11,11 +11,11 @@ import { cn } from "@/lib/utils";
 interface TodayPhotoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** 最初から選んでおく相棒（user_item_id） */
+  /** 最初から選んでおく推しグッズ（user_item_id） */
   initialItemId?: string | null;
 }
 
-/** 今日の推しフォトを撮る（または選ぶ）。相棒を選ぶと、その相棒が +3xp */
+/** 今日の推しフォトを撮る（または選ぶ）。推しグッズを選ぶと、そのグッズが +3xp */
 export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: TodayPhotoDialogProps) {
   const { t } = useLanguage();
   const { data: companions = [] } = useCompanions();

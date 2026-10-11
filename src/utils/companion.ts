@@ -1,5 +1,5 @@
 /**
- * 相棒グッズの成長（なかよし度）。xp とレベルの計算は DB の companion_level() と揃える。
+ * 推しグッズの成長（なかよし度）。xp とレベルの計算は DB の companion_level() と揃える。
  * 見た目の変化（枠）はレベルで決まる。放置しても xp は減らない。
  */
 
@@ -8,7 +8,11 @@ export const LEVEL_XP = [0, 3, 8, 15, 25, 40, 60, 85, 115, 150] as const;
 export const MAX_LEVEL = LEVEL_XP.length;
 /** 1日に上げられる xp: 撫でる 1 + 磨く 1 + 撮る 3 */
 export const DAILY_MAX_XP = 5;
-export const MAX_COMPANIONS = 3;
+/**
+ * 推しグッズの数（順位つき）。DB: normalize_oshi_goods() の LIMIT と揃える。
+ * 以前は「お気に入りTOP5」（5つ）と「相棒グッズ」（3つ）が別々にあった。1つにまとめて5つにした
+ */
+export const MAX_OSHI_GOODS = 5;
 
 export function levelFromXp(xp: number): number {
   return LEVEL_XP.filter((x) => x <= Math.max(xp, 0)).length;
