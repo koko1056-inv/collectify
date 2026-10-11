@@ -232,14 +232,21 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   });
 
   // 推しの作品を先に出す。カタログが大きいと、新しい順だけでは特定の作品が何百件も先に埋もれてしまう。
+  // 以前は favorite_contents（プロフィールの「推しの作品」）しか見ておらず、
+  // ウェルカムやプロフィールで選ぶ「興味のある作品」（interests）だけを設定している大半の人
+  // （本番では interests を設定した17人中15人）には効いていなかった。両方を、設定した順に使う。
   const { data: favoriteContents } = useQuery({
     queryKey: ["favorite-contents", user?.id],
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 10,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("favorite_contents").eq("id", user!.id).maybeSingle();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("favorite_contents, interests")
+        .eq("id", user!.id)
+        .maybeSingle();
       if (error) throw error;
-      return (data?.favorite_contents ?? []) as string[];
+      return [...new Set([...(data?.favorite_contents ?? []), ...(data?.interests ?? [])])].filter(Boolean) as string[];
     },
   });
   // 初回だけ、好きな作品が登録されていればその作品を開く（なければ「すべて」）
@@ -352,10 +359,12 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   };
 
   const contentChips = useMemo(() => {
-    const fav = new Set(favoriteContents ?? []);
+    // 推しの作品は設定した順に先頭へ。残りはグッズの多い順
+    const rank = new Map((favoriteContents ?? []).map((n, i) => [n, i]));
+    const order = (name: string) => rank.get(name) ?? Number.POSITIVE_INFINITY;
     return [...contents]
       .filter((c) => c.name !== "なし")
-      .sort((x, y) => Number(fav.has(y.name)) - Number(fav.has(x.name)) || y.count - x.count)
+      .sort((x, y) => order(x.name) - order(y.name) || y.count - x.count)
       .slice(0, 80);
   }, [contents, favoriteContents]);
   const results = filtered.slice(0, visible);
