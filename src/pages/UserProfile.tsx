@@ -185,7 +185,9 @@ export default function UserProfile() {
 
           {/* 推しグッズ（順位・なかよし度つき）。選んでいなければ出さない。
               以前は上部の「推し」の丸アイコンの列・ここの「相棒グッズ」・コレクションタブの「お気に入り TOP5」の3か所に分かれていた */}
-          {userId && <ProfileOshiGoods profileId={userId} isOwnProfile={isOwnProfile} />}
+          {userId && (
+            <ProfileOshiGoods profileId={userId} isOwnProfile={isOwnProfile} ownerName={profile.display_name || profile.username || ""} />
+          )}
 
           {/* ショーケース: お気に入りルーム / アバター */}
           {userId && (

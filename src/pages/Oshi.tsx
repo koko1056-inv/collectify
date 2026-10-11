@@ -1,51 +1,181 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowUpDown, Camera, Flame, Star } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowUpDown, Camera, Check, Flame, Moon, Paintbrush, Star, Sun, Sunrise, Sunset } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
+import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EmptyState } from "@/components/ui/empty-state";
 import { IconTile } from "@/components/ui/icon-tile";
-import { CompanionCard } from "@/components/oshi/CompanionCard";
 import { PhotoCalendar } from "@/components/oshi/PhotoCalendar";
 import { TodayPhotoDialog } from "@/components/oshi/TodayPhotoDialog";
+import { RoomScene, type EditTarget, type SceneGoods } from "@/components/oshi/room/RoomScene";
+import { GoodsCarePanel } from "@/components/oshi/room/GoodsCarePanel";
+import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
+import { LockedSetSheet } from "@/components/oshi/room/LockedSetSheet";
+import { FX_DURATION, type RoomFxEvent } from "@/components/oshi/room/fx";
 import { OshiGoodsEditModal } from "@/components/profile/OshiGoodsEditModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCompanions, useOshiPhotos, type Companion } from "@/hooks/useOshi";
-import { MAX_OSHI_GOODS } from "@/utils/companion";
+import { roomSaveErrorCode, useProfileOshiRoom, useSaveOshiRoom } from "@/hooks/useOshiRoom";
+import { useMyUnlocks } from "@/hooks/useCosmetics";
+import { MAX_OSHI_GOODS, levelFromXp, todayJst } from "@/utils/companion";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import {
+  DEFAULT_FLOOR,
+  DEFAULT_WALLPAPER,
+  defaultLayout,
+  layoutForSave,
+  mergeGoods,
+  timeOfDayJst,
+  type RoomSet,
+  type RoomState,
+} from "@/lib/oshiRoom";
+import { cn } from "@/lib/utils";
 
 /**
- * 推しフォト（1日1枚の記録）と、推しグッズ（最大5つ・順位の順に育てる）。
- * 以前はここで「相棒」（最大3つ）を1つずつ迎えて・はずしていた。推しグッズにまとめたので、
- * 選ぶ・並べ替えるはプロフィールと同じ画面（OshiGoodsEditModal）に1つにした
+ * 推しの部屋（以前の「推しフォト」）。
+ *
+ * 以前は推しグッズのカードが縦に並び、ボタンで撫でる・磨くだけだった。たまごっちのように「そこに居る」感じがせず、
+ * 愛着がわきにくかったので、正面から見た1部屋に推しグッズを飾り、部屋の中でお世話する形にした。
+ *  - グッズは写真のまま、額縁・アクスタ台・缶バッジ・写真立てなどに入れて、棚・机・床・壁に置く
+ *  - 放っておいても何も減らない（機嫌・空腹のような状態はない）。毎日のお世話でなかよし度がたまるだけで、
+ *    楽しさは演出（部屋の時間の移ろい・待機の揺れ・お世話のアニメ）で出す
+ *  - 模様替えで家具・壁紙・床・フレームを選べる。基本セットは無料、季節や推し色のセットはポイントショップで買う
+ *  - 1日1枚の推しフォト（カレンダー）は「フォト」のタブに残す
  */
 const Oshi = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const reduceMotion = !!useReducedMotion();
   const companions = useCompanions();
   const photos = useOshiPhotos();
-  const [tab, setTab] = useState("companion");
+  const room = useProfileOshiRoom(user?.id);
+  const saveRoom = useSaveOshiRoom();
+  const { owned } = useMyUnlocks();
+  const [tab, setTab] = useState("room");
   const [editorOpen, setEditorOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoItem, setPhotoItem] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [fx, setFx] = useState<RoomFxEvent[]>([]);
+  const [celebrating, setCelebrating] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<RoomState | null>(null);
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+  const [lockedSet, setLockedSet] = useState<RoomSet | null>(null);
+  const roomRef = useRef<HTMLDivElement>(null);
 
-  const list = companions.data ?? [];
+  // 窓の外の時間（日本時間）。1分ごとに見直す
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const time = timeOfDayJst(now);
+
+  const list = useMemo(() => companions.data ?? [], [companions.data]);
+  const goodsIds = useMemo(() => list.map((c) => c.user_item_id), [list]);
+  const goodsMap = useMemo(() => {
+    const m = new Map<string, SceneGoods>();
+    for (const c of list) m.set(c.user_item_id, { title: c.title, image: c.image, level: levelFromXp(c.xp), rank: c.rank });
+    return m;
+  }, [list]);
+
+  // 保存されている部屋（まだ無ければ基本の部屋）に、いまの推しグッズを合わせる
+  const saved = room.data;
+  const baseState = useMemo<RoomState>(
+    () => ({
+      wallpaper: saved?.wallpaper ?? DEFAULT_WALLPAPER,
+      floor: saved?.floor ?? DEFAULT_FLOOR,
+      layout: saved?.layout ? mergeGoods(saved.layout, goodsIds) : defaultLayout(goodsIds),
+    }),
+    [saved, goodsIds]
+  );
+  const shown = editing && draft ? draft : baseState;
+  const oshi = saved?.oshiColor ?? "pink";
+
+  // 選んでいるグッズ（無ければ1位）
+  const current: Companion | undefined = list.find((c) => c.user_item_id === selected) ?? list[0];
+
+  const addFx = useCallback((e: Omit<RoomFxEvent, "id">) => {
+    const id = Date.now() + Math.random();
+    setFx((prev) => [...prev, { ...e, id }]);
+    window.setTimeout(() => setFx((prev) => prev.filter((v) => v.id !== id)), FX_DURATION[e.kind]);
+  }, []);
+
+  const celebrate = useCallback(
+    (level: number, c: Companion) => {
+      addFx({ kind: "levelup", level, name: c.title });
+      setCelebrating(c.user_item_id);
+      window.setTimeout(() => setCelebrating(null), 2800);
+    },
+    [addFx]
+  );
 
   const openPhoto = (c?: Companion) => {
     setPhotoItem(c?.user_item_id ?? null);
     setPhotoOpen(true);
   };
 
+  /** 推しフォトを保存できた。撮ったグッズが今日まだ撮っていなければ +3 の演出（サーバーと同じ決まり） */
+  const onPhotoSaved = (itemId: string | null) => {
+    const c = list.find((v) => v.user_item_id === itemId);
+    if (!c || c.last_photo_on === todayJst()) return;
+    addFx({ kind: "photoDone", item: c.user_item_id, xp: 3 });
+    const before = levelFromXp(c.xp);
+    const after = levelFromXp(c.xp + 3);
+    if (after > before) {
+      window.setTimeout(() => {
+        celebrate(after, c);
+        toast.success(t("engage.oshi.levelUp", { name: c.title, level: after }), { description: t(`engage.oshi.levelTitle.${after}`), duration: 6000 });
+      }, reduceMotion ? 0 : 900);
+    }
+  };
+
+  const startEditing = () => {
+    setDraft(baseState);
+    setEditTarget(null);
+    setEditing(true);
+    toast.dismiss();
+    roomRef.current?.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
+  const stopEditing = () => {
+    const changed = draft && JSON.stringify(draft) !== JSON.stringify(baseState);
+    if (changed && !window.confirm(t("oshiRoom.decorate.leaveConfirm"))) return;
+    setEditing(false);
+    setDraft(null);
+    setEditTarget(null);
+  };
+
+  const save = async () => {
+    if (!draft) return;
+    try {
+      await saveRoom.mutateAsync({ wallpaper: draft.wallpaper, floor: draft.floor, layout: layoutForSave(draft.layout, goodsIds) });
+      toast.success(t("oshiRoom.decorate.saved"));
+      setEditing(false);
+      setDraft(null);
+      setEditTarget(null);
+    } catch (e) {
+      console.error("save room failed:", e);
+      toast.error(roomSaveErrorCode(e) === "room_item_locked" ? t("oshiRoom.decorate.lockedSaveFailed") : t("oshiRoom.decorate.saveFailed"));
+    }
+  };
+
+  const loading = companions.isLoading || room.isLoading;
+  const TimeIcon = time === "morning" ? Sunrise : time === "day" ? Sun : time === "evening" ? Sunset : Moon;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-5 pb-nav">
         {/* 戻るボタンは見出しの横に置く（見出しの上の小さな「戻る」では気づかれなかった） */}
-        <header className="mb-4 flex items-start gap-1">
+        <header className="mb-3 flex items-start gap-1">
           <Button
             variant="ghost"
             size="icon"
@@ -55,75 +185,193 @@ const Oshi = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold">{t("engage.oshi.pageTitle")}</h1>
             <p className="text-sm text-muted-foreground">{t("engage.oshi.pageSub")}</p>
           </div>
+          {tab === "room" && !editing && !loading && (
+            <Button variant="outline" size="sm" className="mt-1 shrink-0 gap-1.5 rounded-xl" onClick={startEditing} data-tour="oshi-room-decorate">
+              <Paintbrush className="h-4 w-4" />
+              {t("oshiRoom.decorate.open")}
+            </Button>
+          )}
         </header>
 
-        {/* 今日の1枚 */}
-        <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
-          {/* 炎の面は今日のチェックと同じ IconTile（以前は orange→rose のグラデーション） */}
-          <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">
-            <Flame />
-          </IconTile>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold">{photos.streak > 0 ? t("engage.oshi.streak", { n: photos.streak }) : t("engage.oshi.streakNone")}</p>
-            <p className="text-xs text-muted-foreground">
-              {photos.todayDone ? t("engage.oshi.todayDone") : t("engage.oshi.todayNotYet")}
-              <span className="ml-2 tabular-nums">{t("engage.oshi.total", { n: photos.total })}</span>
-            </p>
-          </div>
-          <Button size="sm" className="gap-1.5 rounded-xl" onClick={() => openPhoto()}>
-            <Camera className="h-4 w-4" />
-            {t("engage.oshi.shoot")}
-          </Button>
-        </section>
+        <Tabs value={tab} onValueChange={(v) => (editing ? undefined : setTab(v))}>
+          {!editing && (
+            <TabsList className="mb-3 w-full">
+              <TabsTrigger value="room" className="flex-1">
+                {t("oshiRoom.tabRoom")}
+              </TabsTrigger>
+              <TabsTrigger value="photo" className="flex-1">
+                {t("oshiRoom.tabPhoto")}
+              </TabsTrigger>
+            </TabsList>
+          )}
 
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-4 w-full">
-            <TabsTrigger value="companion" className="flex-1">
-              {t("engage.oshi.tabCompanion")}
-            </TabsTrigger>
-            <TabsTrigger value="photo" className="flex-1">
-              {t("engage.oshi.tabPhoto")}
-            </TabsTrigger>
-          </TabsList>
+          <TabsContent value="room" className="mt-0 space-y-3">
+            <div ref={roomRef} className="relative scroll-mt-20" data-tour="oshi-room">
+              {loading ? (
+                <Skeleton className="aspect-[360/420] w-full rounded-3xl" />
+              ) : (
+                <>
+                  <RoomScene
+                    state={shown}
+                    goods={goodsMap}
+                    oshi={oshi}
+                    time={time}
+                    mode={editing ? "edit" : "view"}
+                    reduceMotion={reduceMotion}
+                    selectedGoods={current?.user_item_id ?? null}
+                    onSelectGoods={setSelected}
+                    editTarget={editTarget}
+                    onEditTarget={setEditTarget}
+                    onLayoutChange={(layout) => setDraft((d) => (d ? { ...d, layout } : d))}
+                    fx={fx}
+                    onPlaceholder={() => setEditorOpen(true)}
+                    celebrating={celebrating}
+                    label={t("oshiRoom.roomAria")}
+                  />
+                  {/* 部屋の上の札: 時間と、今日の1枚 */}
+                  {!editing ? (
+                    <>
+                      <span className="pointer-events-none absolute left-2.5 top-2.5 z-40 inline-flex items-center gap-1 rounded-full bg-background/85 px-2 py-0.5 text-2xs font-bold shadow-sm backdrop-blur-sm">
+                        <TimeIcon className="h-3.5 w-3.5 text-primary" />
+                        {t(`oshiRoom.time.${time}`)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openPhoto()}
+                        className="absolute right-2.5 top-2.5 z-40 inline-flex items-center gap-1 rounded-full bg-background/85 px-2.5 py-1 text-2xs font-bold shadow-sm backdrop-blur-sm transition-colors hover:bg-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+                        aria-label={`${t("engage.oshi.todayCard")}: ${photos.todayDone ? t("engage.oshi.todayDone") : t("engage.oshi.todayNotYet")}`}
+                      >
+                        {photos.todayDone ? <Check className="h-3.5 w-3.5 text-primary" /> : <Camera className="h-3.5 w-3.5 text-primary" />}
+                        {t("oshiRoom.todayPhoto")}
+                        {photos.streak > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-points">
+                            <Flame className="h-3 w-3" />
+                            <span className="tabular-nums">{photos.streak}</span>
+                          </span>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <span className="pointer-events-none absolute left-1/2 top-2.5 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-3 py-1 text-2xs font-bold text-primary-foreground shadow">
+                      {t("oshiRoom.decorate.open")}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
 
-          <TabsContent value="companion" className="space-y-3">
-            {companions.isLoading ? (
-              <Skeleton className="h-52 w-full rounded-2xl" />
-            ) : list.length === 0 ? (
-              <EmptyState
-                icon={Star}
-                title={t("engage.oshi.emptyCompanionTitle")}
-                description={t("engage.oshi.emptyCompanionDesc", { max: MAX_OSHI_GOODS })}
-                action={
-                  <Button className="gap-1.5 rounded-xl" onClick={() => setEditorOpen(true)}>
-                    <Star className="h-4 w-4" />
-                    {t("engage.oshi.chooseOshiGoods")}
-                  </Button>
-                }
-                className="py-8"
+            {loading ? (
+              <Skeleton className="h-44 w-full rounded-3xl" />
+            ) : editing && draft ? (
+              <DecoratePanel
+                state={draft}
+                onChange={setDraft}
+                target={editTarget}
+                onTarget={setEditTarget}
+                goods={goodsMap}
+                goodsOrder={goodsIds}
+                owned={owned}
+                oshi={oshi}
+                onLocked={setLockedSet}
+                onSave={save}
+                onCancel={stopEditing}
+                onReset={() => {
+                  setDraft({ wallpaper: DEFAULT_WALLPAPER, floor: DEFAULT_FLOOR, layout: defaultLayout(goodsIds) });
+                  setEditTarget(null);
+                  toast(t("oshiRoom.decorate.resetDone"));
+                }}
+                saving={saveRoom.isPending}
               />
-            ) : (
-              <>
-                {list.map((c) => (
-                  <CompanionCard key={c.user_item_id} companion={c} onPhoto={openPhoto} />
-                ))}
-                {/* 選ぶ・並べ替えるはプロフィールと同じ画面。外してもなかよし度は残る（また選べば戻る） */}
-                <Button variant="outline" className="w-full gap-1.5 rounded-2xl" onClick={() => setEditorOpen(true)}>
-                  <ArrowUpDown className="h-4 w-4" />
-                  {t("engage.oshi.editOshiGoods")}
-                  <span className="text-xs tabular-nums text-muted-foreground">
-                    {t("engage.oshi.companions", { n: list.length, max: MAX_OSHI_GOODS })}
-                  </span>
+            ) : list.length === 0 ? (
+              <section className="rounded-3xl border border-dashed bg-card p-5 text-center">
+                <div className="mx-auto mb-2 w-fit">
+                  <IconTile tone="primary" size="md">
+                    <Star />
+                  </IconTile>
+                </div>
+                <h2 className="text-base font-bold">{t("oshiRoom.emptyTitle")}</h2>
+                <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">{t("oshiRoom.emptyDesc", { max: MAX_OSHI_GOODS })}</p>
+                <Button className="mt-4 gap-1.5 rounded-xl" onClick={() => setEditorOpen(true)}>
+                  <Star className="h-4 w-4" />
+                  {t("oshiRoom.choose")}
                 </Button>
-              </>
+              </section>
+            ) : (
+              // 推しグッズの切り替え（部屋の中の小さなグッズも、ここから選べる）はパネルの頭に入れる。
+              // 別の行にすると、スマホでお世話のボタンが画面の下に押し出される
+              current && (
+                <GoodsCarePanel
+                  key={current.user_item_id}
+                  companion={current}
+                  onFx={addFx}
+                  onPhoto={openPhoto}
+                  onLevelUp={celebrate}
+                  header={
+                    <div className="flex items-center gap-2">
+                      <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 py-1 scrollbar-hide" role="radiogroup" aria-label={t("oshiRoom.pickHint")}>
+                        {list.map((c) => {
+                          const active = c.user_item_id === current?.user_item_id;
+                          const today = todayJst();
+                          const done = [c.last_pat_on, c.last_polish_on, c.last_photo_on].filter((d) => d === today).length;
+                          return (
+                            <button
+                              key={c.user_item_id}
+                              type="button"
+                              role="radio"
+                              aria-checked={active}
+                              aria-label={t("oshiRoom.goodsAria", { rank: c.rank, name: c.title, level: levelFromXp(c.xp) })}
+                              onClick={() => setSelected(c.user_item_id)}
+                              className={cn(
+                                "relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border-2 bg-muted transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+                                active ? "scale-105 border-primary shadow" : "border-transparent opacity-75"
+                              )}
+                            >
+                              <img src={getOptimizedImageUrl(c.image, { width: 96 })} onError={fallbackToOriginal(c.image)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                              <span className="absolute left-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-background text-3xs font-bold tabular-nums">{c.rank}</span>
+                              {/* 今日のお世話がぜんぶ済んだら印 */}
+                              {done === 3 && (
+                                <span className="absolute bottom-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                  <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-10 shrink-0 gap-1 rounded-xl px-2 text-2xs text-muted-foreground" onClick={() => setEditorOpen(true)}>
+                        <ArrowUpDown className="h-3.5 w-3.5" />
+                        <span className="tabular-nums">{t("engage.oshi.companions", { n: list.length, max: MAX_OSHI_GOODS })}</span>
+                        <span className="sr-only">{t("oshiRoom.editGoods")}</span>
+                      </Button>
+                    </div>
+                  }
+                />
+              )
             )}
           </TabsContent>
 
-          <TabsContent value="photo">
+          <TabsContent value="photo" className="mt-0">
+            {/* 今日の1枚 */}
+            <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
+              <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">
+                <Flame />
+              </IconTile>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">{photos.streak > 0 ? t("engage.oshi.streak", { n: photos.streak }) : t("engage.oshi.streakNone")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {photos.todayDone ? t("engage.oshi.todayDone") : t("engage.oshi.todayNotYet")}
+                  <span className="ml-2 tabular-nums">{t("engage.oshi.total", { n: photos.total })}</span>
+                </p>
+              </div>
+              <Button size="sm" className="gap-1.5 rounded-xl" onClick={() => openPhoto()}>
+                <Camera className="h-4 w-4" />
+                {t("engage.oshi.shoot")}
+              </Button>
+            </section>
             {photos.isLoading ? (
               <Skeleton className="h-72 w-full rounded-2xl" />
             ) : (
@@ -137,7 +385,19 @@ const Oshi = () => {
       </main>
 
       {user && <OshiGoodsEditModal open={editorOpen} onOpenChange={setEditorOpen} userId={user.id} />}
-      <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} />
+      <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} onSaved={onPhotoSaved} />
+      <LockedSetSheet
+        set={lockedSet}
+        oshi={oshi}
+        onOpenChange={(o) => !o && setLockedSet(null)}
+        onGoShop={(key) => {
+          // 模様替えの途中なら、保存していない変更が消えることを先に確かめる
+          const changed = editing && draft && JSON.stringify(draft) !== JSON.stringify(baseState);
+          if (changed && !window.confirm(t("oshiRoom.decorate.leaveConfirm"))) return;
+          setLockedSet(null);
+          navigate(`/point-shop?item=${encodeURIComponent(key)}`);
+        }}
+      />
       <Footer />
     </div>
   );

@@ -20,6 +20,7 @@ import { universe } from './universe';
 import { pwa } from './pwa';
 import { safety } from './safety';
 import { cosmetics } from './cosmetics';
+import { oshiRoom } from './oshiRoom';
 
 export const moduleTranslations = {
   ja: {
@@ -43,6 +44,7 @@ export const moduleTranslations = {
     pwa: pwa.ja,
     safety: safety.ja,
     cosmetics: cosmetics.ja,
+    oshiRoom: oshiRoom.ja,
   },
   en: {
     admin: admin.en,
@@ -65,5 +67,6 @@ export const moduleTranslations = {
     pwa: pwa.en,
     safety: safety.en,
     cosmetics: cosmetics.en,
+    oshiRoom: oshiRoom.en,
   },
 };

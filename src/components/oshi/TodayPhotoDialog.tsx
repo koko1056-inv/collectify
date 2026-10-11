@@ -13,10 +13,12 @@ interface TodayPhotoDialogProps {
   onOpenChange: (open: boolean) => void;
   /** 最初から選んでおく推しグッズ（user_item_id） */
   initialItemId?: string | null;
+  /** 保存できたとき（推しの部屋で、撮ったグッズに +xp の演出を出す）。どのグッズと撮ったか */
+  onSaved?: (itemId: string | null) => void;
 }
 
 /** 今日の推しフォトを撮る（または選ぶ）。推しグッズを選ぶと、そのグッズが +3xp */
-export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: TodayPhotoDialogProps) {
+export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onSaved }: TodayPhotoDialogProps) {
   const { t } = useLanguage();
   const { data: companions = [] } = useCompanions();
   const { streak, todayDone } = useOshiPhotos();
@@ -66,6 +68,7 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
       );
       reset();
       onOpenChange(false);
+      onSaved?.(itemId);
     } catch (e) {
       const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? "";
       console.error("oshi photo failed:", e);

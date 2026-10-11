@@ -1,6 +1,6 @@
 /**
  * 翻訳モジュール: cosmetics
- * 対象: ポイントで解放する着せ替え（プロフィールのカバー・アイコンの縁・シェアカードのデザイン）と、
+ * 対象: ポイントで解放する着せ替え（プロフィールのカバー・アイコンの縁・シェアカードのデザイン・推しの部屋のセット）と、
  *       ポイントショップの棚の見出し
  *
  * ja と en は同じキー構造にすること。en が欠けたキーは日本語にフォールバックする。
@@ -49,6 +49,7 @@ export const cosmetics = {
       cover: "カバー「{name}」",
       frame: "フレーム「{name}」",
       share: "シェアカード「{name}」",
+      room: "お部屋「{name}」",
     },
     items: {
       cover_starry: { name: "星空", desc: "夜空に星が散る、しっとりしたカバー" },
@@ -64,12 +65,21 @@ export const cosmetics = {
       share_night: { name: "夜空", desc: "紺の夜空に金の文字。コンプの報告を特別に" },
       share_washi: { name: "和紙", desc: "生成りの和紙に藍と朱。落ち着いた和のカード" },
       share_mono: { name: "モノクロ", desc: "白と黒だけの、雑誌のようなカード" },
+      room_oshi: { name: "推し色", desc: "推し色の壁紙・床・ペンライトスタンド・ガーランドと、リボンのフレーム" },
+      room_sakura: { name: "桜", desc: "花びらの壁紙・畳・桜の鉢・桜の枝と、桜のフレーム" },
+      room_natsu: { name: "夏祭り", desc: "花火の夜空・縁側・提灯・金魚鉢と、うちわのフレーム" },
+      room_halloween: { name: "ハロウィン", desc: "こうもりの壁紙・市松の床・かぼちゃランタン・おばけと、くものすの額縁" },
+      room_xmas: { name: "クリスマス", desc: "雪の結晶の壁紙・赤いじゅうたん・ツリー・プレゼントと、リース" },
+      room_yumekawa: { name: "ゆめかわ", desc: "パステルの壁紙と床・雲のソファ・月のランプと、ハートのフレーム" },
+      room_showcase: { name: "きらきらショーケース", desc: "スポットライトの壁・大理石の床・ガラスケース・台座と、金の額縁" },
     },
     shop: {
       capacity: "枠をふやす",
       cosmetic: "プロフィールの着せ替え",
       share: "シェアカードのデザイン",
+      room: "推しの部屋の模様替え",
       owned: "所持済み",
+      useRoom: "お部屋で使う",
       use: "着せ替える",
     },
     shareTemplate: {
@@ -120,6 +130,7 @@ export const cosmetics = {
       cover: "Cover: {name}",
       frame: "Frame: {name}",
       share: "Share card: {name}",
+      room: "Room set: {name}",
     },
     items: {
       cover_starry: { name: "Starry night", desc: "A calm night sky scattered with stars" },
@@ -135,12 +146,21 @@ export const cosmetics = {
       share_night: { name: "Night sky", desc: "Gold type on a navy night sky. Make your complete post special" },
       share_washi: { name: "Washi", desc: "Indigo and vermilion on natural washi paper" },
       share_mono: { name: "Monochrome", desc: "Black and white only, like a magazine page" },
+      room_oshi: { name: "Oshi color", desc: "Oshi-color wallpaper and floor, a penlight stand, a garland and a ribbon frame" },
+      room_sakura: { name: "Sakura", desc: "Petal wallpaper, tatami, a potted sakura, a sakura branch and a sakura frame" },
+      room_natsu: { name: "Summer festival", desc: "A fireworks sky, a veranda, a paper lantern, a goldfish bowl and an uchiwa frame" },
+      room_halloween: { name: "Halloween", desc: "Bat wallpaper, a checkered floor, a jack-o'-lantern, a ghost and a cobweb frame" },
+      room_xmas: { name: "Christmas", desc: "Snowflake wallpaper, a red carpet, a tree, presents and a wreath" },
+      room_yumekawa: { name: "Dreamy pastel", desc: "Pastel wallpaper and floor, a cloud sofa, a moon lamp and a heart frame" },
+      room_showcase: { name: "Sparkly showcase", desc: "A spotlight wall, a marble floor, a glass showcase, a pedestal and a gold frame" },
     },
     shop: {
       capacity: "More space",
       cosmetic: "Profile customization",
       share: "Share card designs",
+      room: "Oshi room sets",
       owned: "Owned",
+      useRoom: "Use in room",
       use: "Customize",
     },
     shareTemplate: {

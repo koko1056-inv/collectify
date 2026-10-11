@@ -347,7 +347,7 @@ export const screens = {
       },
       tip: {
         oshiGoods: { title: "推しグッズ", description: "いちばん好きなグッズを5つ選んで、順位つきでプロフィールに飾る" },
-        oshiPhoto: { title: "推しフォト", description: "推しグッズを毎日撫でて・磨いて・撮って育てる" },
+        oshiPhoto: { title: "推しの部屋", description: "推しグッズを部屋に飾って、毎日なでて・みがいて・撮って育てる" },
         add: { title: "グッズを追加", description: "発見ページからワンタップで追加" },
         wishlist: { title: "ほしいものリスト", description: "ほしいグッズをブックマーク" },
         trade: { title: "交換", description: "他のコレクターとグッズを交換" },
@@ -717,7 +717,7 @@ export const screens = {
       },
       tip: {
         oshiGoods: { title: "Oshi goods", description: "Pick your 5 favorite goods and show them, ranked, on your profile" },
-        oshiPhoto: { title: "Oshi Photo", description: "Pat, polish and photograph your oshi goods every day to raise them" },
+        oshiPhoto: { title: "Oshi Room", description: "Display your oshi goods in a room and pat, polish and photograph them every day" },
         add: { title: "Add goods", description: "One tap from the Explore page" },
         wishlist: { title: "Wishlist", description: "Bookmark the goods you want" },
         trade: { title: "Trade", description: "Swap goods with other collectors" },

@@ -17,7 +17,7 @@ interface CompanionGiftSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companion: Companion;
-  /** 贈る（通信と、贈ったあとの演出は CompanionCard 側でする）。成功したら true */
+  /** 贈る（通信と、贈ったあとの演出は推しの部屋のパネル GoodsCarePanel 側でする）。成功したら true */
   onGive: (gift: GiftKind) => Promise<boolean>;
   busy: boolean;
 }

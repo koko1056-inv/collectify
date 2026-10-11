@@ -4,7 +4,8 @@ import type { CSSProperties } from "react";
  * 着せ替え（ポイントで解放する見た目）の定義を1か所にまとめる。
  *
  * - 解放キー（unlock_key）は point_shop_items / user_unlocks / profiles の列と同じ文字列。
- *   「cover:」はプロフィールのカバー、「frame:」はアイコンの縁、「share:」はシェアカードのデザイン。
+ *   「cover:」はプロフィールのカバー、「frame:」はアイコンの縁、「share:」はシェアカードのデザイン、
+ *   「room:」は推しの部屋のセット（壁紙・床・家具・グッズのフレームをまとめて解放。中身は lib/oshiRoom.ts）。
  * - ここの色はアプリのトークンではなく、それぞれの柄の「絵の具」。
  *   着せ替えは持ち主が選んだ見た目を、見る人のテーマ色に左右されずそのまま見せたいので、
  *   柄ごとの小さな色見本をここに閉じ込めて持つ（画面の部品の色はトークンを使う）。
@@ -36,11 +37,38 @@ export const FRAME_KEYS: FrameKey[] = ["frame:gold", "frame:holo", "frame:oshi",
 
 export const SHARE_TEMPLATE_KEYS: ShareTemplateKey[] = ["share:night", "share:washi", "share:mono"];
 
+/**
+ * 推しの部屋のセット（ポイントショップで買う）。無料の基本セット（base）はキーを持たない。
+ * DB の point_shop_items は棚の CHECK を広げずに category = 'cosmetic' のまま入れ、
+ * ショップではこの頭（room:）で「お部屋」の棚に分ける
+ */
+export type RoomSetKey =
+  | "room:oshi"
+  | "room:sakura"
+  | "room:natsu"
+  | "room:halloween"
+  | "room:xmas"
+  | "room:yumekawa"
+  | "room:showcase";
+
+export const ROOM_SET_KEYS: RoomSetKey[] = [
+  "room:oshi",
+  "room:sakura",
+  "room:natsu",
+  "room:halloween",
+  "room:xmas",
+  "room:yumekawa",
+  "room:showcase",
+];
+
 export function isCoverKey(v: string | null | undefined): v is CoverKey {
   return !!v && (COVER_KEYS as string[]).includes(v);
 }
 export function isFrameKey(v: string | null | undefined): v is FrameKey {
   return !!v && (FRAME_KEYS as string[]).includes(v);
+}
+export function isRoomSetKey(v: string | null | undefined): v is RoomSetKey {
+  return !!v && (ROOM_SET_KEYS as string[]).includes(v);
 }
 export function isShareTemplateKey(v: string | null | undefined): v is ShareTemplateKey {
   return !!v && (SHARE_TEMPLATE_KEYS as string[]).includes(v);

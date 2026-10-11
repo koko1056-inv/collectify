@@ -15,7 +15,8 @@
     "test:tours": "node scripts/test-onboarding-tours.mjs",
     "test:backfill": "node scripts/test-series-backfill.mjs",
     "test:fuzzy": "node --experimental-strip-types scripts/test-fuzzy.mjs",
-    "test:companion": "node --experimental-strip-types scripts/test-companion.mjs"
+    "test:companion": "node --experimental-strip-types scripts/test-companion.mjs",
+    "test:oshi-room": "node --experimental-strip-types scripts/test-oshi-room.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

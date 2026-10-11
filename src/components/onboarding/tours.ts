@@ -166,6 +166,25 @@ export const PAGE_TOURS: PageTour[] = [
     ],
   },
   {
+    // 推しの部屋（以前の推しフォト）。部屋そのものと、模様替えの入り口を見せる。
+    // 2歩だけなので、最後は説明で終えてよい（押させると模様替えに入ってしまい、初めての人が迷う）
+    id: "oshi-room-v1",
+    path: "/oshi",
+    steps: [
+      {
+        target: "oshi-room",
+        titleKey: "tour.oshiRoom.room.title",
+        bodyKey: "tour.oshiRoom.room.body",
+        waitMs: 2500,
+      },
+      {
+        target: "oshi-room-decorate",
+        titleKey: "tour.oshiRoom.decorate.title",
+        bodyKey: "tour.oshiRoom.decorate.body",
+      },
+    ],
+  },
+  {
     id: "point-shop-v1",
     path: "/point-shop",
     steps: [
