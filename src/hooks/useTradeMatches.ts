@@ -194,6 +194,8 @@ export interface WishHolder {
   already_requested: boolean;
   /** 別の交換が成立していて、いまは申請できない */
   busy: boolean;
+  /** 相手が「注目」を使っていて、この品が対象（交換に出していて、埋まっていない） */
+  spotlight?: boolean;
 }
 
 export interface WishWithHolders {

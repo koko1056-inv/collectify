@@ -35,6 +35,8 @@ import { WishHoldersSection, type HolderRequestTarget } from "./WishHoldersSecti
 import { InlineFollowButton } from "./InlineFollowButton";
 import { PartnerCollectionPicker } from "./PartnerCollectionPicker";
 import { TradeSectionHeader } from "./TradeSectionHeader";
+import { SpotlightChip, TradeSpotlightCard } from "./TradeSpotlight";
+import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
 
 /**
  * 交換相手の候補。
@@ -99,6 +101,14 @@ export function TradeMatchingSection() {
     const already = new Set((matches ?? []).map((m) => m.partner_id));
     return (seriesPartners ?? []).filter((p) => !already.has(p.partner_id));
   }, [matches, seriesPartners]);
+
+  // 注目中の相手（「注目」の印を付ける）。並びはサーバー側で注目中が先になっている
+  const shownPartnerIds = useMemo(
+    () => [...(matches ?? []).map((m) => m.partner_id), ...seriesOnly.map((p) => p.partner_id)],
+    [matches, seriesOnly]
+  );
+  const { data: spotlightUsers } = useTradeSpotlightUsers(shownPartnerIds);
+  const isSpotlight = (partnerId: string) => !!spotlightUsers?.has(partnerId);
 
   if (!user) {
     return (
@@ -176,6 +186,12 @@ export function TradeMatchingSection() {
         </div>
       </button>
 
+      {/* 注目を集める（ポイントで、自分の交換グッズを相手の一覧で先に出す） */}
+      <TradeSpotlightCard
+        offerCount={readiness?.offerCount ?? myOffers.length}
+        onNeedOffers={() => setIsOfferPickerOpen(true)}
+      />
+
       {/* 自分が出しているグッズ。マッチが無いうちも「出せている」ことが見える */}
       {myOffers.length > 0 && (
         <section className="space-y-2" aria-label={t("trade.picker.mineTitle", { n: myOffers.length })}>
@@ -233,6 +249,7 @@ export function TradeMatchingSection() {
                 <MutualMatchCard
                   key={match.partner_id}
                   match={match}
+                  spotlight={isSpotlight(match.partner_id)}
                   onRequest={(item, myItem) =>
                     setSelectedMatch({
                       userId: match.partner_id,
@@ -262,6 +279,7 @@ export function TradeMatchingSection() {
               <OneWayCard
                 key={match.partner_id}
                 match={match}
+                spotlight={isSpotlight(match.partner_id)}
                 items={match.their_items}
                 countLabel={t("trade.matching.matchCount", {
                   count: match.their_items.length,
@@ -297,6 +315,7 @@ export function TradeMatchingSection() {
               <TheyWantCard
                 key={match.partner_id}
                 match={match}
+                spotlight={isSpotlight(match.partner_id)}
                 offers={partnerOffers?.[match.partner_id] ?? []}
                 offersLoading={offersLoading}
                 offersError={offersError}
@@ -341,6 +360,7 @@ export function TradeMatchingSection() {
               <SeriesPartnerCard
                 key={partner.partner_id}
                 partner={partner}
+                spotlight={isSpotlight(partner.partner_id)}
                 onItemClick={(item) =>
                   setSelectedMatch({
                     userId: partner.partner_id,
@@ -476,11 +496,13 @@ function ReadinessBanner({
  */
 function SeriesPartnerCard({
   partner,
+  spotlight,
   onItemClick,
   onOpenChat,
   onOpenProfile,
 }: {
   partner: TradeSeriesPartner;
+  spotlight: boolean;
   onItemClick: (item: { id: string; title: string }) => void;
   onOpenChat: () => void;
   onOpenProfile: () => void;
@@ -505,7 +527,8 @@ function SeriesPartnerCard({
           >
             {name}
           </button>
-          <div className="mt-0.5 flex flex-wrap gap-1">
+          <div className="mt-0.5 flex flex-wrap items-center gap-1">
+            {spotlight && <SpotlightChip />}
             {partner.shared_series.slice(0, 2).map((series) => (
               <Badge key={series} variant="secondary" className="px-1.5 py-0 text-3xs">
                 {series}
@@ -553,11 +576,14 @@ function SeriesPartnerCard({
 function PartnerHeader({
   match,
   badge,
+  spotlight = false,
   onOpenChat,
   onOpenProfile,
 }: {
   match: TradeMatch;
   badge: React.ReactNode;
+  /** 相手が「注目」を使っている */
+  spotlight?: boolean;
   onOpenChat: () => void;
   onOpenProfile: () => void;
 }) {
@@ -580,7 +606,10 @@ function PartnerHeader({
         >
           {name}
         </button>
-        {badge}
+        <div className="flex flex-wrap items-center gap-1">
+          {spotlight && <SpotlightChip />}
+          {badge}
+        </div>
       </div>
       <InlineFollowButton userId={match.partner_id} size="icon" />
       <Button
@@ -631,11 +660,13 @@ function ItemThumb({
 /** 両想い: 何と何を交換できるのかを一目で見せる */
 function MutualMatchCard({
   match,
+  spotlight,
   onRequest,
   onOpenChat,
   onOpenProfile,
 }: {
   match: TradeMatch;
+  spotlight: boolean;
   onRequest: (item: TradeMatchItem, myItem: TradeMatchItem | undefined) => void;
   onOpenChat: () => void;
   onOpenProfile: () => void;
@@ -650,6 +681,7 @@ function MutualMatchCard({
     <div className="rounded-lg border border-primary/30 bg-background p-3 shadow-sm">
       <PartnerHeader
         match={match}
+        spotlight={spotlight}
         badge={
           // 状態の印は、色の薄い面に文字だけ（キラキラなどの飾りは付けない）
           <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary">
@@ -723,6 +755,7 @@ function MutualMatchCard({
 /** 片想い: 相手側／自分側のどちらか一方だけが揃っている状態 */
 function OneWayCard({
   match,
+  spotlight,
   items,
   countLabel,
   onItemClick,
@@ -730,6 +763,7 @@ function OneWayCard({
   onOpenProfile,
 }: {
   match: TradeMatch;
+  spotlight: boolean;
   items: { id: string; title: string; image: string }[];
   countLabel: string;
   onItemClick?: (item: { id: string; title: string; image: string }) => void;
@@ -742,6 +776,7 @@ function OneWayCard({
     <div className="rounded-lg border bg-background p-3">
       <PartnerHeader
         match={match}
+        spotlight={spotlight}
         badge={
           <Badge variant="secondary" className="text-xs">
             {countLabel}
@@ -781,6 +816,7 @@ function OneWayCard({
  */
 function TheyWantCard({
   match,
+  spotlight,
   offers,
   offersLoading,
   offersError,
@@ -791,6 +827,7 @@ function TheyWantCard({
   onOpenProfile,
 }: {
   match: TradeMatch;
+  spotlight: boolean;
   offers: TradePartnerItem[];
   offersLoading: boolean;
   offersError: boolean;
@@ -813,6 +850,7 @@ function TheyWantCard({
     <div data-testid="they-want-card" className="rounded-lg border bg-background p-3">
       <PartnerHeader
         match={match}
+        spotlight={spotlight}
         badge={
           <Badge variant="secondary" className="text-xs">
             {t("trade.matching.wantCount", { count: match.my_items.length })}
