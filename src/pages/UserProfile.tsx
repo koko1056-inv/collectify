@@ -16,6 +16,7 @@ import { FavoriteItemsCircleStrip } from "@/components/profile/FavoriteItemsCirc
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
 import { ProfileShowcase } from "@/components/profile/ProfileShowcase";
+import { ProfileCompanions } from "@/components/profile/ProfileCompanions";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
@@ -185,6 +186,9 @@ export default function UserProfile() {
               </div>
             </div>
           )}
+
+          {/* 相棒グッズ（なかよし度つき）。いなければ出さない */}
+          {userId && <ProfileCompanions profileId={userId} isOwnProfile={isOwnProfile} />}
 
           {/* ショーケース: お気に入りルーム / アバター */}
           {userId && (

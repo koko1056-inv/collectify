@@ -26,6 +26,7 @@ import {
   Package,
   Home,
   ImageIcon,
+  Cookie,
 } from "lucide-react";
 import {
   usePointPackages,
@@ -59,6 +60,9 @@ const SPEND_GUIDE = [
   { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: 30 },
   { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: 50 },
   { icon: Home, label: "screens.pointShop.spendAiRoom", cost: 100 },
+  // 相棒へのプレゼント（推しフォトの画面から贈る）。値段は companion_gift_kinds と揃える
+  { icon: Cookie, label: "screens.pointShop.spendCompanionSnack", cost: 30 },
+  { icon: Gift, label: "screens.pointShop.spendCompanionSpecial", cost: 100 },
 ];
 
 export default function PointShop() {
@@ -387,7 +391,8 @@ export default function PointShop() {
                 return (
                   <div key={g.label} className="flex items-center justify-between py-2 border-b last:border-b-0">
                     <div className="flex items-center gap-2 text-sm">
-                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      {/* 名前が2行になっても印が縮まないように */}
+                      <Icon className="w-4 h-4 shrink-0 text-muted-foreground" />
                       <span>{t(g.label)}</span>
                     </div>
                     <Badge variant="secondary" className="gap-1 tabular-nums">

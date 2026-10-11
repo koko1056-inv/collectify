@@ -19,6 +19,7 @@ import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
 import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ProfileBookmarks } from "./ProfileBookmarks";
 import { ProfileShowcase } from "./ProfileShowcase";
+import { ProfileCompanions } from "./ProfileCompanions";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "./ProfileTabs";
@@ -119,6 +120,9 @@ export function ProfilePage() {
           <div className="mt-6">
             <FavoriteItemsTop5 userId={user.id} isOwnProfile />
           </div>
+
+          {/* 相棒グッズ（推しフォトで育てている相棒。他の人のプロフィールにも出る） */}
+          <ProfileCompanions profileId={user.id} isOwnProfile />
 
           {/* ショーケース: お気に入りルーム / アバター */}
           <ProfileShowcase
