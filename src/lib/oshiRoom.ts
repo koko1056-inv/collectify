@@ -369,7 +369,7 @@ export function placeNewFurniture(layout: RoomLayout, key: string): RoomLayout {
 /** 基本の部屋（まだ保存していない人に見せる）。家具の id は固定にして、グッズの置き場所から指す */
 export function defaultFurniture(): RoomFurniture[] {
   return [
-    { id: "f1", key: "base.rug", x: 180, y: 412, z: 0, s: 1 },
+    { id: "f1", key: "base.rug", x: 180, y: 406, z: 0, s: 1 },
     { id: "f2", key: "base.shelf", x: 60, y: 394, z: 1, s: 1 },
     { id: "f3", key: "base.desk", x: 262, y: 392, z: 2, s: 1 },
     { id: "f4", key: "base.lamp", x: 134, y: 372, z: 3, s: 1 },
@@ -383,7 +383,7 @@ export function defaultFurniture(): RoomFurniture[] {
  * 家具は defaultFurniture の位置が前提。家具を動かした部屋では、空いている面を探す（slotFor）
  */
 const DEFAULT_SLOTS: Omit<RoomGoods, "item" | "z">[] = [
-  { x: 180, y: 404, s: 1.3, frame: "base.acrylic", on: null },
+  { x: 180, y: 398, s: 1.3, frame: "base.acrylic", on: null },
   { x: 262, y: 313, s: 1.0, frame: "base.photo", on: "f3" },
   { x: 60, y: 310, s: 0.8, frame: "base.badge", on: "f2" },
   { x: 292, y: 146, s: 0.8, frame: "base.frame", on: "f5" },

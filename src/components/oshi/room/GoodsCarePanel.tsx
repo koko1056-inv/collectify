@@ -129,65 +129,76 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header }: 
   };
 
   return (
-    <section className="rounded-3xl border bg-card p-4 pt-3 shadow-sm" aria-label={t("oshiRoom.panelAria", { name: companion.title })}>
-      {header && <div className="-mx-1 mb-2.5">{header}</div>}
-      <div className="flex items-start gap-3">
-        <RankBadge rank={companion.rank} className="mt-0.5 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-bold leading-snug">
-            <span className="sr-only">{t("engage.oshi.rankAria", { rank: companion.rank })} </span>
-            {companion.title}
-          </p>
-          <p className="mt-0.5 text-xs font-bold text-primary">{t(`engage.oshi.levelTitle.${progress.level}`)}</p>
-        </div>
-        <span className="shrink-0 rounded-full bg-primary px-2.5 py-1 text-xs font-black tabular-nums text-primary-foreground shadow-sm">Lv.{progress.level}</span>
-      </div>
-
-      <div className="mt-3" aria-label={t("engage.oshi.xpLabel")}>
-        <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-          <motion.div
-            className="h-full rounded-full bg-brand-gradient"
-            initial={false}
-            animate={{ width: `${Math.max(4, Math.round(progress.ratio * 100))}%` }}
-            transition={{ type: "spring", stiffness: 80, damping: 18 }}
+    <>
+      {/* お世話のボタンは、部屋の下端に少し重ねたバーにする。
+          以前はパネルのいちばん下にあり、スマホでは毎日の主な操作なのにスクロールしないと押せなかった */}
+      <div
+        className="relative z-10 -mt-7 mx-2 rounded-3xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-sm md:mx-0 md:mt-0 md:bg-card md:p-2 md:shadow-sm md:backdrop-blur-none"
+        role="group"
+        aria-label={t("oshiRoom.panelAria", { name: companion.title })}
+      >
+        <div className="grid grid-cols-4 gap-1.5">
+          <CareButton art={<HandArt className="h-full w-full" />} label={t("engage.oshi.pat")} sub="+1" done={patDone} busy={care.isPending} onClick={() => handleCare("pat")} doneLabel={t("engage.oshi.careDone")} tone="pat" ariaLabel={patDone ? t("engage.oshi.patDoneAria", { name: companion.title }) : t("engage.oshi.patAria", { name: companion.title })} />
+          <CareButton art={<ClothArt className="h-full w-full" />} label={t("engage.oshi.polish")} sub="+1" done={polishDone} busy={care.isPending} onClick={() => handleCare("polish")} doneLabel={t("engage.oshi.careDone")} tone="polish" />
+          <CareButton art={<CameraArt className="h-full w-full" />} label={t("engage.oshi.shoot")} sub="+3" done={photoDone} busy={false} onClick={handlePhoto} doneLabel={t("engage.oshi.careDone")} tone="photo" />
+          {/* プレゼント（ポイントで贈る）。お世話とちがい1日に何回か贈れるので、終わっても「チェック」にはしない */}
+          <CareButton
+            art={<GiftArt className="h-full w-full" />}
+            label={t("engage.oshi.gift")}
+            sub={progress.isMax ? t("engage.oshi.giftMaxShort") : giftKinds.data ? t("engage.oshi.giftLeft", { n: giftLeft }) : ""}
+            done={false}
+            busy={give.isPending}
+            onClick={() => {
+              // 前のレベルアップの通知が残っていると、シートの「贈る」ボタンに重なる
+              toast.dismiss();
+              setGiftOpen(true);
+            }}
+            doneLabel={t("engage.oshi.careDone")}
+            ariaLabel={t("engage.oshi.giftAria", { name: companion.title })}
+            subMuted={progress.isMax || giftLeft === 0}
+            tone="gift"
           />
         </div>
-        <div className="mt-1 flex items-center justify-between gap-2 text-2xs text-muted-foreground">
-          <span className="tabular-nums">{progress.isMax ? t("engage.oshi.maxLevel") : t("engage.oshi.nextLevel", { n: progress.needed - progress.into })}</span>
-          <span className="flex items-center gap-1" aria-label={t("engage.oshi.todayCareAria", { n: doneCount })}>
-            {[patDone, polishDone, photoDone].map((done, i) => (
-              <span key={i} className={cn("h-1.5 w-4 rounded-full transition-colors", done ? "bg-primary" : "bg-muted")} aria-hidden="true" />
-            ))}
-            <span className="ml-0.5">{doneCount === 3 ? t("engage.oshi.todayAllDone") : t("engage.oshi.todayCareShort", { n: doneCount })}</span>
-          </span>
-        </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-4 gap-2">
-        <CareButton art={<HandArt className="h-full w-full" />} label={t("engage.oshi.pat")} sub="+1" done={patDone} busy={care.isPending} onClick={() => handleCare("pat")} doneLabel={t("engage.oshi.careDone")} tone="pat" ariaLabel={patDone ? t("engage.oshi.patDoneAria", { name: companion.title }) : t("engage.oshi.patAria", { name: companion.title })} />
-        <CareButton art={<ClothArt className="h-full w-full" />} label={t("engage.oshi.polish")} sub="+1" done={polishDone} busy={care.isPending} onClick={() => handleCare("polish")} doneLabel={t("engage.oshi.careDone")} tone="polish" />
-        <CareButton art={<CameraArt className="h-full w-full" />} label={t("engage.oshi.shoot")} sub="+3" done={photoDone} busy={false} onClick={handlePhoto} doneLabel={t("engage.oshi.careDone")} tone="photo" />
-        {/* プレゼント（ポイントで贈る）。お世話とちがい1日に何回か贈れるので、終わっても「チェック」にはしない */}
-        <CareButton
-          art={<GiftArt className="h-full w-full" />}
-          label={t("engage.oshi.gift")}
-          sub={progress.isMax ? t("engage.oshi.giftMaxShort") : giftKinds.data ? t("engage.oshi.giftLeft", { n: giftLeft }) : ""}
-          done={false}
-          busy={give.isPending}
-          onClick={() => {
-            // 前のレベルアップの通知が残っていると、シートの「贈る」ボタンに重なる
-            toast.dismiss();
-            setGiftOpen(true);
-          }}
-          doneLabel={t("engage.oshi.careDone")}
-          ariaLabel={t("engage.oshi.giftAria", { name: companion.title })}
-          subMuted={progress.isMax || giftLeft === 0}
-          tone="gift"
-        />
-      </div>
+      <section className="rounded-3xl border bg-card px-4 pb-3 pt-3 shadow-sm" aria-label={t("oshiRoom.panelAria", { name: companion.title })}>
+        <div className="flex items-center gap-2.5">
+          <RankBadge rank={companion.rank} className="mt-0.5 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold leading-snug">
+              <span className="sr-only">{t("engage.oshi.rankAria", { rank: companion.rank })} </span>
+              {companion.title}
+            </p>
+            <p className="mt-0.5 text-xs font-bold text-primary">{t(`engage.oshi.levelTitle.${progress.level}`)}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-primary px-2.5 py-1 text-xs font-black tabular-nums text-primary-foreground shadow-sm">Lv.{progress.level}</span>
+        </div>
+
+        <div className="mt-2" aria-label={t("engage.oshi.xpLabel")}>
+          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+            <motion.div
+              className="h-full rounded-full bg-brand-gradient"
+              initial={false}
+              animate={{ width: `${Math.max(4, Math.round(progress.ratio * 100))}%` }}
+              transition={{ type: "spring", stiffness: 80, damping: 18 }}
+            />
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-2 text-2xs text-muted-foreground">
+            <span className="tabular-nums">{progress.isMax ? t("engage.oshi.maxLevel") : t("engage.oshi.nextLevel", { n: progress.needed - progress.into })}</span>
+            <span className="flex items-center gap-1" aria-label={t("engage.oshi.todayCareAria", { n: doneCount })}>
+              {[patDone, polishDone, photoDone].map((done, i) => (
+                <span key={i} className={cn("h-1.5 w-4 rounded-full transition-colors", done ? "bg-primary" : "bg-muted")} aria-hidden="true" />
+              ))}
+              <span className="ml-0.5">{doneCount === 3 ? t("engage.oshi.todayAllDone") : t("engage.oshi.todayCareShort", { n: doneCount })}</span>
+            </span>
+          </div>
+        </div>
+
+        {header && <div className="-mx-1 mt-2.5 border-t pt-2">{header}</div>}
+      </section>
 
       <CompanionGiftSheet open={giftOpen} onOpenChange={setGiftOpen} companion={companion} onGive={handleGive} busy={give.isPending} />
-    </section>
+    </>
   );
 }
 
@@ -234,12 +245,12 @@ function CareButton({
       onClick={onClick}
       aria-label={ariaLabel}
       className={cn(
-        "flex flex-col items-center gap-1 rounded-2xl border px-1 pb-2 pt-2.5 transition-colors",
+        "flex flex-col items-center gap-0.5 rounded-2xl border px-1 pb-1.5 pt-1.5 transition-colors",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
         done ? "border-transparent bg-muted/60" : "bg-card hover:bg-accent disabled:opacity-70"
       )}
     >
-      <span className={cn("relative flex h-12 w-12 items-center justify-center rounded-full p-1.5", done ? "bg-muted" : TONE[tone])} aria-hidden="true">
+      <span className={cn("relative flex h-9 w-9 items-center justify-center rounded-full p-1.5 md:h-11 md:w-11", done ? "bg-muted" : TONE[tone])} aria-hidden="true">
         <span className={cn("h-full w-full", done && "opacity-40 grayscale")}>{art}</span>
         {done && (
           <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
@@ -247,8 +258,8 @@ function CareButton({
           </span>
         )}
       </span>
-      <span className="text-xs font-bold">{label}</span>
-      <span className={cn("text-3xs tabular-nums", done || subMuted ? "text-muted-foreground" : "font-bold text-points")}>{done ? doneLabel : sub}</span>
+      <span className="whitespace-nowrap text-xs font-bold leading-tight">{label}</span>
+      <span className={cn("whitespace-nowrap text-3xs leading-none tabular-nums", done || subMuted ? "text-muted-foreground" : "font-bold text-points")}>{done ? doneLabel : sub}</span>
     </motion.button>
   );
 }

@@ -173,24 +173,25 @@ const Oshi = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-lg px-4 py-5 pb-nav">
+      <main className="mx-auto max-w-lg px-4 py-4 pb-nav md:max-w-4xl md:py-5">
         {/* 戻るボタンは見出しの横に置く（見出しの上の小さな「戻る」では気づかれなかった） */}
-        <header className="mb-3 flex items-start gap-1">
+        <header className="mb-2 flex items-center gap-1 md:mb-3">
           <Button
             variant="ghost"
             size="icon"
-            className="-ml-2 mt-0.5 h-10 w-10 shrink-0 rounded-full"
+            className="-ml-2 h-10 w-10 shrink-0 rounded-full"
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/collection"))}
             aria-label={t("chrome.common.back")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">{t("engage.oshi.pageTitle")}</h1>
-            <p className="text-sm text-muted-foreground">{t("engage.oshi.pageSub")}</p>
+            <h1 className="text-xl font-bold md:text-2xl">{t("engage.oshi.pageTitle")}</h1>
+            {/* スマホでは説明を出さない（部屋とお世話のボタンを、スクロールなしで1画面に収めるため） */}
+            <p className="hidden text-sm text-muted-foreground md:block">{t("engage.oshi.pageSub")}</p>
           </div>
           {tab === "room" && !editing && !loading && (
-            <Button variant="outline" size="sm" className="mt-1 shrink-0 gap-1.5 rounded-xl" onClick={startEditing} data-tour="oshi-room-decorate">
+            <Button variant="outline" size="sm" className="shrink-0 gap-1.5 rounded-xl" onClick={startEditing} data-tour="oshi-room-decorate">
               <Paintbrush className="h-4 w-4" />
               {t("oshiRoom.decorate.open")}
             </Button>
@@ -199,7 +200,7 @@ const Oshi = () => {
 
         <Tabs value={tab} onValueChange={(v) => (editing ? undefined : setTab(v))}>
           {!editing && (
-            <TabsList className="mb-3 w-full">
+            <TabsList className="mb-3 h-9 w-full md:w-80">
               <TabsTrigger value="room" className="flex-1">
                 {t("oshiRoom.tabRoom")}
               </TabsTrigger>
@@ -209,8 +210,15 @@ const Oshi = () => {
             </TabsList>
           )}
 
-          <TabsContent value="room" className="mt-0 space-y-3">
-            <div ref={roomRef} className="relative scroll-mt-20" data-tour="oshi-room">
+          {/* スマホ: 部屋の下に、お世話のバー（部屋に少し重ねる）とパネル。
+              部屋の幅は「画面の高さから見出し・タブ・お世話のバー・下タブの分を引いた高さ」に収まるように縮める。
+              PC（md 以上）: 左に部屋、右にパネルを並べ、パネルが最初から見えるようにする */}
+          <TabsContent value="room" className="mt-0 md:grid md:grid-cols-[minmax(0,1fr)_23rem] md:items-start md:gap-5">
+            <div
+              ref={roomRef}
+              className="relative mx-auto w-[min(100%,calc((100dvh_-_330px)*360/420))] scroll-mt-20 md:w-[min(100%,calc((100dvh_-_170px)*360/420))]"
+              data-tour="oshi-room"
+            >
               {loading ? (
                 <Skeleton className="aspect-[360/420] w-full rounded-3xl" />
               ) : (
@@ -264,97 +272,99 @@ const Oshi = () => {
               )}
             </div>
 
-            {loading ? (
-              <Skeleton className="h-44 w-full rounded-3xl" />
-            ) : editing && draft ? (
-              <DecoratePanel
-                state={draft}
-                onChange={setDraft}
-                target={editTarget}
-                onTarget={setEditTarget}
-                goods={goodsMap}
-                goodsOrder={goodsIds}
-                owned={owned}
-                oshi={oshi}
-                onLocked={setLockedSet}
-                onSave={save}
-                onCancel={stopEditing}
-                onReset={() => {
-                  setDraft({ wallpaper: DEFAULT_WALLPAPER, floor: DEFAULT_FLOOR, layout: defaultLayout(goodsIds) });
-                  setEditTarget(null);
-                  toast(t("oshiRoom.decorate.resetDone"));
-                }}
-                saving={saveRoom.isPending}
-              />
-            ) : list.length === 0 ? (
-              <section className="rounded-3xl border border-dashed bg-card p-5 text-center">
-                <div className="mx-auto mb-2 w-fit">
-                  <IconTile tone="primary" size="md">
-                    <Star />
-                  </IconTile>
-                </div>
-                <h2 className="text-base font-bold">{t("oshiRoom.emptyTitle")}</h2>
-                <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">{t("oshiRoom.emptyDesc", { max: MAX_OSHI_GOODS })}</p>
-                <Button className="mt-4 gap-1.5 rounded-xl" onClick={() => setEditorOpen(true)}>
-                  <Star className="h-4 w-4" />
-                  {t("oshiRoom.choose")}
-                </Button>
-              </section>
-            ) : (
-              // 推しグッズの切り替え（部屋の中の小さなグッズも、ここから選べる）はパネルの頭に入れる。
-              // 別の行にすると、スマホでお世話のボタンが画面の下に押し出される
-              current && (
-                <GoodsCarePanel
-                  key={current.user_item_id}
-                  companion={current}
-                  onFx={addFx}
-                  onPhoto={openPhoto}
-                  onLevelUp={celebrate}
-                  header={
-                    <div className="flex items-center gap-2">
-                      <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 py-1 scrollbar-hide" role="radiogroup" aria-label={t("oshiRoom.pickHint")}>
-                        {list.map((c) => {
-                          const active = c.user_item_id === current?.user_item_id;
-                          const today = todayJst();
-                          const done = [c.last_pat_on, c.last_polish_on, c.last_photo_on].filter((d) => d === today).length;
-                          return (
-                            <button
-                              key={c.user_item_id}
-                              type="button"
-                              role="radio"
-                              aria-checked={active}
-                              aria-label={t("oshiRoom.goodsAria", { rank: c.rank, name: c.title, level: levelFromXp(c.xp) })}
-                              onClick={() => setSelected(c.user_item_id)}
-                              className={cn(
-                                "relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border-2 bg-muted transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
-                                active ? "scale-105 border-primary shadow" : "border-transparent opacity-75"
-                              )}
-                            >
-                              <img src={getOptimizedImageUrl(c.image, { width: 96 })} onError={fallbackToOriginal(c.image)} alt="" className="h-full w-full object-cover" loading="lazy" />
-                              <span className="absolute left-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-background text-3xs font-bold tabular-nums">{c.rank}</span>
-                              {/* 今日のお世話がぜんぶ済んだら印 */}
-                              {done === 3 && (
-                                <span className="absolute bottom-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                  <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <Button variant="ghost" size="sm" className="h-10 shrink-0 gap-1 rounded-xl px-2 text-2xs text-muted-foreground" onClick={() => setEditorOpen(true)}>
-                        <ArrowUpDown className="h-3.5 w-3.5" />
-                        <span className="tabular-nums">{t("engage.oshi.companions", { n: list.length, max: MAX_OSHI_GOODS })}</span>
-                        <span className="sr-only">{t("oshiRoom.editGoods")}</span>
-                      </Button>
-                    </div>
-                  }
+            <div className="mt-3 space-y-3 md:mt-0">
+              {loading ? (
+                <Skeleton className="h-44 w-full rounded-3xl" />
+              ) : editing && draft ? (
+                <DecoratePanel
+                  state={draft}
+                  onChange={setDraft}
+                  target={editTarget}
+                  onTarget={setEditTarget}
+                  goods={goodsMap}
+                  goodsOrder={goodsIds}
+                  owned={owned}
+                  oshi={oshi}
+                  onLocked={setLockedSet}
+                  onSave={save}
+                  onCancel={stopEditing}
+                  onReset={() => {
+                    setDraft({ wallpaper: DEFAULT_WALLPAPER, floor: DEFAULT_FLOOR, layout: defaultLayout(goodsIds) });
+                    setEditTarget(null);
+                    toast(t("oshiRoom.decorate.resetDone"));
+                  }}
+                  saving={saveRoom.isPending}
                 />
-              )
-            )}
+              ) : list.length === 0 ? (
+                <section className="rounded-3xl border border-dashed bg-card p-5 text-center">
+                  <div className="mx-auto mb-2 w-fit">
+                    <IconTile tone="primary" size="md">
+                      <Star />
+                    </IconTile>
+                  </div>
+                  <h2 className="text-base font-bold">{t("oshiRoom.emptyTitle")}</h2>
+                  <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">{t("oshiRoom.emptyDesc", { max: MAX_OSHI_GOODS })}</p>
+                  <Button className="mt-4 gap-1.5 rounded-xl" onClick={() => setEditorOpen(true)}>
+                    <Star className="h-4 w-4" />
+                    {t("oshiRoom.choose")}
+                  </Button>
+                </section>
+              ) : (
+                // 推しグッズの切り替え（部屋の中の小さなグッズも、ここから選べる）はパネルの頭に入れる。
+                // 別の行にすると、スマホでお世話のボタンが画面の下に押し出される
+                current && (
+                  <GoodsCarePanel
+                    key={current.user_item_id}
+                    companion={current}
+                    onFx={addFx}
+                    onPhoto={openPhoto}
+                    onLevelUp={celebrate}
+                    header={
+                      <div className="flex items-center gap-2">
+                        <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 py-1 scrollbar-hide" role="radiogroup" aria-label={t("oshiRoom.pickHint")}>
+                          {list.map((c) => {
+                            const active = c.user_item_id === current?.user_item_id;
+                            const today = todayJst();
+                            const done = [c.last_pat_on, c.last_polish_on, c.last_photo_on].filter((d) => d === today).length;
+                            return (
+                              <button
+                                key={c.user_item_id}
+                                type="button"
+                                role="radio"
+                                aria-checked={active}
+                                aria-label={t("oshiRoom.goodsAria", { rank: c.rank, name: c.title, level: levelFromXp(c.xp) })}
+                                onClick={() => setSelected(c.user_item_id)}
+                                className={cn(
+                                  "relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border-2 bg-muted transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+                                  active ? "scale-105 border-primary shadow" : "border-transparent opacity-75"
+                                )}
+                              >
+                                <img src={getOptimizedImageUrl(c.image, { width: 96 })} onError={fallbackToOriginal(c.image)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                                <span className="absolute left-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-background text-3xs font-bold tabular-nums">{c.rank}</span>
+                                {/* 今日のお世話がぜんぶ済んだら印 */}
+                                {done === 3 && (
+                                  <span className="absolute bottom-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-10 shrink-0 gap-1 rounded-xl px-2 text-2xs text-muted-foreground" onClick={() => setEditorOpen(true)}>
+                          <ArrowUpDown className="h-3.5 w-3.5" />
+                          <span className="tabular-nums">{t("engage.oshi.companions", { n: list.length, max: MAX_OSHI_GOODS })}</span>
+                          <span className="sr-only">{t("oshiRoom.editGoods")}</span>
+                        </Button>
+                      </div>
+                    }
+                  />
+                )
+              )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="photo" className="mt-0">
+          <TabsContent value="photo" className="mx-auto mt-0 max-w-lg">
             {/* 今日の1枚 */}
             <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
               <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">
