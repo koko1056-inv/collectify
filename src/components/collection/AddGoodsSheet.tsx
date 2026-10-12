@@ -1,7 +1,7 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, ChevronLeft, Heart, ListChecks, Loader2, Pencil, Search } from "lucide-react";
+import { Camera, Check, ChevronLeft, ChevronRight, Heart, Lightbulb, ListChecks, Loader2, Pencil, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,20 @@ import type { OfficialItem } from "@/types";
 import { useSuggestNames } from "@/hooks/useSuggestNames";
 import { DidYouMean } from "@/components/search/DidYouMean";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
-import { useCatalogContents, useCatalogFeed, useContentNamesEn, useOfficialItems } from "@/hooks/useOfficialItems";
+import {
+  useCatalogContentCovers,
+  useCatalogContents,
+  useCatalogFeed,
+  useContentNamesEn,
+  useOfficialItems,
+} from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
 import { activeFilterCount, applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
-import { IconTile } from "@/components/ui/icon-tile";
+import { CatalogStackArt, CameraScanArt, ManualFormArt } from "./AddGoodsArt";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 type View = "menu" | "pick";
@@ -78,18 +84,110 @@ export function AddGoodsSheet({ open, onOpenChange, initialView = "menu" }: AddG
   );
 }
 
+/**
+ * 推しの作品（プロフィールの「推しの作品」favorite_contents と、ウェルカムなどで選ぶ「興味のある作品」interests）。
+ * 最初の3択（件数と写真）と一覧（推しの作品を先に開く）の両方で使うので、同じキーで1回だけ取る。
+ * 以前は favorite_contents しか見ておらず、interests だけを設定している大半の人
+ * （本番では interests を設定した17人中15人）には効いていなかった。両方を、設定した順に使う。
+ */
+function useFavoriteContents(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["favorite-contents", userId],
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 10,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("favorite_contents, interests")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return [...new Set([...(data?.favorite_contents ?? []), ...(data?.interests ?? [])])].filter(Boolean) as string[];
+    },
+  });
+}
+
+/**
+ * 日本語の見出しを「、」「。」「・」の後ろでだけ折り返す。
+ * 狭い列だと「公式グッズなら、た／ぶんもうある」のように言葉の途中で切れて読みにくかった。
+ * 区切りごとに inline-block にして、句読点の後ろを折り返し位置にする（英語は区切りが無いので普段どおり）。
+ */
+function phrases(text: string) {
+  const parts = text.split(/(?<=[、。・])/);
+  if (parts.length < 2) return text;
+  return parts.map((p, i) => (
+    <span key={i} className="inline-block">
+      {p}
+    </span>
+  ));
+}
+
+/**
+ * 最初の3択。
+ *
+ * 以前は「写真で追加／一覧から選ぶ／手入力で追加」が同じ形の行で縦に並び、機能名と説明を読み比べないと
+ * どれを選べばいいかわからなかった。しかも写真が一番上の primary で、カタログに既にあるグッズまで
+ * 撮り直されやすく、カタログに重複が生まれていた。
+ * ここでは「どんなときに使うか」を利用者の状況の言葉で先に書き、絵で違いが一目でわかるようにする。
+ *  - 一覧から選ぶ: 大きいカード＋おすすめの印。推しの作品の実物の写真と件数で「たぶんもうある」を見せる
+ *  - 写真で追加・手入力で追加: その下に2つ並べる。写真は primary の面で、手入力より目立たせる
+ *  - 一番下に「見つからなければ写真か手入力で」と、迷ったときの道筋を書く
+ */
 function MenuView({ onPick, onNavigate }: { onPick: () => void; onNavigate: () => void }) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
 
   const go = (path: string) => {
     onNavigate();
     navigate(path);
   };
 
+  // 件数と写真は無くても3択として成り立つので、読み込み中・失敗のときは出さないだけにする
+  const { data: favorites } = useFavoriteContents(user?.id);
+  const { data: contents, isLoading: contentsLoading } = useCatalogContents();
+  const { data: covers } = useCatalogContentCovers(3);
+  const { data: namesEn } = useContentNamesEn();
+
+  const catalog = useMemo(() => {
+    if (!contents) return null;
+    const counts = new Map(contents.map((c) => [c.name, c.count]));
+    // 推しの作品のうちカタログにあるもの。一覧も、この先頭の作品を開いた状態で始まるので、件数もそれに合わせる
+    const oshi = (favorites ?? []).filter((n) => counts.has(n));
+    const focus = oshi[0] ?? null;
+    const total = contents.reduce((sum, c) => sum + c.count, 0);
+    // 写真は推しの作品から。足りなければ（推しが無い人は最初から）グッズの多い作品で埋める
+    const images: string[] = [];
+    const take = (name: string, max: number) => {
+      let n = max;
+      for (const src of covers?.get(name) ?? []) {
+        if (images.length >= 3 || n <= 0) return;
+        if (images.includes(src)) continue;
+        images.push(src);
+        n -= 1;
+      }
+    };
+    if (focus) take(focus, 3);
+    oshi.slice(1).forEach((name) => take(name, 1));
+    contents.forEach((c) => take(c.name, 1));
+    return { focus, count: focus ? counts.get(focus) ?? 0 : total, images };
+  }, [contents, favorites, covers]);
+
+  const fmt = (n: number) => n.toLocaleString(language === "en" ? "en-US" : "ja-JP");
+  let countLabel: string | null = null;
+  if (catalog?.focus) {
+    countLabel = t("collectionScreen.addSheet.pickCountContent", {
+      name: language === "en" ? namesEn?.get(catalog.focus) ?? catalog.focus : catalog.focus,
+      count: fmt(catalog.count),
+    });
+  } else if (catalog && catalog.count > 0) {
+    countLabel = t("collectionScreen.addSheet.pickCountAll", { count: fmt(catalog.count) });
+  }
+
   return (
-    <div className="px-4 pt-4 pb-8">
-      <div className="mx-auto w-full max-w-sm space-y-3">
+    // 背の低い画面（390x667 など）でも、入りきらない分はシートの中でスクロールできるようにする
+    <div data-add-menu className="min-h-0 overflow-y-auto px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto w-full max-w-md space-y-3 sm:max-w-lg">
         <DrawerTitle className="text-center text-base font-bold">
           {t("collectionScreen.addSheet.title")}
         </DrawerTitle>
@@ -97,61 +195,122 @@ function MenuView({ onPick, onNavigate }: { onPick: () => void; onNavigate: () =
           {t("collectionScreen.addSheet.description")}
         </DrawerDescription>
 
-        <AddOption
-          icon={Camera}
-          title={t("chrome.collection.addByPhoto")}
-          desc={t("chrome.collection.addByPhotoHint")}
-          onClick={() => go("/quick-add")}
-          primary
-        />
-        <AddOption
-          icon={ListChecks}
-          title={t("collectionScreen.addSheet.pickTitle")}
-          desc={t("collectionScreen.addSheet.pickDesc")}
+        {/* 一覧から選ぶ（おすすめ）。既にあるグッズはここから追加してもらうと、カタログに重複が生まれない */}
+        <button
+          type="button"
           onClick={onPick}
-        />
-        <AddOption
-          icon={Pencil}
-          title={t("chrome.collection.addManually")}
-          desc={t("collectionScreen.addSheet.manualDesc")}
-          onClick={() => go("/add-item")}
-        />
+          className="group block w-full rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-card p-4 text-left shadow-sm transition-[border-color,transform] hover:border-primary/70 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <span className="flex items-center gap-3">
+            <span className="min-w-0 flex-1">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground">
+                <Star className="h-2.5 w-2.5 fill-current" aria-hidden="true" />
+                {t("collectionScreen.addSheet.recommended")}
+              </span>
+              <span className="mt-2 block text-base font-bold leading-snug">
+                {phrases(t("collectionScreen.addSheet.pickSituation"))}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">
+                {phrases(t("collectionScreen.addSheet.pickLead"))}
+              </span>
+              {countLabel ? (
+                <span className="mt-2 inline-flex max-w-full items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 text-2xs font-semibold tabular-nums ring-1 ring-inset ring-primary/20">
+                  <ListChecks className="h-3 w-3 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0">{countLabel}</span>
+                </span>
+              ) : (
+                contentsLoading && <Skeleton className="mt-2 h-5 w-32 rounded-md" />
+              )}
+            </span>
+            <CatalogStackArt images={catalog?.images ?? []} />
+          </span>
+          <span className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-primary py-2 text-sm font-bold text-primary-foreground transition-colors group-hover:bg-primary/90">
+            {t("collectionScreen.addSheet.pickTitle")}
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+        </button>
+
+        <div className="grid grid-cols-2 gap-3">
+          <AddOption
+            art={<CameraScanArt />}
+            situation={t("collectionScreen.addSheet.photoSituation")}
+            lead={t("collectionScreen.addSheet.photoLead")}
+            icon={Camera}
+            action={t("chrome.collection.addByPhoto")}
+            onClick={() => go("/quick-add")}
+            tone="primary"
+          />
+          <AddOption
+            art={<ManualFormArt />}
+            situation={t("collectionScreen.addSheet.manualSituation")}
+            lead={t("collectionScreen.addSheet.manualLead")}
+            icon={Pencil}
+            action={t("chrome.collection.addManually")}
+            onClick={() => go("/add-item")}
+            tone="muted"
+          />
+        </div>
+
+        {/* 迷ったときの道筋。一覧に無かったら、写真か手入力へ */}
+        <p className="flex items-start justify-center gap-1.5 px-1 text-2xs text-muted-foreground">
+          <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>{t("collectionScreen.addSheet.fallbackHint")}</span>
+        </p>
       </div>
     </div>
   );
 }
 
+/**
+ * 一覧の下に2つ並べる選択肢（写真・手入力）。
+ * 上に絵、その下に「どんなときか」（太字）と一言、最後に何をするボタンかを置く。
+ * 写真は以前の主な選択肢で、手元にある物ならいちばん早いので primary の面で目立たせ、手入力は muted に控える。
+ */
 function AddOption({
+  art,
+  situation,
+  lead,
   icon: Icon,
-  title,
-  desc,
+  action,
   onClick,
-  primary = false,
+  tone,
 }: {
+  art: ReactNode;
+  situation: string;
+  lead: string;
   icon: typeof Camera;
-  title: string;
-  desc: string;
+  action: string;
   onClick: () => void;
-  primary?: boolean;
+  tone: "primary" | "muted";
 }) {
+  const primary = tone === "primary";
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
-        primary
-          ? "w-full flex items-start gap-3 rounded-xl border border-primary/40 bg-primary/5 p-3.5 text-left transition-colors hover:bg-primary/10"
-          : "w-full flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 text-left transition-colors hover:bg-muted/60"
-      }
+      className={cn(
+        "group flex w-full flex-col rounded-2xl border bg-card p-3 text-left transition-[border-color,background-color,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        primary ? "border-primary/30 hover:border-primary/60" : "border-border hover:bg-muted/40"
+      )}
     >
-      {/* 以前は主な選択肢だけ primary のベタ塗りの面だった。カードの枠と色で主従は伝わるので、
-          印は共通の IconTile（薄い面）にそろえる */}
-      <IconTile tone={primary ? "primary" : "muted"} size="md">
-        <Icon />
-      </IconTile>
-      <span className="min-w-0">
-        <span className="block text-sm font-bold">{title}</span>
-        <span className="block text-xs text-muted-foreground">{desc}</span>
+      <span
+        className={cn(
+          "flex h-[4.25rem] items-center justify-center rounded-xl ring-1 ring-inset",
+          primary ? "bg-primary/5 ring-primary/10" : "bg-muted/60 ring-foreground/5"
+        )}
+      >
+        {art}
+      </span>
+      <span className="mt-2.5 block text-sm font-bold leading-snug">{phrases(situation)}</span>
+      <span className="mb-2.5 mt-0.5 block text-2xs text-muted-foreground">{phrases(lead)}</span>
+      <span
+        className={cn(
+          "mt-auto flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold transition-colors",
+          primary ? "bg-primary/10 text-primary group-hover:bg-primary/15" : "bg-muted text-foreground group-hover:bg-muted/80"
+        )}
+      >
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        {action}
       </span>
     </button>
   );
@@ -232,23 +391,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   });
 
   // 推しの作品を先に出す。カタログが大きいと、新しい順だけでは特定の作品が何百件も先に埋もれてしまう。
-  // 以前は favorite_contents（プロフィールの「推しの作品」）しか見ておらず、
-  // ウェルカムやプロフィールで選ぶ「興味のある作品」（interests）だけを設定している大半の人
-  // （本番では interests を設定した17人中15人）には効いていなかった。両方を、設定した順に使う。
-  const { data: favoriteContents } = useQuery({
-    queryKey: ["favorite-contents", user?.id],
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 10,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("favorite_contents, interests")
-        .eq("id", user!.id)
-        .maybeSingle();
-      if (error) throw error;
-      return [...new Set([...(data?.favorite_contents ?? []), ...(data?.interests ?? [])])].filter(Boolean) as string[];
-    },
-  });
+  const { data: favoriteContents } = useFavoriteContents(user?.id);
   // 初回だけ、好きな作品が登録されていればその作品を開く（なければ「すべて」）
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
