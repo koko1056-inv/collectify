@@ -15,8 +15,9 @@ export const collectionScreen = {
       manualDesc: "カタログに無いグッズを自分で登録",
       // 最初の3択。機能名より先に「どんなときに使うか」を利用者の状況の言葉で書く
       recommended: "おすすめ",
-      pickSituation: "公式グッズなら、たぶんもうある",
-      pickLead: "カタログから選ぶだけ。名前も写真もそろっています",
+      // \u200b は折り返してよい位置（AddGoodsSheet の phrases が見る）。「カタログか／ら選ぶ」のように言葉の途中で切れないように
+      pickSituation: "みんなのカタログ\u200bから選ぶ",
+      pickLead: "探してタップするだけ。名前も写真もそろっています",
       pickCountContent: "{name}のグッズ {count}件",
       pickCountAll: "カタログに {count}件",
       photoSituation: "手元のグッズを撮るだけ",
@@ -231,8 +232,8 @@ export const collectionScreen = {
       pickDesc: "Search the shared catalog and add it",
       manualDesc: "Register something the catalog doesn't have",
       recommended: "Try first",
-      pickSituation: "Official goods are probably already here",
-      pickLead: "Just pick it from the catalog. Name and photo included",
+      pickSituation: "Pick from everyone's catalog",
+      pickLead: "Just search and tap. Name and photo included",
       pickCountContent: "{count} {name} goods",
       pickCountAll: "{count} goods in the catalog",
       photoSituation: "Have it on hand? Just snap it",
