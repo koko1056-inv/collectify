@@ -1,12 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import { Share2, BookOpen } from "lucide-react";
+import { Share2, Camera } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RandomItemActionButtonsProps {
   onRandom: () => void;
   onShare?: () => void;
-  onMemories?: () => void;
+  /** 渡したときだけ「投稿する」を出す（自分のグッズのとき） */
+  onPost?: () => void;
   onClose: () => void;
   isLoading: boolean;
   isSpinning: boolean;
@@ -17,7 +18,7 @@ interface RandomItemActionButtonsProps {
 export function RandomItemActionButtons({
   onRandom,
   onShare,
-  onMemories,
+  onPost,
   onClose,
   isLoading,
   isSpinning,
@@ -47,15 +48,17 @@ export function RandomItemActionButtons({
               <Share2 className="h-4 w-4 mr-1" />
               {t("collectionScreen.random.share")}
             </Button>
-            <Button
-              variant="outline"
-              onClick={onMemories}
-              disabled={isLoading}
-              size={isMobile ? "sm" : "default"}
-            >
-              <BookOpen className="h-4 w-4 mr-1" />
-              {t("collectionScreen.random.memories")}
-            </Button>
+            {onPost && (
+              <Button
+                variant="outline"
+                onClick={onPost}
+                disabled={isLoading}
+                size={isMobile ? "sm" : "default"}
+              >
+                <Camera className="h-4 w-4 mr-1" />
+                {t("collectionScreen.random.post")}
+              </Button>
+            )}
           </>
         )}
       </div>

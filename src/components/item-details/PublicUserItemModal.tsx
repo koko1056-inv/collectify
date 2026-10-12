@@ -12,6 +12,7 @@ import { addToCollection } from "@/utils/collection-actions";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { UserItemPostsSection } from "@/components/item-posts/UserItemPostsSection";
 
 interface PublicUserItemModalProps {
   isOpen: boolean;
@@ -297,6 +298,19 @@ export function PublicUserItemModal({
                     {t("itemDetails.publicItem.noOfficialNote")}
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* 持ち主がこのグッズについて書いた投稿（公開のもの）。無ければ何も出さない */}
+            {itemDetails && (
+              <div className="border-t border-border pt-4 empty:hidden">
+                <UserItemPostsSection
+                  userItemId={itemId}
+                  ownerId={ownerId ?? itemDetails.user_id}
+                  isOwner={!!user?.id && user.id === (ownerId ?? itemDetails.user_id)}
+                  itemTitle={title}
+                  itemImage={itemDetails.image || image}
+                />
               </div>
             )}
           </div>

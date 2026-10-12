@@ -14,7 +14,6 @@ interface MyCollectionGoodsCardProps {
   quantity?: number;
   forTrade?: boolean;
   isCompact?: boolean;
-  memories?: any[];
   /** このアイテムの所有者ID(他人のコレクションを表示している場合に使う) */
   ownerId?: string;
 }
@@ -26,7 +25,6 @@ function MyCollectionGoodsCardComponent({
   quantity,
   forTrade,
   isCompact,
-  memories = [],
   ownerId,
 }: MyCollectionGoodsCardProps) {
   const {
@@ -82,7 +80,6 @@ function MyCollectionGoodsCardComponent({
           image={image}
           quantity={quantity}
           forTrade={forTrade}
-          memories={memories}
           userId={ownerId}
         />
       </div>

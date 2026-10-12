@@ -31,13 +31,14 @@ export type PostTarget =
 
 /**
  * 指定グッズへの投稿一覧（新着順）。
+ * authorId を渡すと、その人の投稿だけにする（グッズ詳細の「このグッズの投稿」で、持ち主の投稿だけを出すため）。
  */
-export function useItemPosts(target: PostTarget | null, limit = 20) {
+export function useItemPosts(target: PostTarget | null, limit = 20, authorId?: string | null) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["item-posts", target?.type, target?.id, user?.id],
+    queryKey: ["item-posts", target?.type, target?.id, user?.id, authorId ?? null],
     queryFn: async (): Promise<ItemPost[]> => {
       if (!target) return [];
 
@@ -58,6 +59,7 @@ export function useItemPosts(target: PostTarget | null, limit = 20) {
       } else {
         query.eq("user_item_id", target.id);
       }
+      if (authorId) query.eq("user_id", authorId);
 
       const { data, error } = await query;
       if (error) throw error;

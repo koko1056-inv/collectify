@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus, Heart, Share2, Camera } from "lucide-react";
+import { Loader2, Calendar, Tag, Heart, Share2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useCallback } from "react";
@@ -12,11 +12,10 @@ import { differenceInCalendarDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
 import { TradeAvailabilitySection } from "./TradeAvailabilitySection";
-import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
+import { UserItemPostsSection } from "@/components/item-posts/UserItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
-import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface UserItemDetailsModalProps {
@@ -25,13 +24,6 @@ interface UserItemDetailsModalProps {
   itemId: string;
   title: string;
   image: string;
-}
-
-interface Memory {
-  id: string;
-  image_url: string | null;
-  comment: string | null;
-  created_at: string;
 }
 
 export function UserItemDetailsModal({
@@ -50,9 +42,6 @@ export function UserItemDetailsModal({
   const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
   const [noteValue, setNoteValue] = useState("");
   const [purchaseDateValue, setPurchaseDateValue] = useState("");
-  const [isAddingMemory, setIsAddingMemory] = useState(false);
-  const [memoryComment, setMemoryComment] = useState("");
-  const [memoryImage, setMemoryImage] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -80,22 +69,6 @@ export function UserItemDetailsModal({
       setNoteValue(data.note || "");
       setPurchaseDateValue(data.purchase_date || "");
       return data;
-    },
-    enabled: isOpen && !!itemId,
-  });
-
-  // 思い出を取得
-  const { data: memories = [] } = useQuery({
-    queryKey: ["item-memories", itemId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select("*")
-        .eq("user_item_id", itemId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Memory[];
     },
     enabled: isOpen && !!itemId,
   });
@@ -143,66 +116,6 @@ export function UserItemDetailsModal({
       setIsSaving(false);
     }
   }, [purchaseDateValue, itemId, queryClient, t]);
-
-  // 思い出を追加
-  const handleAddMemory = useCallback(async () => {
-    if (!memoryComment.trim() && !memoryImage) {
-      toast.error(t("itemDetails.memories.needInput"));
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      let imageUrl: string | null = null;
-
-      // 画像をアップロード
-      if (memoryImage) {
-        const fileExt = memoryImage.name.split('.').pop();
-        const fileName = `${user?.id}/${itemId}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from("item-memories")
-          .upload(fileName, memoryImage);
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("item-memories")
-          .getPublicUrl(fileName);
-
-        imageUrl = urlData.publicUrl;
-      }
-
-      // 思い出を保存
-      const { error } = await supabase
-        .from("item_memories")
-        .insert({
-          user_item_id: itemId,
-          comment: memoryComment.trim() || null,
-          image_url: imageUrl,
-        });
-
-      if (error) throw error;
-
-      toast.success(t("itemDetails.memories.added"));
-      setMemoryComment("");
-      setMemoryImage(null);
-      setIsAddingMemory(false);
-      queryClient.invalidateQueries({ queryKey: ["item-memories", itemId] });
-    } catch (error) {
-      console.error("Error adding memory:", error);
-      toast.error(t("itemDetails.memories.addFailed"));
-    } finally {
-      setIsSaving(false);
-    }
-  }, [memoryComment, memoryImage, itemId, user?.id, queryClient, t]);
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMemoryImage(file);
-    }
-  };
 
   // 公式の写真が使えないグッズに、自分の写真を入れる（自分のグッズだけ）
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -461,104 +374,12 @@ export function UserItemDetailsModal({
               <PersonalTagsSection userItemId={itemId} />
             </div>
 
-            {/* 思い出記録セクション */}
-            <div className="border-t pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BookHeart className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-sm">{t("itemDetails.memories.sectionTitle")}</span>
-                </div>
-                {!isAddingMemory && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs gap-1"
-                    onClick={() => setIsAddingMemory(true)}
-                  >
-                    <Plus className="w-3 h-3" />
-                    {t("itemDetails.common.add")}
-                  </Button>
-                )}
-              </div>
-
-              {/* 思い出追加フォーム */}
-              {isAddingMemory && (
-                <div className="space-y-2 p-3 bg-muted rounded-lg">
-                  <Textarea
-                    value={memoryComment}
-                    onChange={(e) => setMemoryComment(e.target.value)}
-                    placeholder={t("itemDetails.memories.commentPlaceholder")}
-                    className="min-h-[60px] bg-background"
-                  />
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageSelect}
-                      />
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                        <ImagePlus className="w-4 h-4" />
-                        {memoryImage ? memoryImage.name : t("itemDetails.memories.addImage")}
-                      </div>
-                    </label>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsAddingMemory(false);
-                        setMemoryComment("");
-                        setMemoryImage(null);
-                      }}
-                    >
-                      {t("itemDetails.common.cancel")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleAddMemory}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("itemDetails.memories.record")}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* 思い出一覧 */}
-              {memories.length > 0 ? (
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {memories.map((memory) => (
-                    <div key={memory.id} className="bg-muted/50 rounded-lg p-2 space-y-1">
-                      {memory.image_url && (
-                        <img
-                          src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
-                          alt={t("itemDetails.memories.imageAlt")}
-                          className="w-full rounded aspect-video object-contain bg-muted/30"
-                        />
-                      )}
-                      {memory.comment && (
-                        <p className="text-xs text-foreground">{memory.comment}</p>
-                      )}
-                      <p className="text-3xs text-muted-foreground">
-                        {formatDate(memory.created_at)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground text-center py-2">
-                  {t("itemDetails.memories.empty")}
-                </p>
-              )}
-            </div>
-
-            {/* みんなの投稿セクション */}
+            {/* このグッズの投稿。以前の「思い出」と「みんなの投稿」をここにまとめた */}
             <div className="pt-4 border-t border-border">
-              <ItemPostsSection
-                target={{ type: "user_item", id: itemId }}
+              <UserItemPostsSection
+                userItemId={itemId}
+                ownerId={itemDetails?.user_id}
+                isOwner={isOwner}
                 itemTitle={title}
                 itemImage={itemDetails?.image || image}
               />

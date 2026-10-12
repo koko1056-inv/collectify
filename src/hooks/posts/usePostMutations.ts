@@ -1,69 +1,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-export function useCreatePost() {
-  const queryClient = useQueryClient();
-  const { t } = useLanguage();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({ userItemId, caption, imageUrl }: { 
-      userItemId: string; 
-      caption?: string; 
-      imageUrl: string; 
-    }) => {
-      if (!user) throw new Error(t("notices.common.loginRequired"));
-
-      console.log("投稿を作成中...", { userItemId, caption, imageUrl });
-
-      const { data, error } = await supabase
-        .from("goods_posts")
-        .insert({
-          user_id: user.id,
-          user_item_id: userItemId,
-          caption,
-          image_url: imageUrl,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("投稿作成エラー:", error);
-        throw error;
-      }
-      
-      console.log("投稿が作成されました:", data);
-      return data;
-    },
-    onSuccess: async (newPost) => {
-      console.log("投稿作成成功、キャッシュを更新中...");
-      
-      // すべての関連クエリを無効化
-      await queryClient.invalidateQueries({ queryKey: ["posts"] });
-      await queryClient.invalidateQueries({ queryKey: ["item-posts", newPost.user_item_id] });
-      
-      // 強制的にリフェッチを実行
-      await queryClient.refetchQueries({ queryKey: ["posts"] });
-      await queryClient.refetchQueries({ queryKey: ["item-posts", newPost.user_item_id] });
-      
-      console.log("キャッシュ更新完了");
-      
-      toast.success(t("notices.posts.createdTitle"), {
-        description: t("notices.posts.createdDesc"),
-      });
-    },
-    onError: (error) => {
-      console.error("投稿作成エラー:", error);
-      toast.error(t("notices.common.errorTitle"), {
-        description: t("notices.posts.createFailedDesc"),
-      });
-    },
-  });
-}
 
 export function useToggleLike() {
   const queryClient = useQueryClient();

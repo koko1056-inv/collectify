@@ -1,14 +1,8 @@
-
-import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
+import { useEffect, useState } from "react";
 import { ItemDetailsDeleteDialog } from "@/components/item-details/ItemDetailsDeleteDialog";
-import { ItemDetailsTagManageSection } from "@/components/item-details/ItemDetailsTagManageSection";
-import { CreatePostModal } from "@/components/posts/CreatePostModal";
+import { CreateItemPostModal } from "@/components/item-posts/CreateItemPostModal";
 
 interface CollectionGoodsCardModalsProps {
-  isMemoriesModalOpen: boolean;
-  setIsMemoriesModalOpen: (open: boolean) => void;
-  isTagModalOpen: boolean;
-  setIsTagModalOpen: (open: boolean) => void;
   isDeleteConfirmOpen: boolean;
   setIsDeleteConfirmOpen: (open: boolean) => void;
   isCreatePostModalOpen: boolean;
@@ -19,10 +13,6 @@ interface CollectionGoodsCardModalsProps {
 }
 
 export function CollectionGoodsCardModals({
-  isMemoriesModalOpen,
-  setIsMemoriesModalOpen,
-  isTagModalOpen,
-  setIsTagModalOpen,
   isDeleteConfirmOpen,
   setIsDeleteConfirmOpen,
   isCreatePostModalOpen,
@@ -31,23 +21,15 @@ export function CollectionGoodsCardModals({
   title,
   image,
 }: CollectionGoodsCardModalsProps) {
+  // 投稿の作成画面はポイント残高などを読むので、グリッドの全カードに置くと読み込みが枚数ぶん増える。
+  // 一度開いたカードにだけ置く（閉じるアニメーションのため、開いた後は置いたままにする）
+  const [postModalMounted, setPostModalMounted] = useState(false);
+  useEffect(() => {
+    if (isCreatePostModalOpen) setPostModalMounted(true);
+  }, [isCreatePostModalOpen]);
+
   return (
     <>
-      <ItemMemoriesModal
-        isOpen={isMemoriesModalOpen}
-        onClose={() => setIsMemoriesModalOpen(false)}
-        itemIds={[id]}
-        itemTitles={[title]}
-      />
-
-      <ItemDetailsTagManageSection
-        isOpen={isTagModalOpen}
-        onClose={() => setIsTagModalOpen(false)}
-        itemId={id}
-        itemTitle={title}
-        isUserItem
-      />
-
       <ItemDetailsDeleteDialog
         open={isDeleteConfirmOpen}
         setOpen={setIsDeleteConfirmOpen}
@@ -56,12 +38,18 @@ export function CollectionGoodsCardModals({
         isUserItem
         onCloseModal={() => setIsDeleteConfirmOpen(false)}
       />
-      
-      <CreatePostModal
-        isOpen={isCreatePostModalOpen}
-        onClose={() => setIsCreatePostModalOpen(false)}
-        selectedItems={[{ id, title, image }]}
-      />
+
+      {/* グッズ詳細の「このグッズの投稿」と同じ item_posts に書く。
+          以前の CreatePostModal は旧テーブル goods_posts に書いており、みんなのフィードや自分のグッズ詳細には出なかった */}
+      {(postModalMounted || isCreatePostModalOpen) && (
+        <CreateItemPostModal
+          open={isCreatePostModalOpen}
+          onOpenChange={setIsCreatePostModalOpen}
+          target={{ type: "user_item", id }}
+          itemTitle={title}
+          itemImage={image}
+        />
+      )}
     </>
   );
 }

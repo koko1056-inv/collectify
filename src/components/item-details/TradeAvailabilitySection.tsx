@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToggleForTrade } from "@/hooks/trade/useToggleForTrade";
 
 interface TradeAvailabilitySectionProps {
   itemId: string;
@@ -21,6 +22,9 @@ interface TradeAvailabilitySectionProps {
  * 個数が2つ以上でも自動で交換に出すことはしない。
  * 同じグッズを2つ持っていても、片方を人にあげたいとは限らないため、
  * 増えたときに声をかけるだけにして、決めるのは本人に委ねる。
+ *
+ * 交換の切り替えはコレクションのカードからもできるので、useToggleForTrade に寄せている。
+ * forTrade は詳細のキャッシュから来ており、切り替えると楽観的に書き換わる。
  */
 export function TradeAvailabilitySection({
   itemId,
@@ -32,18 +36,14 @@ export function TradeAvailabilitySection({
   const queryClient = useQueryClient();
 
   const [localQuantity, setLocalQuantity] = useState(quantity);
-  const [localForTrade, setLocalForTrade] = useState(forTrade);
   const [isSaving, setIsSaving] = useState(false);
+  const toggleTrade = useToggleForTrade();
   // 個数を増やした直後だけ出す一言。開いた瞬間から出ていると急かしているように見える
   const [showNudge, setShowNudge] = useState(false);
 
   useEffect(() => {
     setLocalQuantity(quantity);
   }, [quantity]);
-
-  useEffect(() => {
-    setLocalForTrade(forTrade);
-  }, [forTrade]);
 
   const refresh = () =>
     Promise.all([
@@ -53,11 +53,10 @@ export function TradeAvailabilitySection({
       queryClient.invalidateQueries({ queryKey: ["trade-readiness", user?.id] }),
       queryClient.invalidateQueries({ queryKey: ["trade-series-partners", user?.id] }),
       queryClient.invalidateQueries({ queryKey: ["my-trade-offers", user?.id] }),
-      // 「はじめてガイド」の交換ステップは、出しているグッズの有無で完了になる
       queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user?.id] }),
     ]);
 
-  const save = async (patch: { quantity?: number; for_trade?: boolean }) => {
+  const save = async (patch: { quantity: number }) => {
     setIsSaving(true);
     try {
       const { error } = await supabase.from("user_items").update(patch).eq("id", itemId);
@@ -85,7 +84,7 @@ export function TradeAvailabilitySection({
     }
 
     // 2つ目が増えたときだけ、交換に出す選択肢があることを伝える
-    if (next > previous && next >= 2 && !localForTrade) {
+    if (next > previous && next >= 2 && !forTrade) {
       setShowNudge(true);
     }
     if (next < 2) {
@@ -93,20 +92,9 @@ export function TradeAvailabilitySection({
     }
   };
 
-  const toggleForTrade = async (next: boolean) => {
-    const previous = localForTrade;
-    setLocalForTrade(next);
+  const toggleForTrade = (next: boolean) => {
     setShowNudge(false);
-
-    const ok = await save({ for_trade: next });
-    if (!ok) {
-      setLocalForTrade(previous);
-      return;
-    }
-
-    toast.success(next ? t("itemDetails.trade.enabled") : t("itemDetails.trade.disabled"), {
-      description: next ? t("itemDetails.trade.enabledDesc") : undefined,
-    });
+    toggleTrade.mutate({ itemId, forTrade: next });
   };
 
   return (
@@ -153,10 +141,12 @@ export function TradeAvailabilitySection({
           </p>
         </div>
         <div className="flex h-6 items-center gap-2">
-          {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+          {(isSaving || toggleTrade.isPending) && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          )}
           <Switch
-            checked={localForTrade}
-            disabled={isSaving}
+            checked={forTrade}
+            disabled={isSaving || toggleTrade.isPending}
             onCheckedChange={toggleForTrade}
             aria-label={t("itemDetails.trade.switchLabel")}
           />
@@ -169,7 +159,7 @@ export function TradeAvailabilitySection({
           <Button
             size="sm"
             className="h-7 shrink-0 text-xs"
-            disabled={isSaving}
+            disabled={isSaving || toggleTrade.isPending}
             onClick={() => toggleForTrade(true)}
           >
             {t("itemDetails.trade.nudgeCta")}

@@ -1,72 +1,35 @@
-
 import { CardFooter } from "@/components/ui/card";
 import { CardActions } from "./CardActions";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useToggleForTrade } from "@/hooks/trade/useToggleForTrade";
 
 interface CollectionGoodsCardFooterProps {
   id: string;
-  onMemoriesClick: () => void;
-  onTagManageClick: () => void;
+  forTrade: boolean;
   onDeleteClick: () => void;
   onCreatePostClick: () => void;
 }
 
+/**
+ * 以前はカード1枚ごとに user_item_tags を引き、Realtime のチャンネルまで張っていた
+ * （グリッドの枚数ぶんチャンネルができて重い）。結果はどこにも使っていなかったので外した。
+ * 交換中かどうかは一覧の行（for_trade）から受け取り、切り替えは楽観的に一覧のキャッシュを書き換える。
+ */
 export function CollectionGoodsCardFooter({
   id,
-  onMemoriesClick,
-  onTagManageClick,
+  forTrade,
   onDeleteClick,
   onCreatePostClick,
 }: CollectionGoodsCardFooterProps) {
-  const { data: itemTags = [], refetch } = useQuery({
-    queryKey: ["user-item-tags", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_item_tags")
-        .select("*")
-        .eq("user_item_id", id);
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
-
-  // リアルタイム更新を追加
-  useEffect(() => {
-    const channel = supabase
-      .channel(`user-item-tags-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_item_tags',
-          filter: `user_item_id=eq.${id}`
-        },
-        () => {
-          refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [id, refetch]);
+  const toggleTrade = useToggleForTrade();
 
   return (
-    <CardFooter className="px-2 py-1.5 border-t border-border/40 bg-muted/20">
+    <CardFooter className="px-0.5 py-1 border-t border-border/40 bg-muted/20">
       <CardActions
-        onMemoriesClick={onMemoriesClick}
-        onTagManageClick={onTagManageClick}
-        onDeleteClick={onDeleteClick}
         onCreatePostClick={onCreatePostClick}
-        hasMemories={false}
-        hasTags={itemTags.length > 0}
-        tagCount={itemTags.length}
+        onToggleTrade={() => toggleTrade.mutate({ itemId: id, forTrade: !forTrade })}
+        onDeleteClick={onDeleteClick}
+        forTrade={forTrade}
+        isTradePending={toggleTrade.isPending}
       />
     </CardFooter>
   );

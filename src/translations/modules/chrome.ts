@@ -300,18 +300,6 @@ export const chrome = {
       delete: "削除する",
     },
 
-    memories: {
-      addedMemoryTitle: "思い出を追加しました",
-      addedCommentTitle: "コメントを追加しました",
-      addedMemoryDesc: "コレクションに新しい思い出が追加されました。",
-      addedCommentDesc: "コレクションにコメントが追加されました。",
-      addMemoryFailed: "思い出の追加に失敗しました。",
-      addCommentFailed: "コメントの追加に失敗しました。",
-      titleSingle: "{title}の思い出",
-      titleMultiple: "{n}個のコレクションの思い出",
-      description: "コレクションの思い出やコメントを追加できます。",
-      pastMemories: "これまでの思い出",
-    },
 
     owners: {
       title: "このグッズを持っているユーザー",
@@ -757,18 +745,6 @@ export const chrome = {
       delete: "Delete",
     },
 
-    memories: {
-      addedMemoryTitle: "Memory added",
-      addedCommentTitle: "Comment added",
-      addedMemoryDesc: "A new memory was added to the collection.",
-      addedCommentDesc: "A comment was added to the collection.",
-      addMemoryFailed: "Failed to add the memory.",
-      addCommentFailed: "Failed to add the comment.",
-      titleSingle: "Memories of {title}",
-      titleMultiple: "Memories of {n} collection items",
-      description: "You can add memories and comments to your collection.",
-      pastMemories: "Past memories",
-    },
 
     owners: {
       title: "Users who own this item",

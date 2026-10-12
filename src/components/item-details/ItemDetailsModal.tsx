@@ -12,7 +12,6 @@ import { TagManageModal } from "../tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
-import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
 import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
 import { Button } from "@/components/ui/button";

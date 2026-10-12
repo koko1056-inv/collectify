@@ -134,9 +134,6 @@ export const notices = {
       default: "選択してください",
     },
     posts: {
-      createdTitle: "投稿しました",
-      createdDesc: "投稿が正常に作成されました。",
-      createFailedDesc: "投稿の作成に失敗しました。",
       deletedTitle: "投稿を削除しました",
       deletedDesc: "投稿が正常に削除されました。",
       deleteFailedDesc: "投稿の削除に失敗しました。",
@@ -148,9 +145,6 @@ export const notices = {
       likeFailedDesc: "いいね操作に失敗しました。",
     },
     imageEdit: {
-      doneTitle: "画像編集完了",
-      doneDesc: "画像の編集が完了しました",
-      failed: "画像の編集に失敗しました",
       noResult: "編集された画像が取得できませんでした",
     },
     itemPosts: {
@@ -334,9 +328,6 @@ export const notices = {
       default: "Make a selection",
     },
     posts: {
-      createdTitle: "Posted",
-      createdDesc: "Your post was created.",
-      createFailedDesc: "Couldn't create your post.",
       deletedTitle: "Post deleted",
       deletedDesc: "Your post was deleted.",
       deleteFailedDesc: "Couldn't delete your post.",
@@ -348,9 +339,6 @@ export const notices = {
       likeFailedDesc: "Couldn't update the like.",
     },
     imageEdit: {
-      doneTitle: "Image edited",
-      doneDesc: "Your image is ready",
-      failed: "Couldn't edit the image",
       noResult: "No edited image came back",
     },
     itemPosts: {
