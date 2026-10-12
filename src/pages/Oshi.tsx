@@ -17,6 +17,7 @@ import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
 import { LockedSetSheet } from "@/components/oshi/room/LockedSetSheet";
 import { FX_DURATION, type RoomFxEvent } from "@/components/oshi/room/fx";
 import { OshiGoodsEditModal } from "@/components/profile/OshiGoodsEditModal";
+import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCompanions, useOshiPhotos, type Companion } from "@/hooks/useOshi";
@@ -62,6 +63,7 @@ const Oshi = () => {
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoItem, setPhotoItem] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Companion | null>(null);
   const [fx, setFx] = useState<RoomFxEvent[]>([]);
   const [celebrating, setCelebrating] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -101,6 +103,13 @@ const Oshi = () => {
 
   // 選んでいるグッズ（無ければ1位）
   const current: Companion | undefined = list.find((c) => c.user_item_id === selected) ?? list[0];
+  // 部屋のグッズをタップ: はじめはそのグッズを選んでお世話のパネルを出し、選んでいるグッズをもう一度タップすると詳細を開く。
+  // 1回で詳細を開くと、毎日のお世話のたびにダイアログを閉じる手間がかかる
+  const selectGoods = (id: string) => {
+    const hit = list.find((c) => c.user_item_id === id);
+    if (hit && id === current?.user_item_id) setDetail(hit);
+    else setSelected(id);
+  };
 
   const addFx = useCallback((e: Omit<RoomFxEvent, "id">) => {
     const id = Date.now() + Math.random();
@@ -231,7 +240,7 @@ const Oshi = () => {
                     mode={editing ? "edit" : "view"}
                     reduceMotion={reduceMotion}
                     selectedGoods={current?.user_item_id ?? null}
-                    onSelectGoods={setSelected}
+                    onSelectGoods={selectGoods}
                     editTarget={editTarget}
                     onEditTarget={setEditTarget}
                     onLayoutChange={(layout) => setDraft((d) => (d ? { ...d, layout } : d))}
@@ -319,6 +328,7 @@ const Oshi = () => {
                     onFx={addFx}
                     onPhoto={openPhoto}
                     onLevelUp={celebrate}
+                    onDetail={() => setDetail(current)}
                     header={
                       <div className="flex items-center gap-2">
                         <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 py-1 scrollbar-hide" role="radiogroup" aria-label={t("oshiRoom.pickHint")}>
@@ -395,6 +405,18 @@ const Oshi = () => {
       </main>
 
       {user && <OshiGoodsEditModal open={editorOpen} onOpenChange={setEditorOpen} userId={user.id} />}
+      {detail && (
+        <ItemDetailsModal
+          itemId={detail.user_item_id}
+          title={detail.title}
+          image={detail.image}
+          contentName={detail.content_name}
+          isUserItem
+          userId={user?.id}
+          isOpen={!!detail}
+          onClose={() => setDetail(null)}
+        />
+      )}
       <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} onSaved={onPhotoSaved} />
       <LockedSetSheet
         set={lockedSet}

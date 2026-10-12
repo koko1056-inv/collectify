@@ -7,6 +7,9 @@ import { useProfileOshiGoods } from "@/hooks/useOshi";
 import { useProfileOshiRoom } from "@/hooks/useOshiRoom";
 import { DEFAULT_FLOOR, DEFAULT_WALLPAPER, defaultLayout, mergeGoods, timeOfDayJst, type RoomState } from "@/lib/oshiRoom";
 import { RoomScene, type SceneGoods } from "./RoomScene";
+import { ChevronRight } from "lucide-react";
+import { ItemDetailsModal } from "@/components/ItemDetailsModal";
+import type { ProfileOshiGoods } from "@/hooks/useOshi";
 
 /**
  * 他の人の推しの部屋を見る（読み取りだけ）。プロフィールの推しグッズ欄の「お部屋を見る」から開く。
@@ -18,6 +21,7 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
   const room = useProfileOshiRoom(open ? profileId : undefined);
   const goods = useProfileOshiGoods(open ? profileId : undefined);
   const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<ProfileOshiGoods | null>(null);
 
   const list = useMemo(() => goods.data ?? [], [goods.data]);
   const ids = useMemo(() => list.map((g) => g.user_item_id), [list]);
@@ -35,6 +39,11 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
     };
   }, [room.data, ids]);
   const picked = list.find((g) => g.user_item_id === selected);
+  // 選んでいるグッズをもう一度タップすると詳細を開く（自分の部屋と同じ）
+  const selectGoods = (id: string) => {
+    if (id === selected && picked) setDetail(picked);
+    else setSelected(id);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,7 +66,7 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
               mode="readonly"
               reduceMotion={reduceMotion}
               selectedGoods={selected}
-              onSelectGoods={setSelected}
+              onSelectGoods={selectGoods}
               label={t("oshiRoom.roomAriaOf", { name })}
             />
             <div className="min-h-[3rem] rounded-2xl bg-muted/50 px-3 py-2 text-center" aria-live="polite">
@@ -69,6 +78,14 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
                   <p className="text-xs font-bold text-primary">
                     Lv.{picked.level} {t(`engage.oshi.levelTitle.${picked.level}`)}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => setDetail(picked)}
+                    className="mt-1 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-2xs font-bold text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    {t("oshiRoom.view.detail")}
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                 </>
               ) : (
                 <p className="py-1.5 text-xs text-muted-foreground">{list.length === 0 ? t("oshiRoom.view.empty") : t("oshiRoom.view.tapHint")}</p>
@@ -77,6 +94,18 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
           </>
         )}
       </DialogContent>
+      {detail && (
+        <ItemDetailsModal
+          itemId={detail.user_item_id}
+          title={detail.title}
+          image={detail.image}
+          contentName={detail.content_name}
+          isUserItem
+          userId={profileId}
+          isOpen={!!detail}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </Dialog>
   );
 }

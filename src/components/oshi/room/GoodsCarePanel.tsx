@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,6 +30,8 @@ interface GoodsCarePanelProps {
   onLevelUp: (level: number, c: Companion) => void;
   /** パネルの頭に出すもの（推しグッズの切り替え） */
   header?: React.ReactNode;
+  /** グッズの詳細を開く */
+  onDetail?: () => void;
 }
 
 type CareAction = "pat" | "polish";
@@ -40,7 +42,7 @@ type CareAction = "pat" | "polish";
  * （以前のカードと同じ。待ってから動くと、触った感じがしない）。
  * 回数の上限・エラー・トースト・ショップへの導線は、以前のカード（CompanionCard）と同じ。
  */
-export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header }: GoodsCarePanelProps) {
+export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, onDetail }: GoodsCarePanelProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
@@ -164,13 +166,28 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header }: 
       <section className="rounded-3xl border bg-card px-4 pb-3 pt-3 shadow-sm" aria-label={t("oshiRoom.panelAria", { name: companion.title })}>
         <div className="flex items-center gap-2.5">
           <RankBadge rank={companion.rank} className="mt-0.5 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-snug">
-              <span className="sr-only">{t("engage.oshi.rankAria", { rank: companion.rank })} </span>
-              {companion.title}
-            </p>
-            <p className="mt-0.5 text-xs font-bold text-primary">{t(`engage.oshi.levelTitle.${progress.level}`)}</p>
-          </div>
+          {/* 名前の行を押すとグッズの詳細が開く（部屋の中の選んでいるグッズを、もう一度タップしても開く） */}
+          <button
+            type="button"
+            onClick={onDetail}
+            disabled={!onDetail}
+            className="group -my-1 -ml-1 flex min-w-0 flex-1 items-center gap-1 rounded-xl px-1 py-1 text-left transition-colors hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none"
+            aria-label={t("oshiRoom.detailAria", { name: companion.title })}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-bold leading-snug">
+                <span className="sr-only">{t("engage.oshi.rankAria", { rank: companion.rank })} </span>
+                {companion.title}
+              </span>
+              <span className="mt-0.5 block text-xs font-bold text-primary">{t(`engage.oshi.levelTitle.${progress.level}`)}</span>
+            </span>
+            {onDetail && (
+              <span className="inline-flex shrink-0 items-center text-2xs font-bold text-muted-foreground group-hover:text-foreground" aria-hidden="true">
+                {t("oshiRoom.detail")}
+                <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            )}
+          </button>
           <span className="shrink-0 rounded-full bg-primary px-2.5 py-1 text-xs font-black tabular-nums text-primary-foreground shadow-sm">Lv.{progress.level}</span>
         </div>
 
