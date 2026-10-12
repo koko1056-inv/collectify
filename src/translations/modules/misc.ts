@@ -395,10 +395,6 @@ export const misc = {
       tradeOfferDesc: "ダブっている分を1つ出すだけで相手が見つかります",
     },
 
-    publicCollection: {
-      acquiredOn: "{date}入手",
-      memories: "思い出 ({n})",
-    },
 
     imageSearch: {
       title: "写真から似ているグッズを探す",
@@ -890,10 +886,6 @@ export const misc = {
       tradeOfferDesc: "Offering one spare is enough to start finding partners",
     },
 
-    publicCollection: {
-      acquiredOn: "Acquired {date}",
-      memories: "Memories ({n})",
-    },
 
     imageSearch: {
       title: "Find similar goods from a photo",

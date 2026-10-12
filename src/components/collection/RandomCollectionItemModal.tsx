@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuth } from "@/contexts/AuthContext";
 import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
-import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
+import { CreateItemPostModal } from "@/components/item-posts/CreateItemPostModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RandomItemContent } from "./random-item/RandomItemContent";
 import { RandomItemActionButtons } from "./random-item/RandomItemActionButtons";
@@ -26,8 +26,10 @@ export function RandomCollectionItemModal({
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
+  // 投稿は自分のグッズにだけ書ける。他の人のコレクションの「今日のグッズ」では出さない
+  const isOwnCollection = !!user?.id && effectiveUserId === user.id;
   const { t } = useLanguage();
 
   const { randomItem, isLoading, isSpinning, fetchRandomItem } = useRandomItem(
@@ -39,8 +41,8 @@ export function RandomCollectionItemModal({
     setIsShareModalOpen(true);
   };
 
-  const handleOpenMemories = () => {
-    setIsMemoriesModalOpen(true);
+  const handleOpenPost = () => {
+    setIsPostModalOpen(true);
   };
 
   const handleImageClick = () => {
@@ -70,7 +72,7 @@ export function RandomCollectionItemModal({
           <RandomItemActionButtons 
             onRandom={fetchRandomItem}
             onShare={handleShare}
-            onMemories={handleOpenMemories}
+            onPost={isOwnCollection ? handleOpenPost : undefined}
             onClose={onClose}
             isLoading={isLoading}
             isSpinning={isSpinning}
@@ -89,13 +91,15 @@ export function RandomCollectionItemModal({
             url={window.location.href}
             image={randomItem.image}
           />
-          <ItemMemoriesModal
-            isOpen={isMemoriesModalOpen}
-            onClose={() => setIsMemoriesModalOpen(false)}
-            itemIds={[randomItem.id]}
-            itemTitles={[randomItem.title]}
-            userId={effectiveUserId}
-          />
+          {isOwnCollection && (
+            <CreateItemPostModal
+              open={isPostModalOpen}
+              onOpenChange={setIsPostModalOpen}
+              target={{ type: "user_item", id: randomItem.id }}
+              itemTitle={randomItem.title}
+              itemImage={randomItem.image}
+            />
+          )}
         </>
       )}
     </>

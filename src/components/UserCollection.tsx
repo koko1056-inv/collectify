@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
-import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CollectionExplorer, type CollectionFacet } from "./collection/CollectionExplorer";
 import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
@@ -168,9 +167,6 @@ export function UserCollection({
     gcTime: 1000 * 60 * 10
   });
 
-  // Batch load memories for all visible items
-  const itemIds = useMemo(() => items.map(item => item.id), [items]);
-  const { data: batchMemories = {} } = useBatchItemMemories(itemIds);
 
   // マイタグでフィルタする場合、対象のuser_item_idを取得
   const { data: personalTagItemIds = [], isLoading: isPersonalTagLoading } = useQuery({
@@ -627,7 +623,6 @@ export function UserCollection({
           }
           isCompact={isCompact}
           handleDragEnd={handleDragEnd}
-          batchMemories={batchMemories}
           selectedPersonalTag={selectedPersonalTag}
           onPersonalTagChange={onPersonalTagChange}
           isSelectionMode={isSelectionMode}

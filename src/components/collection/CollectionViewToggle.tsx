@@ -14,7 +14,6 @@ interface CollectionViewToggleProps {
   items: any[];
   isCompact: boolean;
   handleDragEnd: (event: DragEndEvent) => void;
-  batchMemories?: Record<string, any[]>;
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
   // 選択モード
@@ -30,7 +29,6 @@ export function CollectionViewToggle({
   items,
   isCompact,
   handleDragEnd,
-  batchMemories = {},
   selectedPersonalTag = "",
   onPersonalTagChange,
   isSelectionMode = false,
@@ -117,7 +115,6 @@ export function CollectionViewToggle({
                 onSelectItem={onSelectItem ?? (() => {})}
                 // 月ごとの並びは日付で決まるので、ドラッグでの入れ替えはしない
                 onDragEnd={() => {}}
-                batchMemories={batchMemories}
               />
             </section>
           ))}
@@ -130,7 +127,6 @@ export function CollectionViewToggle({
           selectedItems={selectedItems}
           onSelectItem={onSelectItem ?? (() => {})}
           onDragEnd={handleDragEnd}
-          batchMemories={batchMemories}
         />
       )}
     </div>

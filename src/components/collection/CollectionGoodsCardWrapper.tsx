@@ -23,7 +23,6 @@ interface CollectionGoodsCardProps {
   quantity?: number;
   forTrade?: boolean;
   isCompact?: boolean;
-  memories?: any[];
 }
 
 export function CollectionGoodsCardWrapper({
@@ -37,24 +36,13 @@ export function CollectionGoodsCardWrapper({
   quantity = 1,
   forTrade = false,
   isCompact = false,
-  memories = []
 }: CollectionGoodsCardProps) {
   const { user } = useAuth();
   const isOwnItem = !userId || userId === user?.id;
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
-  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
-  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isQuantityEditOpen, setIsQuantityEditOpen] = useState(false);
-
-  const handleMemoriesClick = useCallback(() => {
-    setIsMemoriesModalOpen(true);
-  }, []);
-
-  const handleTagManageClick = useCallback(() => {
-    setIsTagModalOpen(true);
-  }, []);
 
   const handleDeleteClick = useCallback(() => {
     setIsDeleteConfirmOpen(true);
@@ -85,9 +73,9 @@ export function CollectionGoodsCardWrapper({
           <h3 className="font-medium text-foreground text-xs leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>
         </CardContent>
 
-        {/* フッターアクション(削除など)は自分のグッズのみ表示 */}
+        {/* 投稿・交換・削除は自分のグッズのみ表示 */}
         {isOwnItem && (
-          <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
+          <CollectionGoodsCardFooter id={id} forTrade={forTrade} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
         )}
       </Card>
 
@@ -113,7 +101,7 @@ export function CollectionGoodsCardWrapper({
       )}
 
       {isOwnItem && (
-        <CollectionGoodsCardModals isMemoriesModalOpen={isMemoriesModalOpen} setIsMemoriesModalOpen={setIsMemoriesModalOpen} isTagModalOpen={isTagModalOpen} setIsTagModalOpen={setIsTagModalOpen} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
+        <CollectionGoodsCardModals isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
       )}
 
       {isOwnItem && (

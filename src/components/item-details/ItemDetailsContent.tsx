@@ -2,7 +2,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ItemImageEditor } from "./ItemImageEditor";
 import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
-import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,6 @@ interface ItemDetailsContentProps {
   image: string;
   title: string;
   tags?: SimpleItemTag[];
-  memories?: any[];
   isUserItem?: boolean;
   isEditing: boolean;
   editedData: any;
@@ -35,7 +33,6 @@ export function ItemDetailsContent({
   image,
   title,
   tags = [],
-  memories = [],
   isUserItem = false,
   isEditing,
   editedData,
@@ -106,7 +103,6 @@ export function ItemDetailsContent({
 
         {isUserItem && <div className="space-y-4">
             <TagsSection isEditing={isEditing} tags={tags} editedData={editedData} setEditedData={setEditedData} />
-            <MemoriesSection memories={memories} />
             <ItemNoteField isEditing={isEditing} note={editedData.note} onChange={v => setEditedData({
               ...editedData,
               note: v
