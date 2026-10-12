@@ -113,7 +113,8 @@ function useFavoriteContents(userId: string | undefined) {
  * 区切りごとに inline-block にして、句読点の後ろを折り返し位置にする（英語は区切りが無いので普段どおり）。
  */
 function phrases(text: string) {
-  const parts = text.split(/(?<=[、。・])/);
+  // 「、」「。」「・」の後ろと、文言に入れた \u200b（折り返してよい位置の印）の後ろでだけ折り返す
+  const parts = text.split(/(?<=[、。・\u200b])/);
   if (parts.length < 2) return text;
   return parts.map((p, i) => (
     <span key={i} className="inline-block">
@@ -129,7 +130,7 @@ function phrases(text: string) {
  * どれを選べばいいかわからなかった。しかも写真が一番上の primary で、カタログに既にあるグッズまで
  * 撮り直されやすく、カタログに重複が生まれていた。
  * ここでは「どんなときに使うか」を利用者の状況の言葉で先に書き、絵で違いが一目でわかるようにする。
- *  - 一覧から選ぶ: 大きいカード＋おすすめの印。推しの作品の実物の写真と件数で「たぶんもうある」を見せる
+ *  - 一覧から選ぶ: 大きいカード＋おすすめの印。推しの作品の実物の写真と件数で「選ぶだけ」を見せる
  *  - 写真で追加・手入力で追加: その下に2つ並べる。写真は primary の面で、手入力より目立たせる
  *  - 一番下に「見つからなければ写真か手入力で」と、迷ったときの道筋を書く
  */
