@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
+import { OshiRoomMiniCard } from "@/components/oshi/OshiRoomMiniCard";
 
 
 export default function Collection() {
@@ -50,6 +51,11 @@ export default function Collection() {
               以前置いていた /my-room からこちらへ移した。
               タブから辿り着けない画面に置いておくと誰も進められない。 */}
           {user && <OnboardingChecklist />}
+
+          {/* 自分の推しの部屋の小さな窓（今日のお世話の残り・なかよしLv・いいね）。タップで /oshi へ。
+              はじめてガイドより下に置く: ガイドが出ている人（はじめたばかり）には、まずガイドを進めてもらいたい。
+              ガイドを終えた・畳んだ人には、これがいちばん上に来る */}
+          {user && <OshiRoomMiniCard />}
 
           {/* 枠の使用状況は 80% を超えてから出す（常に出すと、最初の画面にグッズが1つも見えなかった）。
               普段の使用数はポイント画面と設定で見られる */}

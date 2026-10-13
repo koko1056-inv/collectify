@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowUpDown, Camera, Check, Flame, Moon, Paintbrush, Star, Sun, Sunrise, Sunset } from "lucide-react";
+import { ArrowLeft, ArrowUpDown, Camera, Check, Flame, Heart, Moon, Paintbrush, Star, Sun, Sunrise, Sunset } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,8 @@ import { RoomScene, type EditTarget, type SceneGoods } from "@/components/oshi/r
 import { GoodsCarePanel } from "@/components/oshi/room/GoodsCarePanel";
 import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
 import { LockedSetSheet } from "@/components/oshi/room/LockedSetSheet";
+import { RoomLikersSheet } from "@/components/oshi/room/RoomLikersSheet";
+import { useOshiRoomLikes } from "@/hooks/useOshiRoomSocial";
 import { FX_DURATION, LEVELUP_WITH_REWARDS_MS, type RoomFxEvent } from "@/components/oshi/room/fx";
 import { TIER_START, expectedRewards, pickLine, reactionTier, type ServerRewards } from "@/lib/oshiLevel";
 import { OshiGoodsEditModal } from "@/components/profile/OshiGoodsEditModal";
@@ -62,10 +64,21 @@ const Oshi = () => {
   const saveRoom = useSaveOshiRoom();
   const { owned } = useMyUnlocks();
   const [tab, setTab] = useState("room");
+  // ?item=<id>: コレクション画面のミニ部屋から「この推しのお世話がまだ」で来たとき、そのグッズを選んだ状態で開く。
+  // ?likes=1: いいねの通知から来たとき、誰がいいねしたかを開く
+  const [searchParams, setSearchParams] = useSearchParams();
+  const likes = useOshiRoomLikes(user?.id);
+  const likersOpen = searchParams.get("likes") === "1";
+  const setLikersOpen = (o: boolean) => {
+    const next = new URLSearchParams(searchParams);
+    if (o) next.set("likes", "1");
+    else next.delete("likes");
+    setSearchParams(next, { replace: true });
+  };
   const [editorOpen, setEditorOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoItem, setPhotoItem] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(() => searchParams.get("item"));
   const [detail, setDetail] = useState<Companion | null>(null);
   const [fx, setFx] = useState<RoomFxEvent[]>([]);
   const [celebrating, setCelebrating] = useState<string | null>(null);
@@ -237,6 +250,20 @@ const Oshi = () => {
             {/* スマホでは説明を出さない（部屋とお世話のボタンを、スクロールなしで1画面に収めるため） */}
             <p className="hidden text-sm text-muted-foreground md:block">{t("engage.oshi.pageSub")}</p>
           </div>
+          {/* もらったいいね。押すと誰がいいねしたか（みんなの「お部屋」に並んでいることに気づくきっかけにもなる） */}
+          {tab === "room" && !editing && !loading && list.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 gap-1 rounded-xl px-2.5"
+              onClick={() => setLikersOpen(true)}
+              aria-label={t("oshiRoom.social.likers.open", { n: likes.data?.likes ?? 0 })}
+              data-testid="oshi-likes"
+            >
+              <Heart className={cn("h-4 w-4", (likes.data?.likes ?? 0) > 0 ? "fill-primary text-primary" : "text-muted-foreground")} />
+              <span className="tabular-nums">{likes.data?.likes ?? 0}</span>
+            </Button>
+          )}
           {tab === "room" && !editing && !loading && (
             <Button variant="outline" size="sm" className="shrink-0 gap-1.5 rounded-xl" onClick={startEditing} data-tour="oshi-room-decorate">
               <Paintbrush className="h-4 w-4" />
@@ -458,6 +485,7 @@ const Oshi = () => {
           onClose={() => setDetail(null)}
         />
       )}
+      <RoomLikersSheet open={likersOpen} onOpenChange={setLikersOpen} />
       <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} onSaved={onPhotoSaved} />
       <LockedSetSheet
         set={locked?.set ?? null}

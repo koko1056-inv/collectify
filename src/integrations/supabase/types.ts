@@ -158,6 +158,24 @@ export type Database = {
         }
         Relationships: []
       }
+      oshi_room_likes: {
+        Row: {
+          created_at: string
+          room_owner_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          room_owner_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          room_owner_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       oshi_rooms: {
         Row: {
           created_at: string
@@ -4365,6 +4383,50 @@ export type Database = {
           title: string
           user_item_id: string
           xp: number
+        }[]
+      }
+      get_oshi_room_likes: {
+        Args: { _owner: string }
+        Returns: {
+          liked_by_me: boolean
+          likes: number
+        }[]
+      }
+      set_oshi_room_like: {
+        Args: { _owner: string; _liked: boolean }
+        Returns: {
+          liked: boolean
+          likes: number
+        }[]
+      }
+      get_my_oshi_room_likers: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          avatar_url: string | null
+          display_name: string | null
+          liked_at: string
+          user_id: string
+          username: string
+        }[]
+      }
+      list_oshi_rooms: {
+        Args: { _sort?: string; _limit?: number; _offset?: number }
+        Returns: {
+          avatar_url: string | null
+          bond_best: number
+          bond_total: number
+          display_name: string | null
+          floor_key: string | null
+          goods: Json
+          layout: Json | null
+          liked_by_me: boolean
+          likes: number
+          match_score: number
+          oshi_color: string | null
+          updated_at: string | null
+          user_id: string
+          username: string
+          wallpaper_key: string | null
         }[]
       }
       get_profile_oshi_room: {

@@ -34,6 +34,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'reply':
         return { icon: Reply, tone: 'primary' };
       case 'like':
+      case 'oshi_room_like':
         return { icon: Heart, tone: 'primary' };
       case 'greeting_stamp':
         return { icon: Sticker, tone: 'primary' };
@@ -93,6 +94,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     } else if (notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') {
       // 旧「投稿・投票・チャレンジ」の通知。画面は廃止したので、いまの投稿の一覧へ
       navigate('/explore?tab=posts');
+    } else if (notification.type === 'oshi_room_like') {
+      // 推しの部屋へのいいね: 自分の部屋で、誰がいいねしたかを開く
+      navigate('/oshi?likes=1');
     } else if (notification.type === 'admin_report') {
       // 通報の通知は、管理画面の通報タブへ
       navigate(notification.data.url || '/admin?tab=reports');
@@ -116,6 +120,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const data = notification.data as NotificationData;
 
+  // 推しの部屋へのいいねは、サーバーが日本語で書いた文言ではなく、いまの言語で出し直す（名前は data.actor_name）
+  const title = notification.type === 'oshi_room_like' ? t("oshiRoom.social.notify.title") : notification.title;
+  const message =
+    notification.type === 'oshi_room_like'
+      ? t("oshiRoom.social.notify.message", { name: data.actor_name || t("oshiRoom.social.notify.someone") })
+      : notification.message;
+
   return (
     <div
       className={cn(
@@ -137,7 +148,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-sm font-medium truncate">
-              {notification.title}
+              {title}
             </h4>
             {!notification.is_read && (
               // 未読の点はヘッダーの件数バッジと同じ primary（以前は destructive の赤で、エラーに見えた）
@@ -145,9 +156,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             )}
           </div>
           
-          {notification.message && (
+          {message && (
             <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-              {notification.message}
+              {message}
             </p>
           )}
 
