@@ -30,6 +30,10 @@ interface RoomThemeValues {
   placeholderFill: string;
   /** 夜に部屋を暗くする色（mix-blend: multiply で重ねる） */
   nightShade: string;
+  /** なかよしレベルの反応の吹き出し（地・文字・縁）。部屋の絵の上に重ねるので、テーマで分ける */
+  bubble: string;
+  bubbleText: string;
+  bubbleEdge: string;
 }
 
 export const ROOM_THEME: { light: RoomThemeValues; dark: RoomThemeValues } = {
@@ -41,6 +45,9 @@ export const ROOM_THEME: { light: RoomThemeValues; dark: RoomThemeValues } = {
     placeholder: "#C9A9B8",
     placeholderFill: "rgba(255, 255, 255, 0.82)",
     nightShade: "rgba(40, 46, 110, 0.32)",
+    bubble: "#FFFFFF",
+    bubbleText: "#5A4350",
+    bubbleEdge: "#F2B8CC",
   },
   dark: {
     // 暗い画面では濃い線が背景に溶けるので、少しだけ明るい線にする
@@ -51,6 +58,10 @@ export const ROOM_THEME: { light: RoomThemeValues; dark: RoomThemeValues } = {
     placeholder: "#B49AAE",
     placeholderFill: "rgba(255, 255, 255, 0.6)",
     nightShade: "rgba(20, 24, 70, 0.4)",
+    // 暗い画面で白い吹き出しだけがまぶしく浮かないよう、少し沈めた地に明るい文字
+    bubble: "#2E2531",
+    bubbleText: "#FBE9F1",
+    bubbleEdge: "#8A5C74",
   },
 };
 
@@ -58,7 +69,8 @@ export const ROOM_THEME: { light: RoomThemeValues; dark: RoomThemeValues } = {
 export function roomThemeCss(): string {
   const vars = (v: RoomThemeValues) =>
     `--room-ink:${v.ink};--room-shadow:${v.shadow};--room-filter:${v.filter};--room-guide:${v.guide};` +
-    `--room-placeholder:${v.placeholder};--room-placeholder-fill:${v.placeholderFill};--room-night:${v.nightShade};`;
+    `--room-placeholder:${v.placeholder};--room-placeholder-fill:${v.placeholderFill};--room-night:${v.nightShade};` +
+    `--room-bubble:${v.bubble};--room-bubble-text:${v.bubbleText};--room-bubble-edge:${v.bubbleEdge};`;
   return `.oshi-room{${vars(ROOM_THEME.light)}}.dark .oshi-room{${vars(ROOM_THEME.dark)}}`;
 }
 
@@ -111,6 +123,12 @@ export const FX = {
   ribbon: "#FF6B9A",
   ribbonDeep: "#D9487A",
   ribbonText: "#FFFFFF",
+  /** なかよしレベルの反応: 音符（Lv7〜）と、虹のきらめき・オーラ（Lv10） */
+  note: ["#B98CFF", "#7FB8FF", "#FF8FB1"],
+  rainbow: ["#FF8FA8", "#FFB37A", "#FFE07A", "#8FD9A8", "#8EC9F0", "#B9A3F2"],
+  /** レベルアップのお祝いで「解放」の札に使う金 */
+  unlockGold: "#F2C94C",
+  unlockGoldDeep: "#B8932F",
 };
 
 /** 窓の外（時間帯ごと） */
@@ -178,6 +196,14 @@ export const PAINT = {
     "xmas.wall": { base: "#F8F2E7", pattern: "#C9DDEE", accent: "#D84A55", curtain: "#D84A55", curtainShade: "#B0333F" },
     "yumekawa.wall": { base: "#FBE3F3", pattern: "#FFFFFF", accent: "#CDE9FF", curtain: "#D8C7FF", curtainShade: "#B9A3F2" },
     "showcase.wall": { base: "#18203F", pattern: "#222C55", accent: "#F2D27C", curtain: "#7C1E3A", curtainShade: "#5E1229" },
+    "library.wall": { base: "#EFE3C8", pattern: "#DCCBA6", accent: "#C99A3E", curtain: "#2F5E4E", curtainShade: "#214437" },
+    "cafe.wall": { base: "#F3DCC6", pattern: "#DDAA86", accent: "#FFF6EA", curtain: "#7FA36B", curtainShade: "#5E8550" },
+    "space.wall": { base: "#141A3C", pattern: "#2A2F6B", accent: "#FFF6D0", curtain: "#5A4FCF", curtainShade: "#3F36A3" },
+    "beach.wall": { base: "#B9E4FA", pattern: "#3BA7D8", accent: "#FFE07A", curtain: "#FFFFFF", curtainShade: "#CFE6F2" },
+    "live.wall": { base: "#1C1430", pattern: "#2A1F45", accent: "#FFD45C", curtain: "#C2263F", curtainShade: "#8E1529" },
+    "retro.wall": { base: "#2B2150", pattern: "#3A2C6E", accent: "#53E3D0", curtain: "#2FB8A8", curtainShade: "#1F8C80" },
+    "lv5.wall": { base: "#2E2A5C", pattern: "#4A4590", accent: "#FFE9A8", curtain: "#B9A3F2", curtainShade: "#9580D9" },
+    "lv10.wall": { base: "#FFF4F8", pattern: "#FFFFFF", accent: "#FFFFFF", curtain: "#FFFFFF", curtainShade: "#EBD9F2" },
   } as Record<string, { base: string; pattern: string; accent: string; curtain: string; curtainShade: string }>,
   yumekawaSky: ["#FFD6EC", "#E5D6FF", "#CFF1FF"],
   /** 夏祭りの壁（夜空）の上の色と、花火 */
@@ -198,6 +224,14 @@ export const PAINT = {
     "xmas.floor": { base: "#C8414B", line: "#B0333F", edge: "#E9C46A", board: "#F8F2E7" },
     "yumekawa.floor": { base: "#FFDDEF", line: "#D6EEFF", edge: "#C9B4FF", board: "#FFFFFF" },
     "showcase.floor": { base: "#ECEAF3", line: "#CFCBDD", edge: "#B8A26A", board: "#2A3360" },
+    "library.floor": { base: "#B98559", line: "#94643D", edge: "#6E4526", board: "#5B3A29" },
+    "cafe.floor": { base: "#D98B5F", line: "#F3E2D2", edge: "#B8693F", board: "#FFF6EA" },
+    "space.floor": { base: "#5C6688", line: "#3E4766", edge: "#7FE3FF", board: "#2A3156" },
+    "beach.floor": { base: "#F2DDB0", line: "#E3C68E", edge: "#D9B57A", board: "#F7F0E0" },
+    "live.floor": { base: "#22182F", line: "#3A2D52", edge: "#FF6B9A", board: "#140E1E" },
+    "altar.floor": { base: "#FFF5F8", line: "#F3DDE6", edge: "#F0C6D6", board: "#FFFFFF" },
+    "retro.floor": { base: "#1E1640", line: "#E35BFF", edge: "#53E3D0", board: "#120C2A" },
+    "lv7.floor": { base: "#FBF6EA", line: "#E2C36A", edge: "#B8932F", board: "#FFF4D6" },
   } as Record<string, { base: string; line: string; edge: string; board: string }>,
   wood: { light: "#F2D2A7", mid: "#E0B27E", dark: "#B9824F", deep: "#8E5E36" },
   white: "#FFFFFF",
@@ -219,6 +253,29 @@ export const PAINT = {
   moon: { body: "#FFF0A8", shade: "#F5D96A", cheek: "#FFB8C8", string: "#E6CFA0" },
   showcase: { glass: "rgba(200, 225, 255, 0.28)", frame: "#D9B95E", frameDeep: "#A98935", shelf: "rgba(255,255,255,0.7)", base: "#2A3360" },
   pedestal: { body: "#F4F2F8", shade: "#D6D2E2", gold: "#E2C36A", beam: "rgba(255, 246, 210, 0.35)" },
+  /** 図書室の壁の下の腰板・本の背の色・地球儀 */
+  library: { panel: "#8A5A3C", panelDeep: "#6B4329", rail: "#C99A3E", books: ["#B5443B", "#2F5E4E", "#3D5A8A", "#C99A3E", "#7A4A7E", "#E3D3B5", "#D9774A"] },
+  globe: { sea: "#6FB6E8", land: "#7CCB8B", landDeep: "#4FA866", brass: "#C99A3E", brassDeep: "#9C7428" },
+  cafe: { panel: "#7FA36B", panelDeep: "#5E8550", steel: "#C9CDD6", steelDeep: "#8C93A3", coffee: "#6B4232", sign: "#2F4A3E" },
+  sweets: { plate: "#FFFFFF", gold: "#E2C36A", berry: "#FF6B7A", cream: "#FFF6EA", sponge: "#F6D49A", choco: "#8A5A44", macaron: ["#FFB8C8", "#BFE8D8", "#FFE29A", "#D8C7FF"] },
+  space: { nebula: ["#8E6BFF", "#FF7FC8"], planet: "#FFB37A", planetBand: "#F28C4C", planetRing: "#B98CFF" },
+  rocket: { body: "#F4F2F8", shade: "#D6D2E2", fin: "#FF6B6B", finDeep: "#D84A55", window: "#8EC9F0", flame: "#FFD45C", flameDeep: "#FF8A3D" },
+  saturn: { body: "#FFC27A", band: "#F29E4C", ring: "#B98CFF", ringDeep: "#8E62E0", chain: "#C9CDD6" },
+  beach: { skyTop: "#7CCBF5", sea: "#3BA7D8", seaDeep: "#2A86B8", foam: "#FFFFFF", sun: "#FFE07A", gull: "#FFFFFF", shell: "#FFD9C9", star: "#FF9F6B" },
+  parasol: { a: "#FF7A85", b: "#FFFFFF", pole: "#E9D3A8", poleDeep: "#C9A87A", top: "#FFD45C" },
+  float: { a: "#FF6B6B", b: "#FFFFFF", rope: "#C9935E", hook: "#B9824F" },
+  live: { beams: ["#FF6B9A", "#7FB8FF", "#FFD45C"], fringe: "#F2C94C", led: "#7FB8FF" },
+  speaker: { body: "#2A2438", grille: "#433A57", cone: "#16121F", rim: "#7A6F93", led: "#7ED6B9" },
+  mic: { stand: "#3A3348", head: "#C9CDD6", headDeep: "#8C93A3", grip: "#5A4350" },
+  fans: { second: "#FFD45C", handle: "#F4F2F8" },
+  altar: { gold: "#E8C766", goldDeep: "#B8932F", lace: "#FFFFFF", leaf: "#7CCB8B", leafDeep: "#4FA866", easel: "#E9D3A8", easelDeep: "#C9A87A" },
+  retro: { body: "#5B4FCF", side: "#3F36A3", screen: "#1B2A4A", glow: "#53E3D0", marquee: "#FF6BB0", buttons: ["#FF6B9A", "#FFD45C", "#53E3D0"], pixel: "#FF6BB0" },
+  crt: { body: "#E9D9C4", bodyShade: "#CDB89E", screen: "#2B3A55", glow: "#9FE8FF", knob: "#8E6A55", console: "#C9C9D2", consoleDeep: "#9A9AA8" },
+  cushion: { body: "#FF8FB0", shade: "#E86D93", tassel: "#FFD45C", stitch: "#FFD6E2" },
+  trophy: { gold: "#F2C94C", deep: "#C99A1E", light: "#FFF0B8", base: "#8E5E36", baseDeep: "#6E4526", heart: "#FF6B9A" },
+  chandelier: { gold: "#E2C36A", deep: "#B8932F", crystal: "#DDF0FF", candle: "#FFF6EA", flame: "#FFD45C" },
+  rainbow: ["#FF8FA8", "#FFB37A", "#FFE07A", "#8FD9A8", "#8EC9F0", "#B9A3F2"],
+  constellation: { line: "#C9C3FF", star: "#FFE9A8" },
   /** グッズのフレーム */
   frame: {
     wood: { face: "#E7BE8A", inner: "#C9935E", shine: "#F7DDB6" },
@@ -231,5 +288,14 @@ export const PAINT = {
     wreath: { leaf: "#3F9E64", leafDeep: "#2D7D4C", berry: "#D84A55", bow: "#D84A55", bowDeep: "#B0333F" },
     heart: { face: "#FFC6E3", rim: "#FFFFFF", shine: "#FFE6F3" },
     gold: { face: "#E8C766", deep: "#B8932F", light: "#FFF0B8" },
+    antique: { face: "#C9A45A", deep: "#8E6A2E", light: "#F2DFA6" },
+    chalk: { board: "#2F4A3E", wood: "#B9824F", woodDeep: "#8E5E36", chalk: "#FFFFFF", chalkPink: "#FFB8C8", chalkYellow: "#FFE29A" },
+    porthole: { metal: "#B7C0D6", deep: "#7D879F", bolt: "#E6EAF3" },
+    shell: { face: "#FFE3D6", deep: "#F2A98F", pearl: "#FFFFFF", star: "#FF9F6B" },
+    ticket: { face: "#FFF4D6", punch: "#5A4350", line: "#E8D3A6" },
+    lace: { face: "#FFFFFF", dot: "#F3DDE6" },
+    pixel: { a: "#53E3D0", b: "#FF6BB0", dark: "#2B2150" },
+    flower: { a: "#FFB3C9", b: "#FFE07A", c: "#B9E3F7", leaf: "#7CCB8B", center: "#FFF6EA" },
+    crown: { gold: "#F2C94C", deep: "#C99A1E", light: "#FFF0B8", gems: ["#FF6B9A", "#7FB8FF", "#7ED6B9"], pearl: "#FFFFFF" },
   },
 };

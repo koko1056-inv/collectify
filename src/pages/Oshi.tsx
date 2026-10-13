@@ -15,7 +15,8 @@ import { RoomScene, type EditTarget, type SceneGoods } from "@/components/oshi/r
 import { GoodsCarePanel } from "@/components/oshi/room/GoodsCarePanel";
 import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
 import { LockedSetSheet } from "@/components/oshi/room/LockedSetSheet";
-import { FX_DURATION, type RoomFxEvent } from "@/components/oshi/room/fx";
+import { FX_DURATION, LEVELUP_WITH_REWARDS_MS, type RoomFxEvent } from "@/components/oshi/room/fx";
+import { TIER_START, expectedRewards, pickLine, reactionTier, type ServerRewards } from "@/lib/oshiLevel";
 import { OshiGoodsEditModal } from "@/components/profile/OshiGoodsEditModal";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,9 +29,11 @@ import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-imag
 import {
   DEFAULT_FLOOR,
   DEFAULT_WALLPAPER,
+  ROOM_ASSETS,
   defaultLayout,
   layoutForSave,
   mergeGoods,
+  roomI18nId,
   timeOfDayJst,
   type RoomSet,
   type RoomState,
@@ -69,7 +72,7 @@ const Oshi = () => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<RoomState | null>(null);
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [lockedSet, setLockedSet] = useState<RoomSet | null>(null);
+  const [locked, setLocked] = useState<{ set: RoomSet; key: string } | null>(null);
   const roomRef = useRef<HTMLDivElement>(null);
 
   // 窓の外の時間（日本時間）。1分ごとに見直す
@@ -103,27 +106,64 @@ const Oshi = () => {
 
   // 選んでいるグッズ（無ければ1位）
   const current: Companion | undefined = list.find((c) => c.user_item_id === selected) ?? list[0];
-  // 部屋のグッズをタップ: はじめはそのグッズを選んでお世話のパネルを出し、選んでいるグッズをもう一度タップすると詳細を開く。
-  // 1回で詳細を開くと、毎日のお世話のたびにダイアログを閉じる手間がかかる
-  const selectGoods = (id: string) => {
-    const hit = list.find((c) => c.user_item_id === id);
-    if (hit && id === current?.user_item_id) setDetail(hit);
-    else setSelected(id);
-  };
 
   const addFx = useCallback((e: Omit<RoomFxEvent, "id">) => {
     const id = Date.now() + Math.random();
     setFx((prev) => [...prev, { ...e, id }]);
-    window.setTimeout(() => setFx((prev) => prev.filter((v) => v.id !== id)), FX_DURATION[e.kind]);
+    window.setTimeout(() => setFx((prev) => prev.filter((v) => v.id !== id)), e.duration ?? FX_DURATION[e.kind]);
   }, []);
 
-  const celebrate = useCallback(
-    (level: number, c: Companion) => {
-      addFx({ kind: "levelup", level, name: c.title });
-      setCelebrating(c.user_item_id);
-      window.setTimeout(() => setCelebrating(null), 2800);
+  // なかよしレベルの反応（タップ・お世話のあと）。ひとことは出すときに選び、直前と同じ言葉は続けない
+  const lastLine = useRef<number | undefined>(undefined);
+  const react = useCallback(
+    (c: Companion, delay = 0) => {
+      const level = levelFromXp(c.xp);
+      const line = pickLine(reactionTier(level), Math.random(), lastLine.current);
+      if (line) lastLine.current = line.n;
+      const fire = () => addFx({ kind: "react", item: c.user_item_id, level, line: line?.key });
+      if (delay > 0) window.setTimeout(fire, delay);
+      else fire();
     },
     [addFx]
+  );
+
+  // 部屋のグッズをタップ: はじめはそのグッズを選んで（反応して）お世話のパネルを出し、選んでいるグッズをもう一度タップすると詳細を開く。
+  // 1回で詳細を開くと、毎日のお世話のたびにダイアログを閉じる手間がかかる
+  const selectGoods = (id: string) => {
+    const hit = list.find((c) => c.user_item_id === id);
+    if (!hit) return;
+    if (id === selected) {
+      setDetail(hit);
+      return;
+    }
+    setSelected(id);
+    react(hit);
+  };
+
+  /**
+   * レベルアップのお祝い（部屋じゅうの紙吹雪と、称号・特典の札）と通知。
+   * 特典はサーバーが返したもの（受け取ったポイント・はじめて解放したセット）。返ってこないとき（写真の保存から・古いサーバー）は見込みを出す
+   */
+  const celebrate = useCallback(
+    (level: number, c: Companion, rewards: ServerRewards | null, fromLevel: number) => {
+      const got = rewards ?? expectedRewards(fromLevel, level, owned);
+      const unlocks = ROOM_ASSETS.filter((a) => (got.unlocked as string[]).includes(a.set)).map((a) => a.key);
+      // この間に反応の段階が上がったか（Lv4・7・10）
+      const tierUp = ([4, 3, 2] as const).find((tier) => TIER_START[tier] > fromLevel && TIER_START[tier] <= level);
+      const hasRewards = got.points > 0 || unlocks.length > 0 || !!tierUp;
+      addFx({ kind: "levelup", level, name: c.title, points: got.points, unlocks, tierUp, duration: hasRewards ? LEVELUP_WITH_REWARDS_MS : undefined });
+      setCelebrating(c.user_item_id);
+      window.setTimeout(() => setCelebrating(null), 2800);
+      const extras = [
+        got.points > 0 ? t("oshiRoom.fx.points", { n: got.points }) : null,
+        unlocks.length > 0 ? t("oshiRoom.fx.unlocked", { names: unlocks.map((k) => t(`oshiRoom.assets.${roomI18nId(k)}`)).join(t("oshiRoom.fx.listSep")) }) : null,
+      ].filter(Boolean);
+      toast.success(t("engage.oshi.levelUp", { name: c.title, level }), {
+        description: [t(`engage.oshi.levelTitle.${level}`), ...extras].join(" ・ "),
+        duration: hasRewards ? 8000 : 6000,
+      });
+    },
+    [addFx, owned, t]
   );
 
   const openPhoto = (c?: Companion) => {
@@ -139,10 +179,8 @@ const Oshi = () => {
     const before = levelFromXp(c.xp);
     const after = levelFromXp(c.xp + 3);
     if (after > before) {
-      window.setTimeout(() => {
-        celebrate(after, c);
-        toast.success(t("engage.oshi.levelUp", { name: c.title, level: after }), { description: t(`engage.oshi.levelTitle.${after}`), duration: 6000 });
-      }, reduceMotion ? 0 : 900);
+      // 写真の保存はサーバーの特典の答えを受け取らないので、見込み（表と、まだ持っていないセット）で見せる
+      window.setTimeout(() => celebrate(after, c, null, before), reduceMotion ? 0 : 900);
     }
   };
 
@@ -294,7 +332,7 @@ const Oshi = () => {
                   goodsOrder={goodsIds}
                   owned={owned}
                   oshi={oshi}
-                  onLocked={setLockedSet}
+                  onLocked={(set, key) => setLocked({ set, key })}
                   onSave={save}
                   onCancel={stopEditing}
                   onReset={() => {
@@ -326,6 +364,9 @@ const Oshi = () => {
                     key={current.user_item_id}
                     companion={current}
                     onFx={addFx}
+                    onReact={react}
+                    owned={owned}
+                    oshi={oshi}
                     onPhoto={openPhoto}
                     onLevelUp={celebrate}
                     onDetail={() => setDetail(current)}
@@ -419,14 +460,15 @@ const Oshi = () => {
       )}
       <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} onSaved={onPhotoSaved} />
       <LockedSetSheet
-        set={lockedSet}
+        set={locked?.set ?? null}
+        itemKey={locked?.key}
         oshi={oshi}
-        onOpenChange={(o) => !o && setLockedSet(null)}
+        onOpenChange={(o) => !o && setLocked(null)}
         onGoShop={(key) => {
           // 模様替えの途中なら、保存していない変更が消えることを先に確かめる
           const changed = editing && draft && JSON.stringify(draft) !== JSON.stringify(baseState);
           if (changed && !window.confirm(t("oshiRoom.decorate.leaveConfirm"))) return;
-          setLockedSet(null);
+          setLocked(null);
           navigate(`/point-shop?item=${encodeURIComponent(key)}`);
         }}
       />

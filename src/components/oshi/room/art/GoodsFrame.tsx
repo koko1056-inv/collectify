@@ -2,8 +2,8 @@ import { useId } from "react";
 import { FRAME_DEFS, type FrameDef } from "@/lib/oshiRoom";
 import type { OshiColor } from "@/lib/cosmetics";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
-import { INK, LEVEL_GLOW, PAINT, oshiPaint } from "../palette";
-import { heartPath, petalPath, sparklePath } from "./shapes";
+import { INK, LEVEL_GLOW, LIGHT, PAINT, oshiPaint } from "../palette";
+import { PIXEL_HEART, PIXEL_STAR, heartPath, petalPath, pixelCells, sparklePath, starPath } from "./shapes";
 
 interface GoodsFrameProps {
   frame: string;
@@ -117,9 +117,32 @@ function FrameBack({ k, H, def, oshi }: { k: string; H: number; def: FrameDef; o
       return <circle cx="50" cy={w.y + w.h / 2} r={w.w / 2 + 2} fill={PAINT.white} />;
     case "yumekawa.heart":
       return <path d={heartPath(50, H / 2 + 2, 52)} fill={PAINT.frame.heart.rim} {...S} />;
+    case "cafe.frame":
+      // 壁の釘に、ひもで掛ける
+      return <path d={`M10 6 L50 -12 L90 6`} fill="none" stroke={INK} strokeWidth="1.4" />;
+    case "altar.frame": {
+      // まわりのレース（半分だけ前の縁から出して、波のふちに見せる）
+      const dots: [number, number][] = [];
+      for (let x = 4; x <= 96; x += 9.2) dots.push([x, 2], [x, H - 2]);
+      for (let y = 11; y <= H - 10; y += 9.2) dots.push([2, y], [98, y]);
+      return (
+        <g>
+          {dots.map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="5.4" fill={PAINT.frame.lace.face} stroke={INK} strokeWidth="1" />
+          ))}
+        </g>
+      );
+    }
+    case "lv3.flower":
+      return <path d={ringRect(6, 6, 88, H - 12, 22, w.x, w.y, w.w, w.h, w.w * 0.1)} fillRule="evenodd" fill={PAINT.frame.flower.center} {...S} />;
     default:
       return null;
   }
+}
+
+/** 楕円（cx, cy, rx, ry）のパス。穴あきの縁（evenodd）を作るのに使う */
+function ellipsePath(cx: number, cy: number, rx: number, ry: number): string {
+  return `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${rx * 2} 0a${rx} ${ry} 0 1 0 ${-rx * 2} 0Z`;
 }
 
 function FrameFront({ k, H, def, oshi, id }: { k: string; H: number; def: FrameDef; oshi: OshiColor; id: string }) {
@@ -265,6 +288,190 @@ function FrameFront({ k, H, def, oshi, id }: { k: string; H: number; def: FrameD
             <path key={i} d={sparklePath(x, y, 5)} fill={G.light} />
           ))}
           <path d={sparklePath(50, 4, 5)} fill={G.light} stroke={INK} strokeWidth="0.8" />
+        </g>
+      );
+    }
+    case "library.frame": {
+      // アンティークの楕円の額縁
+      const A = F.antique;
+      const cx = 50;
+      const cy = w.y + w.h / 2;
+      return (
+        <g>
+          <path d={ellipsePath(cx, cy, 49, H / 2 - 1) + ellipsePath(cx, cy, w.w / 2, w.h / 2)} fillRule="evenodd" fill={A.face} {...S} />
+          <ellipse cx={cx} cy={cy} rx={w.w / 2 + 4} ry={w.h / 2 + 4} fill="none" stroke={A.deep} strokeWidth="2.4" strokeDasharray="1.5 3" strokeLinecap="round" />
+          <ellipse cx={cx} cy={cy} rx="44" ry={H / 2 - 6} fill="none" stroke={A.light} strokeWidth="1.6" opacity="0.8" />
+          {/* 上の飾り（巻き） */}
+          <path d={`M36 4 C40 -6 46 -4 50 2 C54 -4 60 -6 64 4 C58 0 54 4 50 8 C46 4 42 0 36 4Z`} fill={A.face} {...S} strokeWidth={1.6} />
+          <circle cx="50" cy="2" r="3" fill={A.light} stroke={INK} strokeWidth="1" />
+          <path d={`M40 ${H - 4} q10 8 20 0`} fill="none" stroke={A.deep} strokeWidth="2.4" strokeLinecap="round" />
+        </g>
+      );
+    }
+    case "cafe.frame": {
+      // 黒板のフレーム（木の枠・チョークのいたずら書き・下に置いたチョーク）
+      const C = F.chalk;
+      return (
+        <g>
+          <path d={ringRect(0, 0, 100, H, 4, w.x, w.y, w.w, w.h, 1)} fillRule="evenodd" fill={C.wood} {...S} />
+          <path d={ringRect(6, 6, 88, H - 12, 2, w.x, w.y, w.w, w.h, 1)} fillRule="evenodd" fill={C.board} />
+          <path d={heartPath(24, 15, 4.4)} fill="none" stroke={C.chalkPink} strokeWidth="1.8" />
+          <path d={sparklePath(76, 15, 5)} fill="none" stroke={C.chalkYellow} strokeWidth="1.6" />
+          <path d="M34 16 q4 -4 8 0 t8 0 t8 0" fill="none" stroke={C.chalk} strokeWidth="1.6" strokeLinecap="round" opacity="0.85" />
+          <rect x={w.x - 2} y={w.y - 2} width={w.w + 4} height={w.h + 4} fill="none" stroke={C.chalk} strokeWidth="1.2" strokeDasharray="3 2" opacity="0.6" />
+          <rect x="62" y={H - 7} width="14" height="4" rx="1.5" fill={C.chalk} stroke={INK} strokeWidth="0.8" />
+          <path d="M4 3 h40" stroke={C.woodDeep} strokeWidth="1.4" opacity="0.6" />
+        </g>
+      );
+    }
+    case "space.frame": {
+      // 宇宙船の丸窓（金属の縁とびょう、ガラスの光）
+      const P = F.porthole;
+      const cx = 50;
+      const cy = w.y + w.h / 2;
+      const r = w.w / 2;
+      return (
+        <g>
+          <path d={ellipsePath(cx, cy, 49, 49) + ellipsePath(cx, cy, r, r)} fillRule="evenodd" fill={P.metal} {...S} />
+          <circle cx={cx} cy={cy} r={r + 2} fill="none" stroke={P.deep} strokeWidth="3" />
+          {Array.from({ length: 8 }, (_, i) => {
+            const t = (i / 8) * Math.PI * 2 + Math.PI / 8;
+            return <circle key={i} cx={cx + Math.cos(t) * (r + 9)} cy={cy + Math.sin(t) * (r + 9)} r="2.6" fill={P.bolt} stroke={INK} strokeWidth="1" />;
+          })}
+          <path d={`M${cx - r * 0.6} ${cy - r * 0.2} A${r * 0.7} ${r * 0.7} 0 0 1 ${cx - r * 0.1} ${cy - r * 0.68}`} fill="none" stroke={P.bolt} strokeWidth="4" strokeLinecap="round" opacity="0.55" />
+        </g>
+      );
+    }
+    case "beach.frame": {
+      // 貝殻のフレーム（上にホタテ、下にひとでと真珠）
+      const Sh = F.shell;
+      return (
+        <g>
+          <path d={ringRect(0, 12, 100, H - 12, 16, w.x, w.y, w.w, w.h, w.w * 0.1)} fillRule="evenodd" fill={Sh.face} {...S} />
+          <rect x={w.x - 3} y={w.y - 3} width={w.w + 6} height={w.h + 6} rx={w.w * 0.12} fill="none" stroke={Sh.deep} strokeWidth="1.6" strokeDasharray="4 3" />
+          {/* ホタテ */}
+          <path d="M50 30 L28 10 Q50 -10 72 10Z" fill={Sh.face} {...S} />
+          <path d="M50 30 L36 4 M50 30 L44 0 M50 30 L56 0 M50 30 L64 4" stroke={Sh.deep} strokeWidth="1.4" />
+          <path d="M44 30 h12 l-2 4 h-8Z" fill={Sh.deep} stroke={INK} strokeWidth="1" />
+          <path d={starPath(86, H - 10, 9, 0.5)} fill={Sh.star} stroke={INK} strokeWidth="1.2" strokeLinejoin="round" />
+          <circle cx="12" cy={H - 10} r="5" fill={Sh.pearl} stroke={INK} strokeWidth="1.2" />
+          <circle cx="10.5" cy={H - 11.5} r="1.6" fill={Sh.face} />
+        </g>
+      );
+    }
+    case "live.frame": {
+      // ライブのチケット（右に推し色の半券。切り取り線と、上下の切れ込み）
+      const Tk = F.ticket;
+      const o = oshiPaint(oshi);
+      const body = `M0 4 Q0 0 4 0 H70 A4 4 0 0 0 78 0 H96 Q100 0 100 4 V${H - 4} Q100 ${H} 96 ${H} H78 A4 4 0 0 0 70 ${H} H4 Q0 ${H} 0 ${H - 4}Z`;
+      return (
+        <g>
+          <path d={body + `M${w.x} ${w.y}h${w.w}v${w.h}h${-w.w}Z`} fillRule="evenodd" fill={Tk.face} {...S} />
+          <path d={`M78 0 H96 Q100 0 100 4 V${H - 4} Q100 ${H} 96 ${H} H78 A4 4 0 0 1 77 ${H - 3} V3 A4 4 0 0 1 78 0Z`} fill={o.base} />
+          <path d={body} fill="none" {...S} />
+          <path d={`M74 6 V${H - 6}`} stroke={Tk.punch} strokeWidth="1.4" strokeDasharray="2.4 2.4" />
+          <path d={starPath(88.5, H * 0.3, 7)} fill={LIGHT} stroke={INK} strokeWidth="1" strokeLinejoin="round" />
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <rect key={i} x={82 + i * 2.2} y={H * 0.55} width={i % 2 ? 1 : 1.6} height={H * 0.3} fill={LIGHT} opacity="0.85" />
+          ))}
+          <rect x={w.x} y={w.y} width={w.w} height={w.h} fill="none" stroke={Tk.line} strokeWidth="1.4" />
+          <path d={`M${w.x} ${H - 4} h30`} stroke={Tk.line} strokeWidth="1.6" strokeLinecap="round" />
+        </g>
+      );
+    }
+    case "altar.frame": {
+      // 推し色のレースのフレーム（金の内線と、上にリボン）
+      const o = oshiPaint(oshi);
+      const Fr = F.gold;
+      return (
+        <g>
+          <path d={ringRect(2, 2, 96, H - 4, 3, w.x, w.y, w.w, w.h, 1)} fillRule="evenodd" fill={o.base} {...S} />
+          <rect x={w.x - 4} y={w.y - 4} width={w.w + 8} height={w.h + 8} fill="none" stroke={Fr.face} strokeWidth="2.4" />
+          {[[8, 8], [92, 8], [8, H - 8], [92, H - 8]].map(([x, y], i) => (
+            <path key={i} d={heartPath(x, y, 3.6)} fill={LIGHT} />
+          ))}
+          <path d="M50 4 C38 -10 24 -6 30 4 C34 10 44 8 50 5Z M50 4 C62 -10 76 -6 70 4 C66 10 56 8 50 5Z" fill={o.deep} {...S} strokeWidth={1.4} />
+          <circle cx="50" cy="4" r="4" fill={o.mid} stroke={INK} strokeWidth="1.2" />
+        </g>
+      );
+    }
+    case "retro.frame": {
+      // ドットのフレーム（角を段々に欠いた縁と、市松のふち）
+      const P = F.pixel;
+      const outer = `M6 0 H94 V6 H100 V${H - 6} H94 V${H} H6 V${H - 6} H0 V6 H6Z`;
+      return (
+        <g>
+          <path d={outer + `M${w.x} ${w.y}h${w.w}v${w.h}h${-w.w}Z`} fillRule="evenodd" fill={P.a} {...S} strokeLinejoin="miter" />
+          {Array.from({ length: 11 }, (_, i) => (
+            <g key={i}>
+              <rect x={8 + i * 8} y="3" width="4" height="4" fill={i % 2 ? P.b : P.dark} />
+              <rect x={8 + i * 8} y={H - 7} width="4" height="4" fill={i % 2 ? P.dark : P.b} />
+            </g>
+          ))}
+          {pixelCells(PIXEL_HEART, 3, H / 2 - 6, 1.6).map((c, i) => (
+            <rect key={`h${i}`} x={c.x} y={c.y} width={c.s} height={c.s} fill={P.b} />
+          ))}
+          {pixelCells(PIXEL_STAR, 86, H / 2 - 6, 1.6).map((c, i) => (
+            <rect key={`s${i}`} x={c.x} y={c.y} width={c.s} height={c.s} fill={LIGHT} />
+          ))}
+          <rect x={w.x - 2} y={w.y - 2} width={w.w + 4} height={w.h + 4} fill="none" stroke={P.dark} strokeWidth="2" />
+        </g>
+      );
+    }
+    case "lv3.flower": {
+      // なかよし Lv3 の特典: 花のリース（窓のまわりを小さな花と葉で囲む）
+      const Fl = F.flower;
+      const cx = 50;
+      const cy = w.y + w.h / 2;
+      const rx = w.w / 2 + 9;
+      const ry = w.h / 2 + 9;
+      const n = 14;
+      return (
+        <g>
+          {Array.from({ length: n }, (_, i) => {
+            const t = (i / n) * Math.PI * 2;
+            const x = cx + Math.cos(t) * rx;
+            const y = cy + Math.sin(t) * ry;
+            return <ellipse key={`l${i}`} cx={x} cy={y} rx="6" ry="3" transform={`rotate(${(t * 180) / Math.PI + 60} ${x} ${y})`} fill={Fl.leaf} stroke={INK} strokeWidth="0.8" />;
+          })}
+          {Array.from({ length: 8 }, (_, i) => {
+            const t = (i / 8) * Math.PI * 2 + 0.3;
+            const x = cx + Math.cos(t) * rx;
+            const y = cy + Math.sin(t) * ry;
+            const c = [Fl.a, Fl.b, Fl.c][i % 3];
+            return (
+              <g key={`f${i}`}>
+                {[0, 72, 144, 216, 288].map((d) => (
+                  <circle key={d} cx={x + Math.cos((d * Math.PI) / 180) * 4.4} cy={y + Math.sin((d * Math.PI) / 180) * 4.4} r="4" fill={c} stroke={INK} strokeWidth="0.8" />
+                ))}
+                <circle cx={x} cy={y} r="2.4" fill={Fl.center} />
+              </g>
+            );
+          })}
+        </g>
+      );
+    }
+    case "lv10.crown": {
+      // なかよし Lv10 の特典: 王冠の額縁（金の縁に宝石、上に王冠）
+      const C = F.crown;
+      const top = 30;
+      return (
+        <g>
+          <path d={ringRect(0, top, 100, H - top, 12, w.x, w.y, w.w, w.h, w.w * 0.1)} fillRule="evenodd" fill={C.gold} {...S} />
+          <rect x={w.x - 3} y={w.y - 3} width={w.w + 6} height={w.h + 6} rx={w.w * 0.12} fill="none" stroke={C.deep} strokeWidth="2" />
+          <path d={`M8 ${top + 6} h84`} stroke={C.light} strokeWidth="2" strokeLinecap="round" />
+          {[[8, top + 8], [92, top + 8], [8, H - 8], [92, H - 8]].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="4" fill={C.gems[i % 3]} stroke={INK} strokeWidth="1" />
+          ))}
+          {/* 王冠 */}
+          <path d={`M18 ${top + 2} L14 6 L32 20 L50 0 L68 20 L86 6 L82 ${top + 2}Z`} fill={C.gold} {...S} />
+          <path d={`M20 ${top - 4} h60`} stroke={C.deep} strokeWidth="2" />
+          {[[14, 6], [50, 0], [86, 6]].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="3.4" fill={C.pearl} stroke={INK} strokeWidth="1" />
+          ))}
+          <path d={heartPath(50, 18, 5)} fill={C.gems[0]} stroke={INK} strokeWidth="1" />
+          <circle cx="32" cy="22" r="2.6" fill={C.gems[1]} stroke={INK} strokeWidth="0.8" />
+          <circle cx="68" cy="22" r="2.6" fill={C.gems[2]} stroke={INK} strokeWidth="0.8" />
         </g>
       );
     }

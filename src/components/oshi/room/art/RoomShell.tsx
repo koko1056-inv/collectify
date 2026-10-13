@@ -2,8 +2,8 @@ import { useId } from "react";
 import { motion } from "framer-motion";
 import { FLOOR_Y, ROOM_H, ROOM_W, ROOM_WINDOW as WINDOW, type TimeOfDay } from "@/lib/oshiRoom";
 import type { OshiColor } from "@/lib/cosmetics";
-import { INK, LIGHT, PAINT, SHADE, SKY, oshiPaint } from "../palette";
-import { cloudPath, heartPath, petalPath, sparklePath, starPath } from "./shapes";
+import { INK, LIGHT, PAINT, SHADE, SKY, mix, oshiPaint } from "../palette";
+import { PIXEL_HEART, PIXEL_STAR, cloudPath, heartPath, petalPath, pixelCells, sparklePath, starPath } from "./shapes";
 
 
 interface RoomShellProps {
@@ -31,7 +31,8 @@ export function RoomShell({ wallpaper, floor, time, oshi, animate }: RoomShellPr
 }
 
 function wallPaint(k: string, oshi: OshiColor) {
-  if (k === "oshi.wall") {
+  // 推し色セットと推し活祭壇は、持ち主の推し色で塗る
+  if (k === "oshi.wall" || k === "altar.wall") {
     const o = oshiPaint(oshi);
     return { base: o.light, pattern: o.mid, accent: LIGHT, curtain: o.base, curtainShade: o.deep };
   }
@@ -172,6 +173,322 @@ function Wallpaper({ id, k, oshi, animate }: { id: string; k: string; oshi: Oshi
         </g>
       );
       break;
+    case "library.wall": {
+      // 上は生成りの壁紙（ひし形の小紋）、下は木の腰板。本の背は家具（本棚）にまかせて、壁は落ち着かせる
+      const Lb = PAINT.library;
+      pattern = (
+        <pattern id={pid} width="28" height="28" patternUnits="userSpaceOnUse">
+          <path d="M14 5 L21 14 L14 23 L7 14Z" fill="none" stroke={p.pattern} strokeWidth="1.2" />
+          <circle cx="14" cy="14" r="1.3" fill={p.accent} opacity="0.7" />
+          <circle cx="0" cy="0" r="1.4" fill={p.pattern} />
+          <circle cx="28" cy="28" r="1.4" fill={p.pattern} />
+        </pattern>
+      );
+      extra = (
+        <g>
+          <rect x="0" y="196" width={W} height={H - 196} fill={Lb.panel} />
+          {Array.from({ length: 6 }, (_, i) => (
+            <rect key={i} x={i * 60 + 8} y="208" width="44" height={H - 222} rx="3" fill="none" stroke={Lb.panelDeep} strokeWidth="2.4" />
+          ))}
+          {Array.from({ length: 6 }, (_, i) => (
+            <path key={`s${i}`} d={`M${i * 60 + 12} 212 h36`} stroke={LIGHT} strokeOpacity="0.18" strokeWidth="2" />
+          ))}
+          <rect x="-2" y="190" width={W + 4} height="8" fill={Lb.rail} stroke={INK} strokeWidth="1.2" />
+        </g>
+      );
+      break;
+    }
+    case "cafe.wall": {
+      // レンガの壁と、上に渡したカフェの電球
+      pattern = (
+        <pattern id={pid} width="40" height="20" patternUnits="userSpaceOnUse">
+          <rect width="40" height="20" fill={p.accent} opacity="0.85" />
+          <rect x="1" y="1" width="38" height="8" rx="1.5" fill={p.pattern} />
+          <rect x="-19" y="11" width="38" height="8" rx="1.5" fill={p.pattern} opacity="0.85" />
+          <rect x="21" y="11" width="38" height="8" rx="1.5" fill={p.pattern} opacity="0.92" />
+        </pattern>
+      );
+      extra = (
+        <g>
+          <path d="M-4 8 Q45 26 90 10 T180 10 T270 10 T364 8" fill="none" stroke={INK} strokeWidth="1.2" />
+          {Array.from({ length: 8 }, (_, i) => {
+            const x = 22 + i * 45;
+            // 線のたるみに沿わせる（谷は 45 ごと）
+            const y = 10 + Math.abs(Math.sin(((x - 0) / 90) * Math.PI)) * 7;
+            const bulb = <ellipse cx={x} cy={y + 7} rx="4" ry="5.4" fill={PAINT.lamp.bulb} stroke={INK} strokeWidth="1" />;
+            return (
+              <g key={i}>
+                <rect x={x - 2} y={y} width="4" height="3" fill={INK} />
+                {animate ? (
+                  <motion.g animate={{ opacity: [1, 0.55, 1] }} transition={{ duration: 2.2, delay: i * 0.3, repeat: Infinity }}>
+                    {bulb}
+                  </motion.g>
+                ) : (
+                  bulb
+                )}
+              </g>
+            );
+          })}
+        </g>
+      );
+      break;
+    }
+    case "space.wall": {
+      const Sp = PAINT.space;
+      baseFill = `url(#${id}-space)`;
+      pattern = (
+        <pattern id={pid} width="46" height="46" patternUnits="userSpaceOnUse">
+          <circle cx="7" cy="9" r="0.9" fill={p.accent} />
+          <circle cx="31" cy="20" r="0.7" fill={LIGHT} opacity="0.8" />
+          <circle cx="18" cy="38" r="1.1" fill={p.accent} opacity="0.7" />
+        </pattern>
+      );
+      extra = (
+        <g>
+          <defs>
+            <radialGradient id={`${id}-neb1`}>
+              <stop offset="0" stopColor={Sp.nebula[0]} stopOpacity="0.45" />
+              <stop offset="1" stopColor={Sp.nebula[0]} stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id={`${id}-neb2`}>
+              <stop offset="0" stopColor={Sp.nebula[1]} stopOpacity="0.35" />
+              <stop offset="1" stopColor={Sp.nebula[1]} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="60" cy="90" rx="110" ry="70" fill={`url(#${id}-neb1)`} />
+          <ellipse cx="300" cy="200" rx="120" ry="80" fill={`url(#${id}-neb2)`} />
+          {/* 輪のある惑星と、小さな月 */}
+          <circle cx="52" cy="62" r="22" fill={Sp.planet} stroke={INK} strokeWidth="1.4" />
+          <path d="M32 56 q20 6 40 0" fill="none" stroke={Sp.planetBand} strokeWidth="3" />
+          <ellipse cx="52" cy="64" rx="36" ry="8" fill="none" stroke={Sp.planetRing} strokeWidth="3" transform="rotate(-14 52 64)" />
+          <circle cx="44" cy="214" r="9" fill={PAINT.moon.body} stroke={INK} strokeWidth="1.2" />
+          <circle cx="41" cy="211" r="2" fill={PAINT.moon.shade} />
+          {[[30, 40], [250, 140], [320, 250], [80, 160], [190, 250], [236, 30]].map(([x, y], i) =>
+            animate ? (
+              <motion.path
+                key={i}
+                d={sparklePath(x, y, 3.4)}
+                fill={p.accent}
+                style={{ transformOrigin: `${x}px ${y}px`, transformBox: "view-box" }}
+                animate={{ scale: [0.4, 1.1, 0.4], opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2.2 + (i % 3) * 0.5, delay: i * 0.45, repeat: Infinity }}
+              />
+            ) : (
+              <path key={i} d={sparklePath(x, y, 3.4)} fill={p.accent} />
+            )
+          )}
+        </g>
+      );
+      break;
+    }
+    case "beach.wall": {
+      // 空と海の壁。下のほうに波打ちぎわ
+      const B = PAINT.beach;
+      baseFill = `url(#${id}-beach)`;
+      const sea = 178;
+      const wave = (y: number) => `M-40 ${y} ${Array.from({ length: 11 }, () => "q10 -6 20 0 t20 0").join(" ")}`;
+      extra = (
+        <g>
+          <defs>
+            <radialGradient id={`${id}-bsun`}>
+              <stop offset="0" stopColor={B.sun} stopOpacity="0.8" />
+              <stop offset="1" stopColor={B.sun} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="306" cy="52" r="44" fill={`url(#${id}-bsun)`} />
+          <circle cx="306" cy="52" r="16" fill={B.sun} stroke={INK} strokeWidth="1.2" />
+          <path d={cloudPath(24, 76, 54)} fill={B.foam} opacity="0.95" />
+          <path d={cloudPath(250, 128, 38)} fill={B.foam} opacity="0.85" />
+          {[[58, 118], [80, 108], [262, 92]].map(([x, y], i) => (
+            <path key={i} d={`M${x} ${y} q4 -5 8 0 q4 -5 8 0`} fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="round" />
+          ))}
+          <rect x="0" y={sea} width={W} height={H - sea} fill={B.sea} />
+          <rect x="0" y={sea + 50} width={W} height={H - sea - 50} fill={B.seaDeep} opacity="0.55" />
+          <line x1="0" y1={sea} x2={W} y2={sea} stroke={INK} strokeWidth="1.2" opacity="0.5" />
+          <motion.g animate={animate ? { x: [0, -20, 0] } : undefined} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}>
+            {[sea + 18, sea + 44, sea + 74].map((y, i) => (
+              <path key={y} d={wave(y)} fill="none" stroke={B.foam} strokeWidth={i === 2 ? 3 : 2} strokeLinecap="round" opacity={0.75 - i * 0.12} transform={`translate(${(i % 2) * 14} 0)`} />
+            ))}
+          </motion.g>
+          <path d={`M0 ${H - 12} q30 -10 60 -4 t70 -2 t80 4 t80 -4 t70 2 V${H}H0Z`} fill={B.foam} opacity="0.85" />
+        </g>
+      );
+      break;
+    }
+    case "live.wall": {
+      // ステージ: 暗い幕の前に、色の光の筋。上に赤い一文字幕と金のふさ
+      const Lv = PAINT.live;
+      pattern = (
+        <pattern id={pid} width="24" height={H} patternUnits="userSpaceOnUse">
+          <rect x="0" width="12" height={H} fill={p.pattern} />
+        </pattern>
+      );
+      const beams = [
+        { x: 50, c: Lv.beams[0], d: 0 },
+        { x: 180, c: Lv.beams[1], d: 1.2 },
+        { x: 310, c: Lv.beams[2], d: 0.6 },
+      ];
+      extra = (
+        <g>
+          <defs>
+            {beams.map((b, i) => (
+              <linearGradient key={i} id={`${id}-lb${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor={b.c} stopOpacity="0.55" />
+                <stop offset="1" stopColor={b.c} stopOpacity="0" />
+              </linearGradient>
+            ))}
+          </defs>
+          {beams.map((b, i) => {
+            const cone = <path d={`M${b.x - 6} 20 L${b.x + 6} 20 L${b.x + 60} ${H} L${b.x - 60} ${H}Z`} fill={`url(#${id}-lb${i})`} />;
+            return animate ? (
+              <motion.g
+                key={i}
+                style={{ transformOrigin: `${b.x}px 20px`, transformBox: "view-box" }}
+                animate={{ rotate: [-12, 12, -12] }}
+                transition={{ duration: 5 + i, delay: b.d, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {cone}
+              </motion.g>
+            ) : (
+              <g key={i} transform={`rotate(${(i - 1) * 8} ${b.x} 20)`}>
+                {cone}
+              </g>
+            );
+          })}
+          <path d={`M0 0 H${W} V18 ${Array.from({ length: 9 }, () => "q-20 14 -40 0").join(" ")}Z`} fill={p.curtain} stroke={INK} strokeWidth="1.4" />
+          <path d={`M0 18 ${Array.from({ length: 9 }, () => "q20 14 40 0").join(" ")}`} fill="none" stroke={Lv.fringe} strokeWidth="2.4" strokeDasharray="2 3" />
+          {beams.map((b, i) => (
+            <g key={i}>
+              <rect x={b.x - 9} y="12" width="18" height="10" rx="3" fill={INK} />
+              <circle cx={b.x} cy="20" r="4" fill={b.c} />
+            </g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "altar.wall": {
+      // 推し色の壁に、ドレープ（布を波に吊ったもの）と金のロゼット。推しを祀る祭壇の背景
+      const G = PAINT.altar;
+      pattern = (
+        <pattern id={pid} width="36" height="36" patternUnits="userSpaceOnUse">
+          <path d={starPath(9, 9, 3.4)} fill={p.accent} opacity="0.9" />
+          <path d={heartPath(27, 27, 3.2)} fill={p.pattern} />
+        </pattern>
+      );
+      extra = (
+        <g>
+          {[0, 120, 240].map((x) => (
+            <g key={x}>
+              <path d={`M${x} 0 Q${x + 60} 52 ${x + 120} 0 Z`} fill={p.pattern} stroke={INK} strokeWidth="1.3" />
+              <path d={`M${x + 10} 4 Q${x + 60} 40 ${x + 110} 4`} fill="none" stroke={p.curtainShade} strokeWidth="2" opacity="0.6" />
+              <path d={`M${x + 18} 0 Q${x + 60} 30 ${x + 102} 0`} fill="none" stroke={LIGHT} strokeWidth="1.6" opacity="0.5" />
+            </g>
+          ))}
+          {[0, 120, 240, 360].map((x) => (
+            <g key={x}>
+              <path d={`M${x - 3} 12 l-3 20 M${x + 3} 12 l3 20`} stroke={p.curtain} strokeWidth="3" strokeLinecap="round" />
+              <circle cx={x} cy="6" r="9" fill={G.gold} stroke={INK} strokeWidth="1.3" />
+              <circle cx={x} cy="6" r="4" fill={G.goldDeep} />
+            </g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "retro.wall": {
+      // ドット絵の壁: 小さな四角の市松と、ドットのハート・星
+      const R = PAINT.retro;
+      pattern = (
+        <pattern id={pid} width="76" height="76" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="6" height="6" fill={p.pattern} />
+          <rect x="30" y="30" width="6" height="6" fill={p.pattern} />
+          {/* 1マスずつ透かすと、マスの境目に線が出る。まとめて透かす */}
+          <g opacity="0.55">
+            {pixelCells(PIXEL_HEART, 12, 44, 3).map((c, i) => (
+              <rect key={`h${i}`} x={c.x} y={c.y} width={c.s} height={c.s} fill={R.pixel} />
+            ))}
+          </g>
+          <g opacity="0.5">
+            {pixelCells(PIXEL_STAR, 48, 8, 3).map((c, i) => (
+              <rect key={`s${i}`} x={c.x} y={c.y} width={c.s} height={c.s} fill={p.accent} />
+            ))}
+          </g>
+        </pattern>
+      );
+      extra = <rect x="0" y={H - 12} width={W} height="4" fill={p.accent} opacity="0.7" />;
+      break;
+    }
+    case "lv5.wall": {
+      // なかよし Lv5 の特典: 星座の壁。星を線でつないだ形が、ゆっくりまたたく
+      const C = PAINT.constellation;
+      baseFill = `url(#${id}-lv5)`;
+      pattern = (
+        <pattern id={pid} width="40" height="40" patternUnits="userSpaceOnUse">
+          <circle cx="8" cy="10" r="0.9" fill={C.star} opacity="0.8" />
+          <circle cx="30" cy="28" r="0.7" fill={LIGHT} opacity="0.6" />
+        </pattern>
+      );
+      extra = (
+        <g>
+          {CONSTELLATIONS.map((pts, gi) => (
+            <g key={gi}>
+              <path d={`M${pts.map(([x, y]) => `${x} ${y}`).join(" L")}`} fill="none" stroke={C.line} strokeWidth="1" opacity="0.6" />
+              {pts.map(([x, y], i) =>
+                animate ? (
+                  <motion.path
+                    key={i}
+                    d={sparklePath(x, y, 3.6)}
+                    fill={C.star}
+                    style={{ transformOrigin: `${x}px ${y}px`, transformBox: "view-box" }}
+                    animate={{ scale: [0.6, 1.1, 0.6], opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 2.4, delay: (gi * 4 + i) * 0.3, repeat: Infinity }}
+                  />
+                ) : (
+                  <path key={i} d={sparklePath(x, y, 3.6)} fill={C.star} />
+                )
+              )}
+            </g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "lv10.wall": {
+      // なかよし Lv10 の特典: 淡い虹の壁と、雲・きらめき
+      const R = PAINT.rainbow;
+      baseFill = `url(#${id}-rainbow)`;
+      pattern = (
+        <pattern id={pid} width="44" height="44" patternUnits="userSpaceOnUse">
+          <path d={sparklePath(11, 11, 3.6)} fill={p.accent} opacity="0.9" />
+          <path d={heartPath(33, 32, 2.8)} fill={p.accent} opacity="0.7" />
+        </pattern>
+      );
+      extra = (
+        <g>
+          <path d={cloudPath(14, 250, 74)} fill={LIGHT} opacity="0.9" />
+          <path d={cloudPath(264, 256, 84)} fill={LIGHT} opacity="0.9" />
+          <path d={cloudPath(250, 64, 44)} fill={LIGHT} opacity="0.8" />
+          {[[40, 30], [320, 120], [70, 140], [230, 200]].map(([x, y], i) =>
+            animate ? (
+              <motion.path
+                key={i}
+                d={sparklePath(x, y, 5)}
+                fill={R[(i * 2) % R.length]}
+                stroke={INK}
+                strokeWidth="0.6"
+                style={{ transformOrigin: `${x}px ${y}px`, transformBox: "view-box" }}
+                animate={{ scale: [0.5, 1.1, 0.5], rotate: [0, 45, 0] }}
+                transition={{ duration: 2.6, delay: i * 0.6, repeat: Infinity }}
+              />
+            ) : (
+              <path key={i} d={sparklePath(x, y, 5)} fill={R[(i * 2) % R.length]} stroke={INK} strokeWidth="0.6" />
+            )
+          )}
+        </g>
+      );
+      break;
+    }
     default:
       // base.cream
       pattern = (
@@ -200,6 +517,24 @@ function Wallpaper({ id, k, oshi, animate }: { id: string; k: string; oshi: Oshi
           <stop offset="0" stopColor={PAINT.beam} stopOpacity="0.32" />
           <stop offset="1" stopColor={PAINT.beam} stopOpacity="0" />
         </linearGradient>
+        {/* 宇宙・海辺・星座・虹の壁の地（グラデーション） */}
+        <linearGradient id={`${id}-space`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={mix(p.base, SHADE, 0.3)} />
+          <stop offset="1" stopColor={p.pattern} />
+        </linearGradient>
+        <linearGradient id={`${id}-beach`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={PAINT.beach.skyTop} />
+          <stop offset="0.6" stopColor={p.base} />
+        </linearGradient>
+        <linearGradient id={`${id}-lv5`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={mix(p.base, SHADE, 0.2)} />
+          <stop offset="1" stopColor={p.pattern} />
+        </linearGradient>
+        <linearGradient id={`${id}-rainbow`} x1="0" y1="0" x2="1" y2="1">
+          {PAINT.rainbow.map((c, i) => (
+            <stop key={i} offset={i / (PAINT.rainbow.length - 1)} stopColor={mix(c, LIGHT, 0.62)} />
+          ))}
+        </linearGradient>
         <linearGradient id={`${id}-wallshade`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={SHADE} stopOpacity="0" />
           <stop offset="0.75" stopColor={SHADE} stopOpacity="0" />
@@ -214,6 +549,14 @@ function Wallpaper({ id, k, oshi, animate }: { id: string; k: string; oshi: Oshi
     </g>
   );
 }
+
+/** 星座の壁の星の並び（部屋の単位） */
+const CONSTELLATIONS = [
+  [[30, 40], [58, 30], [84, 52], [70, 82], [40, 74]],
+  [[250, 40], [276, 60], [306, 48], [330, 76]],
+  [[40, 170], [70, 150], [96, 176], [128, 160]],
+  [[250, 160], [280, 190], [320, 170], [300, 222]],
+];
 
 /** 夏祭りの壁の花火。ゆっくり開いて消えるのを繰り返す */
 function Fireworks({ animate }: { animate: boolean }) {
@@ -378,6 +721,9 @@ function floorPaint(k: string, oshi: OshiColor) {
   return PAINT.floor[k] ?? PAINT.floor["base.wood"];
 }
 
+/** つやのある床（斜めに光のすじを重ねる） */
+const GLOSSY_FLOORS = new Set(["showcase.floor", "lv7.floor", "live.floor"]);
+
 function Floor({ id, k, oshi }: { id: string; k: string; oshi: OshiColor }) {
   const p = floorPaint(k, oshi);
   const top = FLOOR_Y + 8;
@@ -433,6 +779,111 @@ function Floor({ id, k, oshi }: { id: string; k: string; oshi: OshiColor }) {
         </g>
       );
       break;
+    case "library.floor":
+      // 寄木（ヘリンボーン）。V の字の板を縦に重ねる
+      pattern = (
+        <pattern id={pid} width="32" height="14" patternUnits="userSpaceOnUse" y={top}>
+          <path d="M0 14 L16 4 L32 14" fill="none" stroke={p.line} strokeWidth="1.6" />
+          <path d="M8 9 v5 M24 9 v5" stroke={p.line} strokeWidth="1.2" opacity="0.7" />
+        </pattern>
+      );
+      break;
+    case "cafe.floor":
+      // テラコッタのタイル（目地は明るく、1枚おきに少し色を変える）
+      pattern = (
+        <pattern id={pid} width="48" height="24" patternUnits="userSpaceOnUse" y={top}>
+          <rect x="24" y="0" width="24" height="24" fill={p.edge} opacity="0.35" />
+          <path d="M0 0.5 H48 M0.5 0 V24 M24.5 0 V24" stroke={p.line} strokeWidth="1.6" />
+        </pattern>
+      );
+      break;
+    case "space.floor":
+      // 宇宙船の床: 金属の板とびょう、光る線
+      pattern = (
+        <pattern id={pid} width="60" height="32" patternUnits="userSpaceOnUse" y={top}>
+          <rect x="1" y="1" width="58" height="30" rx="3" fill="none" stroke={p.line} strokeWidth="1.6" />
+          {[[6, 6], [54, 6], [6, 26], [54, 26]].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="1.3" fill={p.line} />
+          ))}
+        </pattern>
+      );
+      overlay = (
+        <g>
+          <rect x="0" y={top + 29} width={ROOM_W} height="5" fill={p.edge} opacity="0.2" />
+          <rect x="0" y={top + 30} width={ROOM_W} height="3" fill={p.edge} opacity="0.8" />
+        </g>
+      );
+      break;
+    case "beach.floor": {
+      // 砂浜: 細かい砂つぶと、貝殻・ひとで
+      const B = PAINT.beach;
+      pattern = (
+        <pattern id={pid} width="26" height="18" patternUnits="userSpaceOnUse" y={top}>
+          <circle cx="4" cy="4" r="0.9" fill={p.line} />
+          <circle cx="16" cy="12" r="1.1" fill={p.line} />
+          <circle cx="22" cy="3" r="0.7" fill={p.edge} />
+        </pattern>
+      );
+      overlay = (
+        <g>
+          <path d={starPath(42, top + 100, 7, 0.5)} fill={B.star} stroke={INK} strokeWidth="1" strokeLinejoin="round" />
+          <path d={`M300 ${top + 108} q8 -14 16 0 Z`} fill={B.shell} stroke={INK} strokeWidth="1" />
+          <path d={`M304 ${top + 108} l4 -10 M308 ${top + 108} l0 -11 M312 ${top + 108} l-4 -10`} stroke={INK} strokeWidth="0.6" opacity="0.6" />
+          <path d={`M168 ${top + 116} q6 -10 12 0 Z`} fill={LIGHT} stroke={INK} strokeWidth="1" />
+        </g>
+      );
+      break;
+    }
+    case "live.floor":
+      // ステージの床: 黒い板と、前のふちに光の線（足もとのライト）
+      pattern = (
+        <pattern id={pid} width="90" height="22" patternUnits="userSpaceOnUse" y={top}>
+          <line x1="0" y1="0.5" x2="90" y2="0.5" stroke={p.line} strokeWidth="1.4" />
+          <line x1="40" y1="0" x2="40" y2="22" stroke={p.line} strokeWidth="1.2" />
+        </pattern>
+      );
+      overlay = (
+        <g>
+          <rect x="0" y={top + 2} width={ROOM_W} height="3" fill={p.edge} opacity="0.85" />
+          {[30, 90, 150, 210, 270, 330].map((x, i) => (
+            <circle key={x} cx={x} cy={ROOM_H - 9} r="3" fill={PAINT.live.beams[i % 3]} opacity="0.85" />
+          ))}
+        </g>
+      );
+      break;
+    case "altar.floor":
+      // ふわふわの白いラグ（小さな巻き毛の模様）
+      pattern = (
+        <pattern id={pid} width="20" height="16" patternUnits="userSpaceOnUse" y={top}>
+          <path d="M3 9 q3 -5 6 0 q3 5 6 0" fill="none" stroke={p.line} strokeWidth="1.6" strokeLinecap="round" />
+        </pattern>
+      );
+      break;
+    case "retro.floor":
+      // ネオンの格子（奥へすぼまる線）
+      overlay = (
+        <g stroke={p.line} strokeWidth="1.3" opacity="0.85">
+          {[0, 10, 24, 44, 72, 108].map((d) => (
+            <line key={d} x1="0" y1={top + 4 + d} x2={ROOM_W} y2={top + 4 + d} />
+          ))}
+          {Array.from({ length: 13 }, (_, i) => {
+            const x = (i - 6) * 60;
+            return <line key={i} x1={ROOM_W / 2 + x * 0.25} y1={top} x2={ROOM_W / 2 + x * 1.6} y2={ROOM_H} />;
+          })}
+          <rect x="0" y={top} width={ROOM_W} height="3" fill={p.edge} stroke="none" opacity="0.9" />
+        </g>
+      );
+      break;
+    case "lv7.floor":
+      // なかよし Lv7 の特典: 金と白の市松（つや付き）
+      pattern = (
+        <pattern id={pid} width="44" height="26" patternUnits="userSpaceOnUse" y={top}>
+          <rect width="22" height="13" fill={p.line} opacity="0.75" />
+          <rect x="22" y="13" width="22" height="13" fill={p.line} opacity="0.75" />
+          <path d="M0 0.5 H44 M0.5 0 V26" stroke={p.edge} strokeWidth="0.8" opacity="0.6" />
+        </pattern>
+      );
+      break;
     case "natsu.engawa":
     default:
       // 板張り（base.wood / natsu.engawa）。横長の板を、継ぎ目をずらして並べる
@@ -466,7 +917,7 @@ function Floor({ id, k, oshi }: { id: string; k: string; oshi: OshiColor }) {
       <rect x="0" y={top} width={ROOM_W} height={H} fill={p.base} />
       {pattern && <rect x="0" y={top} width={ROOM_W} height={H} fill={`url(#${pid})`} />}
       {overlay}
-      {k === "showcase.floor" && <rect x="0" y={top} width={ROOM_W} height={H} fill={`url(#${id}-gloss)`} />}
+      {GLOSSY_FLOORS.has(k) && <rect x="0" y={top} width={ROOM_W} height={H} fill={`url(#${id}-gloss)`} />}
       <rect x="0" y={top} width={ROOM_W} height={H} fill={`url(#${id}-floorshade)`} />
       {/* 幅木 */}
       <rect x="-2" y={FLOOR_Y} width={ROOM_W + 4} height="9" fill={p.board} stroke={INK} strokeWidth="1.4" />

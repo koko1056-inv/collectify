@@ -44,6 +44,8 @@ export interface GiftResult {
   leveled_up: boolean;
   points_left: number;
   remaining_today: number;
+  /** レベルが上がったときの特典（{ points, unlocked }）。読むときは lib/oshiLevel.ts の parseRewards で */
+  rewards?: unknown;
 }
 
 /** give_companion_gift が返すエラー（RAISE の文言）。それ以外は unknown */
@@ -75,6 +77,8 @@ export interface CareResult {
   gain?: number;
   level?: number;
   leveled_up?: boolean;
+  /** レベルが上がったときの特典（{ points, unlocked }）。読むときは lib/oshiLevel.ts の parseRewards で */
+  rewards?: unknown;
 }
 
 /**
@@ -115,10 +119,15 @@ export function useCareCompanion() {
       if (error) throw error;
       return data as unknown as CareResult;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
       void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
+      // レベルアップの特典（ポイントの履歴・部屋のアイテムの解放）を、模様替えとショップにすぐ反映する
+      if (result?.leveled_up) {
+        void qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+        void qc.invalidateQueries({ queryKey: ["userUnlocks", user?.id] });
+      }
     },
   });
 }
@@ -185,6 +194,7 @@ export function useGiveCompanionGift() {
       void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
       void qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      void qc.invalidateQueries({ queryKey: ["userUnlocks", user?.id] });
     },
   });
 }
@@ -280,6 +290,8 @@ export function useUploadOshiPhoto() {
       void qc.invalidateQueries({ queryKey: ["companions", user?.id] });
       void qc.invalidateQueries({ queryKey: ["profile-oshi-goods", user?.id] });
       void qc.invalidateQueries({ queryKey: ["userPoints"] });
+      // 写真でレベルが上がると、特典で部屋のアイテムが解放されることがある
+      void qc.invalidateQueries({ queryKey: ["userUnlocks", user?.id] });
     },
   });
 }
