@@ -21,6 +21,7 @@ import {
   PackageSearch,
   X,
   Camera,
+  DoorOpen,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ItemPostsFeedPanel } from "@/components/item-posts/ItemPostsFeedPanel";
@@ -28,6 +29,7 @@ import { ItemSearchTab } from "./ItemSearchTab";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ExploreAvatarCard } from "./ExploreAvatarCard";
+import { OshiRoomsTab } from "./OshiRoomsTab";
 import {
   usePublicAvatars,
   useMyAvatarLikes,
@@ -45,9 +47,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 // 以前は6タブで横にスクロールし、選んだタブが画面の外に出ていた。4つにまとめる。
 // AI ルームとアバターは「AI作品」の中のチップで、コレクションの多い人は「ユーザー」の中で見る。
-type ExploreTab = "posts" | "items" | "users" | "ai";
+// 「お部屋」（みんなの推しの部屋）は、見に行っていいねする交流の入口なので、AI作品のチップではなく独立したタブにした
+// （5つ目。横のスクロールにはせず、1行に収める）
+type ExploreTab = "posts" | "oshi-rooms" | "items" | "users" | "ai";
 type AiView = "rooms" | "avatars";
-const EXPLORE_TABS: ExploreTab[] = ["posts", "items", "users", "ai"];
+const EXPLORE_TABS: ExploreTab[] = ["posts", "oshi-rooms", "items", "users", "ai"];
 
 /** 古い ?tab= の値（rooms / avatars / collections）を新しいタブに読み替える */
 function resolveTab(raw: string | null): { tab: ExploreTab; view: AiView } {
@@ -137,22 +141,26 @@ export function ExploreHub() {
             </div>
           </div>
 
-          {/* タブ */}
+          {/* タブ。5つを1行に収めるため、スマホでは印を字の上に置く（横に並べると「ユーザー」「AI作品」が重なった） */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4">
-            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full grid grid-cols-4 p-0 h-auto">
-              <TabsTrigger value="posts" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
+            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full grid grid-cols-5 p-0 h-auto">
+              <TabsTrigger value="posts" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
                 <Images className="w-4 h-4" />
                 {t("engage.explore.tabPosts")}
               </TabsTrigger>
-              <TabsTrigger value="items" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
+              <TabsTrigger value="oshi-rooms" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
+                <DoorOpen className="w-4 h-4" />
+                {t("oshiRoom.social.explore.tab")}
+              </TabsTrigger>
+              <TabsTrigger value="items" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
                 <PackageSearch className="w-4 h-4" />
                 {t("engage.explore.tabItems")}
               </TabsTrigger>
-              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
+              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
                 <User className="w-4 h-4" />
                 {t("chrome.explore.tabUsers")}
               </TabsTrigger>
-              <TabsTrigger value="ai" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
+              <TabsTrigger value="ai" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
                 <Wand2 className="w-4 h-4" />
                 {t("chrome.explore.tabAi")}
               </TabsTrigger>
@@ -176,6 +184,7 @@ export function ExploreHub() {
             </button>
           )}
           {activeTab === "posts" && <div className="mx-auto max-w-4xl"><ItemPostsFeedPanel /></div>}
+          {activeTab === "oshi-rooms" && <OshiRoomsTab searchQuery={searchQuery} />}
           {activeTab === "items" && (
             <div className="space-y-4">
               {/* 作品ごとのカタログ（/search）と写真検索への入口。以前はここから辿れなかった */}

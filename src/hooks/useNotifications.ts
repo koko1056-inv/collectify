@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,9 @@ export function useNotifications() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  // 購読（リアルタイム）の中で使う翻訳。言語を変えるたびに購読し直さないよう ref で最新を読む
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Fetch notifications
   const {
@@ -114,10 +117,22 @@ export function useNotifications() {
           const newNotification = payload.new as Notification;
           
           // Show toast for new notification
-          toast(newNotification.title, {
-            description: newNotification.message,
-            duration: 5000,
-          });
+          if (newNotification.type === 'oshi_room_like') {
+            // 推しの部屋へのいいね: いまの言語で出し、部屋のいいねの数・一覧も取り直す
+            const name = (newNotification.data as { actor_name?: string | null } | null)?.actor_name;
+            const tr = tRef.current;
+            toast(tr('oshiRoom.social.notify.title'), {
+              description: tr('oshiRoom.social.notify.message', { name: name || tr('oshiRoom.social.notify.someone') }),
+              duration: 5000,
+            });
+            queryClient.invalidateQueries({ queryKey: ['oshi-room-likes', user.id] });
+            queryClient.invalidateQueries({ queryKey: ['oshi-room-likers', user.id] });
+          } else {
+            toast(newNotification.title, {
+              description: newNotification.message,
+              duration: 5000,
+            });
+          }
 
           // Update query cache
           queryClient.invalidateQueries({ queryKey: ['notifications'] });

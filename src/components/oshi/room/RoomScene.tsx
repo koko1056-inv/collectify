@@ -61,6 +61,12 @@ interface RoomSceneProps {
   className?: string;
   /** 部屋の名札（読み上げ用） */
   label: string;
+  /**
+   * 小さな見本（コレクション画面のミニ部屋・「みんな」のお部屋の一覧）。
+   * 一覧に何枚も並ぶので、動き（揺れ・きらめき・待機の吹き出し）を止め、Lv の札も出さず、触れない1枚の絵にする。
+   * 写真も小さく読む
+   */
+  thumb?: boolean;
 }
 
 const L = (x: number) => `${(x / ROOM_W) * 100}%`;
@@ -105,6 +111,7 @@ export function RoomScene({
   celebrating,
   className,
   label,
+  thumb = false,
 }: RoomSceneProps) {
   const { t } = useLanguage();
   useEffect(ensureRoomTheme, []);
@@ -114,7 +121,7 @@ export function RoomScene({
   const [guide, setGuide] = useState<RoomSurface | null>(null);
   const layout = draft ?? state.layout;
   const editing = mode === "edit";
-  const animate = !reduceMotion && !editing;
+  const animate = !reduceMotion && !editing && !thumb;
   const lit = time === "night";
 
   // ときどき、どれか1つのグッズがきらっと光る（模様替え中は止める）
@@ -138,7 +145,7 @@ export function RoomScene({
   const livelyKey = lively.join(",");
   const [idle, setIdle] = useState<{ n: number; item: string; kind: "bubble" | "hop"; tier: number } | null>(null);
   useEffect(() => {
-    if (editing || !livelyKey) return;
+    if (editing || thumb || !livelyKey) return;
     const list = livelyKey.split(",").map((v) => {
       const [item, lv] = v.split(":");
       return { item, tier: reactionTier(Number(lv)) };
@@ -162,7 +169,7 @@ export function RoomScene({
       window.clearTimeout(clear);
       setIdle(null);
     };
-  }, [editing, livelyKey, reduceMotion]);
+  }, [editing, thumb, livelyKey, reduceMotion]);
   // タップ・お世話の反応で跳ねるグッズ（Lv7〜）
   const hopping = new Set(fx.filter((e) => e.kind === "react" && e.item && reactionTier(e.level ?? 1) >= 3).map((e) => e.item!));
 
@@ -268,14 +275,18 @@ export function RoomScene({
   return (
     <div
       ref={ref}
-      className={cn("oshi-room relative aspect-[360/420] w-full select-none overflow-hidden rounded-3xl border border-border bg-muted shadow-sm", className)}
-      role="group"
+      className={cn(
+        "oshi-room relative aspect-[360/420] w-full select-none overflow-hidden rounded-3xl border border-border bg-muted shadow-sm",
+        thumb && "pointer-events-none",
+        className
+      )}
+      role={thumb ? "img" : "group"}
       aria-label={label}
       onPointerDown={editing ? () => onEditTarget?.(null) : undefined}
     >
       {/* 絵の層（ダークでは少し明るさを落とす） */}
       <div className="absolute inset-0" style={{ filter: "var(--room-filter)" }}>
-        <RoomShell wallpaper={state.wallpaper} floor={state.floor} time={time} oshi={oshi} animate={!reduceMotion} />
+        <RoomShell wallpaper={state.wallpaper} floor={state.floor} time={time} oshi={oshi} animate={!reduceMotion && !thumb} />
         {/* 昼と朝は、窓から床へ光が差す */}
         {(time === "day" || time === "morning") && (
           <svg viewBox={`0 0 ${ROOM_W} ${ROOM_H}`} className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden="true">
@@ -303,10 +314,11 @@ export function RoomScene({
             <div
               key={g.item}
               {...common}
-              role="button"
-              tabIndex={mode === "readonly" ? -1 : 0}
-              aria-label={editing ? t("oshiRoom.decorate.moveAria", { name: info.title }) : aria}
-              aria-pressed={editing ? isTarget("goods", g.item) : selected}
+              role={thumb ? undefined : "button"}
+              tabIndex={thumb ? undefined : mode === "readonly" ? -1 : 0}
+              aria-hidden={thumb || undefined}
+              aria-label={thumb ? undefined : editing ? t("oshiRoom.decorate.moveAria", { name: info.title }) : aria}
+              aria-pressed={thumb ? undefined : editing ? isTarget("goods", g.item) : selected}
               onClick={mode === "view" ? () => onSelectGoods?.(g.item) : mode === "readonly" ? () => onSelectGoods?.(g.item) : undefined}
               onKeyDown={
                 editing
@@ -356,10 +368,11 @@ export function RoomScene({
                         : { duration: 0.2 }
                 }
               >
-                <GoodsFrame frame={g.frame} image={info.image} oshi={oshi} level={info.level} imageWidth={w > 70 ? 320 : 240} />
+                <GoodsFrame frame={g.frame} image={info.image} oshi={oshi} level={info.level} imageWidth={thumb ? 120 : w > 70 ? 320 : 240} />
               </motion.div>
               {/* なかよし度の札 */}
-              {/* Lv10 は虹の札（他の人が見ても、いちばん育てたグッズがひと目で分かる） */}
+              {/* Lv10 は虹の札（他の人が見ても、いちばん育てたグッズがひと目で分かる）。小さな見本では字が潰れるので出さない */}
+              {!thumb && (
               <span
                 className={cn(
                   "pointer-events-none absolute -bottom-[2%] left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full px-1.5 py-px text-3xs font-bold leading-tight tabular-nums shadow",
@@ -369,6 +382,7 @@ export function RoomScene({
               >
                 Lv.{info.level}
               </span>
+              )}
               {/* 選んでいるグッズの上に、はずむハート */}
               {selected && (
                 <motion.span
