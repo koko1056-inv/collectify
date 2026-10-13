@@ -21,13 +21,15 @@ import {
   isRoomSetKey,
   isShareTemplateKey,
 } from "@/lib/cosmetics";
-import type { RoomSet } from "@/lib/oshiRoom";
+import { roomAsset, roomI18nId, roomItemFromUnlockKey, roomUnlockKey, type RoomSet } from "@/lib/oshiRoom";
+import { AssetThumb } from "@/components/oshi/room/AssetThumb";
 
 /**
  * 棚の並び。DB の category と同じ値。ただし「お部屋」（推しの部屋のセット）は DB では category = 'cosmetic' のまま入れていて
- * （棚の CHECK を広げずに足すため）、unlock_key の頭（room:）で分ける
+ * （棚の CHECK を広げずに足すため）、unlock_key の頭（room:）で分ける。
+ * 「お部屋の単品」（家具・フレーム1つ。room:<目録の key>）はセットの棚とは別に並べる（セットとくらべて選べるように、すぐ下）
  */
-const CATEGORIES = ["room", "cosmetic", "share", "capacity"] as const;
+const CATEGORIES = ["room", "roomItem", "cosmetic", "share", "capacity"] as const;
 
 /**
  * ポイントで交換できるアイテムを棚（枠をふやす / 着せ替え / シェアカード）ごとに並べる。
@@ -52,9 +54,20 @@ export function ShopItemGroups({
   const { t } = useLanguage();
   const { owned } = useMyUnlocks();
 
-  const label = (item: PointShopItem) => {
+  const label = (item: PointShopItem): { name: string; desc: string | null; short?: string } => {
     const key = item.unlock_key;
     if (!key) return { name: item.name, desc: item.description };
+    // 単品は、部屋の目録の名前を使う（cosmetics.items に同じ名前を二重に持たない）
+    const asset = roomItemFromUnlockKey(key);
+    if (asset) {
+      const meta = roomAsset(asset)!;
+      const assetName = t(`oshiRoom.assets.${roomI18nId(asset)}`);
+      return {
+        name: t("cosmetics.kind.roomItem", { name: assetName }),
+        desc: t("cosmetics.roomItemDesc", { kind: t(`oshiRoom.kind.${meta.kind}`), set: t(`oshiRoom.sets.${meta.set}`) }),
+        short: assetName,
+      };
+    }
     const id = cosmeticI18nId(key);
     const kind = key.split(":")[0];
     return {
@@ -67,7 +80,9 @@ export function ShopItemGroups({
   const shelfOf = (i: PointShopItem) =>
     isRoomSetKey(i.unlock_key)
       ? "room"
-      : (CATEGORIES as readonly string[]).includes(i.category)
+      : roomItemFromUnlockKey(i.unlock_key)
+        ? "roomItem"
+        : (CATEGORIES as readonly string[]).includes(i.category)
         ? i.category
         : "capacity";
   const groups = CATEGORIES.map((c) => ({
@@ -114,12 +129,13 @@ export function ShopItemGroups({
             // 着せ替え・シェアカードは見本が主役。数が多いので2列（広い画面は3列）の小さな札で並べる
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
               {g.items.map((item) => {
-                const isOwned = !!item.unlock_key && owned.has(item.unlock_key);
+                const single = roomItemFromUnlockKey(item.unlock_key);
+                // 単品は、その物の入ったセットを持っていれば買う意味がないので「所持済み」にする
+                const isOwned =
+                  !!item.unlock_key && (owned.has(item.unlock_key) || (!!single && owned.has(roomUnlockKey(roomAsset(single)!.set))));
                 const affordable = currentPoints >= item.points_cost;
-                const { name, desc } = label(item);
-                const shortName = item.unlock_key
-                  ? t(`cosmetics.items.${cosmeticI18nId(item.unlock_key)}.name`)
-                  : name;
+                const { name, desc, short } = label(item);
+                const shortName = short ?? (item.unlock_key ? t(`cosmetics.items.${cosmeticI18nId(item.unlock_key)}.name`) : name);
                 const highlighted = !!highlightKey && item.unlock_key === highlightKey;
                 return (
                   <Card
@@ -135,7 +151,8 @@ export function ShopItemGroups({
                         {item.points_cost}
                       </span>
                     </div>
-                    {isOwned && isRoomSetKey(item.unlock_key) ? (
+                    {single && <p className="-mt-1 truncate px-0.5 text-3xs text-muted-foreground">{desc}</p>}
+                    {isOwned && (isRoomSetKey(item.unlock_key) || single) ? (
                       // お部屋のセットは、買ったらすぐ部屋で使えるよう、推しの部屋へ送る
                       <Button asChild size="sm" variant="secondary" className="h-8 w-full gap-1 text-xs">
                         <Link to="/oshi">
@@ -186,6 +203,11 @@ function PriceBadge({ cost }: { cost: number }) {
 function ItemPreview({ item, large }: { item: PointShopItem; large?: boolean }) {
   const key = item.unlock_key;
   const box = large ? "h-20 w-full" : "h-12 w-16";
+  const single = roomItemFromUnlockKey(key);
+  if (single) {
+    // 単品は、その物だけを大きめに（壁紙・床ではないので、部屋の絵ではなく物の見本）
+    return <AssetThumb k={single} className={cn("shrink-0 overflow-hidden rounded-lg bg-muted/60 ring-1 ring-inset ring-foreground/10", large ? "h-32 w-full" : "h-12 w-16")} />;
+  }
   if (isRoomSetKey(key)) {
     // 部屋は縦長なので、札では下のほう（家具・フレーム・床）を横長に切り取って見せる
     return (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import {
   FLOOR_Y,
@@ -24,10 +24,11 @@ import { cn } from "@/lib/utils";
 import { RoomShell } from "./art/RoomShell";
 import { FurnitureArt } from "./art/Furniture";
 import { GoodsFrame } from "./art/GoodsFrame";
-import { SparkleArt } from "./art/FxArt";
-import { RoomFx, type GoodsBox } from "./RoomFx";
+import { HeartArt, NoteArt, SparkleArt } from "./art/FxArt";
+import { RoomFx, SpeechBubble, type GoodsBox } from "./RoomFx";
 import type { RoomFxEvent } from "./fx";
-import { EDIT_MARK, EVENING_TINT, LAMP_GLOW, LAMP_GLOW_EDGE, LIGHT, SUNBEAM, ensureRoomTheme } from "./palette";
+import { EDIT_MARK, EVENING_TINT, FX, LAMP_GLOW, LAMP_GLOW_EDGE, LIGHT, SUNBEAM, ensureRoomTheme } from "./palette";
+import { idleBob, reactionTier } from "@/lib/oshiLevel";
 
 /** 部屋に飾るグッズの見た目に要るもの */
 export interface SceneGoods {
@@ -82,6 +83,9 @@ interface DragState {
  * 推しの部屋の1枚の絵。正面から見た部屋に、家具とグッズ（写真のままフレームに入れたもの）を置く。
  *  - 窓の外は日本時間の朝・昼・夕方・夜で変わり、夜は部屋が少し暗くなって明かりが灯る（状態の変化ではなく、時間の雰囲気）
  *  - グッズはふわっと揺れ、ときどききらっと光る
+ *  - なかよしレベルが上がるほど、待機の動きが少しずつ豊かになる（lib/oshiLevel.ts）:
+ *    Lv4〜 ときどき吹き出し（♡）/ Lv7〜 ときどき跳ねる（吹き出しは ♪）/ Lv10 いつも淡い虹のオーラ。
+ *    タップの反応で Lv7〜 のグッズはぴょんと跳ねる（反応の絵は RoomFx）。動きを減らす設定では跳ねず、オーラも回さない
  *  - 模様替えでは、家具とグッズを指でドラッグして動かす。グッズは棚の板・机の天板に吸い付く
  */
 export function RoomScene({
@@ -127,6 +131,40 @@ export function RoomScene({
     }, 5200);
     return () => window.clearInterval(timer);
   }, [animate, placedKey]);
+
+  // 待機中の小さな反応（なかよし Lv4〜）。ときどき、どれか1つが吹き出しを出す・跳ねる。
+  // 毎回ちがうグッズにする（同じ物ばかり動くと、ほかが「元気がない」ように見える）
+  const lively = placed.filter((g) => (goods.get(g.item)?.level ?? 0) >= 4).map((g) => `${g.item}:${goods.get(g.item)!.level}`);
+  const livelyKey = lively.join(",");
+  const [idle, setIdle] = useState<{ n: number; item: string; kind: "bubble" | "hop"; tier: number } | null>(null);
+  useEffect(() => {
+    if (editing || !livelyKey) return;
+    const list = livelyKey.split(",").map((v) => {
+      const [item, lv] = v.split(":");
+      return { item, tier: reactionTier(Number(lv)) };
+    });
+    let n = 0;
+    let clear = 0;
+    const timer = window.setInterval(
+      () => {
+        n += 1;
+        const pick = list[n % list.length];
+        // Lv7〜 は2回に1回跳ねる（動きを減らす設定では跳ねない）
+        const kind = pick.tier >= 3 && n % 2 === 0 && !reduceMotion ? "hop" : "bubble";
+        setIdle({ n, item: pick.item, kind, tier: pick.tier });
+        window.clearTimeout(clear);
+        clear = window.setTimeout(() => setIdle(null), kind === "hop" ? 900 : 2300);
+      },
+      reduceMotion ? 14000 : 7600
+    );
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(clear);
+      setIdle(null);
+    };
+  }, [editing, livelyKey, reduceMotion]);
+  // タップ・お世話の反応で跳ねるグッズ（Lv7〜）
+  const hopping = new Set(fx.filter((e) => e.kind === "react" && e.item && reactionTier(e.level ?? 1) >= 3).map((e) => e.item!));
 
   const boxes = useMemo(() => {
     const m = new Map<string, GoodsBox>();
@@ -287,28 +325,48 @@ export function RoomScene({
             >
               {/* 足もとの影 */}
               <span className="pointer-events-none absolute -bottom-[4%] left-[8%] right-[8%] h-[9%] rounded-[50%]" style={{ background: "radial-gradient(closest-side, var(--room-shadow), transparent)" }} />
+              {/* なかよし Lv10: いつも淡い虹のオーラ（後ろでゆっくり回る） */}
+              {info.level >= 10 && (
+                <motion.span
+                  className="pointer-events-none absolute -inset-[16%] rounded-full opacity-50 blur-md"
+                  style={{ background: `conic-gradient(${[...FX.rainbow, FX.rainbow[0]].join(",")})` }}
+                  animate={animate ? { rotate: 360 } : { rotate: 0 }}
+                  transition={animate ? { duration: 9, repeat: Infinity, ease: "linear" } : { duration: 0 }}
+                />
+              )}
               <motion.div
                 className="h-full w-full"
                 style={{ transformOrigin: "50% 100%" }}
                 animate={
                   celebrating === g.item && !reduceMotion
                     ? { y: [0, -14, 0, -6, 0], scale: [1, 1.08, 1, 1.03, 1] }
-                    : animate
-                      ? { y: [0, -2.5, 0], rotate: [0, info.rank % 2 ? 0.8 : -0.8, 0] }
-                      : { y: 0, rotate: 0 }
+                    : (hopping.has(g.item) || (idle?.kind === "hop" && idle.item === g.item)) && animate
+                      ? { y: [0, -16, 0, -5, 0], scale: [1, 1.06, 0.97, 1.02, 1], rotate: 0 }
+                      : animate
+                        ? { y: [0, -idleBob(info.level), 0], rotate: [0, info.rank % 2 ? 0.8 : -0.8, 0] }
+                        : { y: 0, rotate: 0 }
                 }
                 transition={
                   celebrating === g.item
                     ? { duration: 0.9, repeat: 2 }
-                    : animate
-                      ? { duration: 3.2 + info.rank * 0.35, repeat: Infinity, ease: "easeInOut", delay: info.rank * 0.4 }
-                      : { duration: 0.2 }
+                    : (hopping.has(g.item) || (idle?.kind === "hop" && idle.item === g.item)) && animate
+                      ? { duration: 0.75, ease: "easeOut" }
+                      : animate
+                        ? { duration: 3.2 + info.rank * 0.35 - (info.level >= 7 ? 0.6 : 0), repeat: Infinity, ease: "easeInOut", delay: info.rank * 0.4 }
+                        : { duration: 0.2 }
                 }
               >
                 <GoodsFrame frame={g.frame} image={info.image} oshi={oshi} level={info.level} imageWidth={w > 70 ? 320 : 240} />
               </motion.div>
               {/* なかよし度の札 */}
-              <span className="pointer-events-none absolute -bottom-[2%] left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full bg-primary px-1.5 py-px text-3xs font-bold leading-tight tabular-nums text-primary-foreground shadow">
+              {/* Lv10 は虹の札（他の人が見ても、いちばん育てたグッズがひと目で分かる） */}
+              <span
+                className={cn(
+                  "pointer-events-none absolute -bottom-[2%] left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full px-1.5 py-px text-3xs font-bold leading-tight tabular-nums shadow",
+                  info.level >= 10 ? "" : "bg-primary text-primary-foreground"
+                )}
+                style={info.level >= 10 ? { background: `linear-gradient(90deg, ${FX.rainbow.join(",")})`, color: FX.ribbonText, textShadow: `0 0 2px ${FX.ribbonDeep}` } : undefined}
+              >
                 Lv.{info.level}
               </span>
               {/* 選んでいるグッズの上に、はずむハート */}
@@ -392,7 +450,21 @@ export function RoomScene({
         <div className="pointer-events-none absolute inset-x-0 z-[5] border-t border-dashed" style={{ top: T(FLOOR_Y), borderColor: EDIT_MARK.floorLine }} />
       )}
 
-      <RoomFx events={fx} boxes={boxes} reduceMotion={reduceMotion} />
+      {/* 待機中の小さな吹き出し（♡ / ♪ / きらめき） */}
+      <div className="pointer-events-none absolute inset-0 z-[25] overflow-hidden" aria-hidden="true">
+        <AnimatePresence>
+          {idle?.kind === "bubble" && boxes.get(idle.item) && !fx.some((e) => e.item === idle.item) && (
+            <SpeechBubble key={idle.n} box={boxes.get(idle.item)!} reduceMotion={reduceMotion} compact>
+              <span className="flex items-center gap-0.5">
+                {idle.tier >= 3 ? <NoteArt className="h-3.5 w-3.5" color={FX.note[idle.n % FX.note.length]} /> : <HeartArt className="h-3.5 w-3.5" />}
+                {idle.tier >= 4 && <SparkleArt className="h-3.5 w-3.5" color={FX.rainbow[idle.n % FX.rainbow.length]} />}
+              </span>
+            </SpeechBubble>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <RoomFx events={fx} boxes={boxes} reduceMotion={reduceMotion} oshi={oshi} />
     </div>
   );
 }

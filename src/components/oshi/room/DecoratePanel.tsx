@@ -18,7 +18,9 @@ import {
   removeFurniture,
   roomAsset,
   roomI18nId,
+  setUnlockLevel,
   snapGoods,
+  type RoomAssetKind,
   type RoomAssetMeta,
   type RoomSet,
   type RoomState,
@@ -42,7 +44,7 @@ interface DecoratePanelProps {
   owned: ReadonlySet<string>;
   oshi: OshiColor;
   /** 鍵の付いた物を押したとき（ショップの案内を出す） */
-  onLocked: (set: RoomSet) => void;
+  onLocked: (set: RoomSet, key: string) => void;
   onSave: () => void;
   onCancel: () => void;
   onReset: () => void;
@@ -68,6 +70,16 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
   const frameItem = selectedGoods?.item ?? goodsOrder.find((id) => layout.goods.some((g) => g.item === id)) ?? null;
 
   const setLayout = (next: RoomState["layout"]) => onChange({ ...state, layout: next });
+
+  // 棚の並び: 使える物（基本・持っているセット・単品・解放済みの特典）→ レベルで解放される物 → ショップの物。
+  // セットが増えて棚が長くなったので、いま置ける物を上に集める（同じ組の中は目録の順）
+  const shelf = (kind: RoomAssetKind) => {
+    const rank = (m: RoomAssetMeta) => (isAssetUsable(m.key, owned) ? 0 : setUnlockLevel(m.set) !== null ? 1 : 2);
+    return assetsOfKind(kind)
+      .map((m, i) => ({ m, i }))
+      .sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
+      .map((v) => v.m);
+  };
 
   const order = (where: "forward" | "backward") => {
     if (selectedFurniture) {
@@ -103,7 +115,7 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
   };
 
   const addFurniture = (meta: RoomAssetMeta) => {
-    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set);
+    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set, meta.key);
     if (layout.furniture.length >= MAX_FURNITURE) {
       toast.error(t("oshiRoom.decorate.furnitureFull", { max: MAX_FURNITURE }));
       return;
@@ -114,12 +126,12 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
   };
 
   const pickSurface = (meta: RoomAssetMeta) => {
-    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set);
+    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set, meta.key);
     onChange(meta.kind === "wallpaper" ? { ...state, wallpaper: meta.key } : { ...state, floor: meta.key });
   };
 
   const pickFrame = (meta: RoomAssetMeta) => {
-    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set);
+    if (!isAssetUsable(meta.key, owned)) return onLocked(meta.set, meta.key);
     if (!frameItem) return;
     setLayout({
       ...layout,
@@ -167,7 +179,7 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
         <TabsContent value="furniture" className="mt-2">
           <p className="mb-1.5 text-right text-3xs tabular-nums text-muted-foreground">{t("oshiRoom.decorate.furnitureCount", { n: layout.furniture.length, max: MAX_FURNITURE })}</p>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-            {assetsOfKind("furniture").map((m) => (
+            {shelf("furniture").map((m) => (
               <Tile key={m.key} meta={m} label={name(m.key)} locked={!isAssetUsable(m.key, owned)} onClick={() => addFurniture(m)}>
                 <span className="block h-[78%] w-[78%]">
                   <FurnitureArt k={m.key} oshi={oshi} animate={false} lit={false} />
@@ -179,7 +191,7 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
 
         <TabsContent value="wallpaper" className="mt-2">
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-            {assetsOfKind("wallpaper").map((m) => (
+            {shelf("wallpaper").map((m) => (
               <Tile key={m.key} meta={m} label={name(m.key)} locked={!isAssetUsable(m.key, owned)} active={state.wallpaper === m.key} onClick={() => pickSurface(m)} bare>
                 <RoomShell wallpaper={m.key} floor={state.floor} time="day" oshi={oshi} animate={false} />
               </Tile>
@@ -189,7 +201,7 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
 
         <TabsContent value="floor" className="mt-2">
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-            {assetsOfKind("floor").map((m) => (
+            {shelf("floor").map((m) => (
               <Tile key={m.key} meta={m} label={name(m.key)} locked={!isAssetUsable(m.key, owned)} active={state.floor === m.key} onClick={() => pickSurface(m)} bare>
                 <RoomShell wallpaper={state.wallpaper} floor={m.key} time="day" oshi={oshi} animate={false} />
               </Tile>
@@ -226,7 +238,7 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
               </div>
               {frameItem && (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5" role="group" aria-label={t("oshiRoom.decorate.frameFor", { name: goods.get(frameItem)?.title ?? "" })}>
-                  {assetsOfKind("frame").map((m) => {
+                  {shelf("frame").map((m) => {
                     const current = layout.goods.find((g) => g.item === frameItem)?.frame;
                     const def = FRAME_DEFS[m.key];
                     return (
@@ -293,12 +305,15 @@ function Tile({
 }) {
   const { t } = useLanguage();
   const set = roomAsset(meta.key)?.set ?? "base";
+  // なかよしレベルの特典は「Lv5で解放」と出す（ショップでは買えないので、セット名より達成の条件が分かるほうがいい）
+  const unlockLevel = setUnlockLevel(set);
+  const setLabel = unlockLevel !== null && locked ? t("oshiRoom.decorate.unlockAt", { level: unlockLevel }) : t(`oshiRoom.sets.${set}`);
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      aria-label={locked ? `${label}（${t("oshiRoom.decorate.locked")}・${t(`oshiRoom.sets.${set}`)}）` : label}
+      aria-label={locked ? `${label}（${t("oshiRoom.decorate.locked")}・${setLabel}）` : label}
       className="group flex min-w-0 flex-col items-center gap-1 text-center focus-visible:outline-none"
     >
       <span
@@ -311,15 +326,22 @@ function Tile({
         {bare ? <span className="relative block h-full w-full">{children}</span> : children}
         {locked && (
           <span className="absolute inset-0 flex items-start justify-end bg-background/35 p-1">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/75 text-background shadow">
-              <Lock className="h-3 w-3" />
-            </span>
+            {unlockLevel !== null ? (
+              // レベルの特典は鍵ではなく、届けば開く「Lv5」の札
+              <span className="rounded-full bg-points px-1.5 py-px text-3xs font-black tabular-nums text-points-foreground shadow">Lv{unlockLevel}</span>
+            ) : (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/75 text-background shadow">
+                <Lock className="h-3 w-3" />
+              </span>
+            )}
           </span>
         )}
         {active && <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-1.5 text-3xs font-bold text-primary-foreground">{t("oshiRoom.decorate.inUse")}</span>}
       </span>
       <span className="w-full truncate text-3xs font-medium leading-tight">{label}</span>
-      {set !== "base" && <span className={cn("-mt-0.5 w-full truncate text-3xs leading-tight", locked ? "text-muted-foreground" : "text-primary")}>{t(`oshiRoom.sets.${set}`)}</span>}
+      {set !== "base" && (
+        <span className={cn("-mt-0.5 w-full truncate text-3xs leading-tight", locked ? (unlockLevel !== null ? "font-bold text-points" : "text-muted-foreground") : "text-primary")}>{setLabel}</span>
+      )}
     </button>
   );
 }

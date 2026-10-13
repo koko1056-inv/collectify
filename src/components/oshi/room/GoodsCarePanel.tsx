@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,18 +16,27 @@ import {
 import { CompanionGiftSheet } from "@/components/oshi/CompanionGiftSheet";
 import { RankBadge } from "@/components/oshi/RankBadge";
 import { levelProgress, todayJst } from "@/utils/companion";
+import { parseRewards, reactionTier, rewardAt, type ServerRewards } from "@/lib/oshiLevel";
+import { roomI18nId, roomUnlockKey } from "@/lib/oshiRoom";
+import type { OshiColor } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 import { CameraArt, ClothArt, GiftArt, HandArt } from "./art/FxArt";
+import { LevelRewardsSheet } from "./LevelRewardsSheet";
 import type { RoomFxEvent } from "./fx";
 
 interface GoodsCarePanelProps {
   companion: Companion;
   /** 部屋の上で演出を出す */
   onFx: (e: Omit<RoomFxEvent, "id">) => void;
+  /** なかよしレベルの反応（ひとこと・音符・虹）。お世話の演出のあとに出す */
+  onReact: (c: Companion, delay?: number) => void;
+  /** 解放済みのキー（「次のレベルで〇〇解放」を、まだ持っていない物だけにする） */
+  owned: ReadonlySet<string>;
+  oshi: OshiColor;
   /** 撮る（演出のあと、撮影の画面を開く） */
   onPhoto: (c: Companion) => void;
-  /** レベルが上がった（部屋じゅうでお祝いする） */
-  onLevelUp: (level: number, c: Companion) => void;
+  /** レベルが上がった（部屋じゅうでお祝いする）。rewards はサーバーが返した特典（無ければ見込みを出す） */
+  onLevelUp: (level: number, c: Companion, rewards: ServerRewards | null, fromLevel: number) => void;
   /** パネルの頭に出すもの（推しグッズの切り替え） */
   header?: React.ReactNode;
   /** グッズの詳細を開く */
@@ -42,7 +51,7 @@ type CareAction = "pat" | "polish";
  * （以前のカードと同じ。待ってから動くと、触った感じがしない）。
  * 回数の上限・エラー・トースト・ショップへの導線は、以前のカード（CompanionCard）と同じ。
  */
-export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, onDetail }: GoodsCarePanelProps) {
+export function GoodsCarePanel({ companion, onFx, onReact, owned, oshi, onPhoto, onLevelUp, header, onDetail }: GoodsCarePanelProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
@@ -51,8 +60,22 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, on
   const giftKinds = useCompanionGiftKinds();
   const giftCounts = useTodayGiftCounts();
   const [giftOpen, setGiftOpen] = useState(false);
+  const [rewardsOpen, setRewardsOpen] = useState(false);
   const today = todayJst();
   const progress = levelProgress(companion.xp);
+  // 次のレベルの特典（ポイント・まだ持っていない部屋のアイテム・反応の段階）。育てる目標として、パネルにひとことで出す
+  const next = progress.isMax ? null : rewardAt(progress.level + 1);
+  const nextParts = next
+    ? [
+        t("oshiRoom.fx.points", { n: next.points }),
+        next.set && !owned.has(roomUnlockKey(next.set))
+          ? next.items.length > 1
+            ? t("oshiRoom.next.unlockMany", { name: t(`oshiRoom.assets.${roomI18nId(next.items[0])}`), n: next.items.length })
+            : t("oshiRoom.next.unlockOne", { name: t(`oshiRoom.assets.${roomI18nId(next.items[0])}`) })
+          : null,
+        next.tier ? t(`oshiRoom.next.tier.${next.tier}`) : null,
+      ].filter(Boolean)
+    : [];
   const patDone = companion.last_pat_on === today;
   const polishDone = companion.last_polish_on === today;
   const photoDone = companion.last_photo_on === today;
@@ -62,26 +85,25 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, on
     0
   );
 
-  const levelUp = (level: number) => {
-    onLevelUp(level, companion);
-    toast.success(t("engage.oshi.levelUp", { name: companion.title, level }), {
-      description: t(`engage.oshi.levelTitle.${level}`),
-      duration: 6000,
-    });
-  };
+  // お祝いと通知（通知の文言は、特典を合わせてページが出す）
+  const levelUp = (level: number, rewards: unknown, fromLevel: number) => onLevelUp(level, companion, parseRewards(rewards), fromLevel);
 
   const handleCare = async (action: CareAction) => {
     if (care.isPending) return;
     if ((action === "pat" && patDone) || (action === "polish" && polishDone)) return;
     onFx({ kind: action, item: companion.user_item_id, xp: 1 });
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
+    const fromLevel = progress.level;
     try {
       const result = await care.mutateAsync({ itemId: companion.user_item_id, action });
       if (result.already) return;
       // お祝いは、なでる・みがくの演出が終わるころに
       if (result.leveled_up && result.level) {
         const level = result.level;
-        window.setTimeout(() => levelUp(level), reduceMotion ? 0 : 1100);
+        window.setTimeout(() => levelUp(level, result.rewards, fromLevel), reduceMotion ? 0 : 1100);
+      } else if (reactionTier(progress.level) >= 2) {
+        // Lv4〜 は、お世話のあとにひとこと（Lv7〜 は音符・ジャンプ、Lv10 は虹も）
+        onReact(companion, reduceMotion ? 0 : 1250);
       }
     } catch (e) {
       console.error("care failed:", e);
@@ -99,14 +121,16 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, on
   const handleGive = async (gift: GiftKind): Promise<boolean> => {
     if (give.isPending) return false;
     const giftName = t(`engage.oshi.giftKind.${gift.kind}.name`);
+    const fromLevel = progress.level;
     try {
       const result = await give.mutateAsync({ itemId: companion.user_item_id, kind: gift.kind });
       // シートが閉じてから演出が見えるよう、少しだけ待つ
       window.setTimeout(() => onFx({ kind: "gift", item: companion.user_item_id, xp: result.gain, gift: gift.kind }), reduceMotion ? 0 : 260);
       if (result.leveled_up && result.level) {
         const level = result.level;
-        window.setTimeout(() => levelUp(level), reduceMotion ? 0 : 2100);
+        window.setTimeout(() => levelUp(level, result.rewards, fromLevel), reduceMotion ? 0 : 2100);
       } else {
+        if (reactionTier(progress.level) >= 2) onReact(companion, reduceMotion ? 0 : 2300);
         toast.success(t("engage.oshi.giftDone", { name: companion.title, gift: giftName }), {
           description: t("engage.oshi.giftDoneDesc", { xp: result.gain }),
         });
@@ -211,10 +235,31 @@ export function GoodsCarePanel({ companion, onFx, onPhoto, onLevelUp, header, on
           </div>
         </div>
 
+        {/* 次のレベルの特典（押すと Lv2〜10 の一覧） */}
+        <button
+          type="button"
+          onClick={() => setRewardsOpen(true)}
+          className="mt-2 flex w-full items-center gap-1.5 rounded-xl bg-points-soft px-2.5 py-1.5 text-left transition-colors hover:bg-points-soft/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+          aria-label={`${t("oshiRoom.rewards.title")}: ${next ? `${t("oshiRoom.next.label")} ${nextParts.join(t("oshiRoom.fx.listSep"))}` : t("oshiRoom.next.max")}`}
+        >
+          <Gift className="h-3.5 w-3.5 shrink-0 text-points" />
+          <span className="line-clamp-2 min-w-0 flex-1 text-2xs leading-snug">
+            {next ? (
+              <>
+                <span className="font-bold">{t("oshiRoom.next.label")}</span> {nextParts.join(t("oshiRoom.fx.listSep"))}
+              </>
+            ) : (
+              <span className="font-bold">{t("oshiRoom.next.max")}</span>
+            )}
+          </span>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        </button>
+
         {header && <div className="-mx-1 mt-2.5 border-t pt-2">{header}</div>}
       </section>
 
       <CompanionGiftSheet open={giftOpen} onOpenChange={setGiftOpen} companion={companion} onGive={handleGive} busy={give.isPending} />
+      <LevelRewardsSheet open={rewardsOpen} onOpenChange={setRewardsOpen} level={progress.level} name={companion.title} owned={owned} oshi={oshi} />
     </>
   );
 }

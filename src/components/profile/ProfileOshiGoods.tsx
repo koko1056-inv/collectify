@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, DoorOpen, Pencil, Plus, Star } from "lucide-react";
+import { ChevronRight, Crown, DoorOpen, Pencil, Plus, Star } from "lucide-react";
+import { bondSummary } from "@/lib/oshiLevel";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -50,6 +51,10 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
   }
 
   if (items.length === 0 && !isOwnProfile) return null;
+
+  const bond = bondSummary(items.map((i) => i.level));
+  // 同じレベルが並んだら順位の高いほう
+  const bestItem = items.find((i) => i.level === bond.best);
 
   const editor = isOwnProfile && (
     <OshiGoodsEditModal open={editOpen} onOpenChange={setEditOpen} userId={profileId} />
@@ -116,6 +121,24 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
             </div>
           )}
         </div>
+
+        {/* 自慢の札: いちばん育てた推しグッズのレベル・称号と、推しグッズのなかよしLvの合計。
+            育てた成果を、他の人がプロフィールを開いたときにひと目で分かるようにする（まだ全部 Lv1 なら出さない） */}
+        {bond.best >= 2 && bestItem && (
+          <div className="mb-3 flex items-center gap-2 rounded-xl bg-muted/50 px-2 py-1.5" aria-label={t("profileScreen.oshiGoods.bondAria", { level: bond.best, title: t(`engage.oshi.levelTitle.${bond.best}`), name: bestItem.title, total: bond.total })}>
+            <span className={cn("shrink-0 rounded-full p-[2px]", frameClass(bond.best))}>
+              <span className="flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-2xs font-black leading-tight">
+                <Crown className="h-3 w-3 text-points" />
+                <span className="tabular-nums">Lv.{bond.best}</span>
+                <span className="text-primary">{t(`engage.oshi.levelTitle.${bond.best}`)}</span>
+              </span>
+            </span>
+            <span className="min-w-0 flex-1 truncate text-2xs text-muted-foreground">{bestItem.title}</span>
+            <span className="shrink-0 text-2xs text-muted-foreground">
+              {t("profileScreen.oshiGoods.bondTotal")} <span className="font-black tabular-nums text-foreground">{bond.total}</span>
+            </span>
+          </div>
+        )}
 
         {/* 横に並べる（5つ並べると1つが小さくなりすぎるので、はみ出した分は横にすべらせる）。
             ボタンは中身を縦の真ん中に寄せるので、名前の行数がちがうと写真の高さがずれる。上に揃える */}

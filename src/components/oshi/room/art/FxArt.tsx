@@ -122,6 +122,31 @@ export function HeartArt({ className, color = FX.heart }: { className?: string; 
   );
 }
 
+/** 音符（なかよし Lv7〜 の反応）。二つの玉を梁でつないだ形 */
+export function NoteArt({ className, color = FX.note[0] }: { className?: string; color?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <path d="M24 46 V14 L52 8 V40" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M24 46 V14 L52 8 V40" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <ellipse cx="17" cy="47" rx="9" ry="7" transform="rotate(-20 17 47)" fill={color} {...S} />
+      <ellipse cx="45" cy="41" rx="9" ry="7" transform="rotate(-20 45 41)" fill={color} {...S} />
+      <ellipse cx="14" cy="44" rx="3" ry="2" fill={FX.white} opacity="0.7" transform="rotate(-20 14 44)" />
+    </svg>
+  );
+}
+
+/** 虹の輪（なかよし Lv10 の反応）。広がりながら消える */
+export function RainbowRingArt({ className }: { className?: string }) {
+  const n = FX.rainbow.length;
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      {FX.rainbow.map((c, i) => (
+        <circle key={c} cx="32" cy="32" r={28 - i * 2.4} fill="none" stroke={c} strokeWidth="2.6" opacity={1 - i / (n * 2)} />
+      ))}
+    </svg>
+  );
+}
+
 export function SparkleArt({ className, color = FX.sparkle }: { className?: string; color?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">

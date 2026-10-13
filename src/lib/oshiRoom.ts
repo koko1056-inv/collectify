@@ -6,7 +6,9 @@
  * - 置いた物の位置 (x, y) は「足もとの中央」。棚の板や机の天板に“立てて”置く物なので、下の辺を基準にする。
  * - 目録（どの key がどのセットか）は DB の oshi_room_assets と同じ。保存のときはサーバーが同じ目録で確かめる
  *   （scripts/test-oshi-room.mjs が、ここと migration の並びを突き合わせる）。
- * - セット 'base' は無料。それ以外は user_unlocks の 'room:<セット>' を買った人だけが使える。
+ * - セット 'base' は無料。それ以外は user_unlocks の 'room:<セット>' を持っている人だけが使える。
+ *   ショップのセットは買うと入り、なかよしレベルの特典のセット（lv3 など）は推しグッズがそのレベルに届くとサーバーが入れる。
+ *   家具・フレームは単品でも買える（'room:<目録の key>'。例 room:sakura.tree）。
  *
  * このファイルは node のテストからも読むので、React や "@/..." を import しない。
  */
@@ -27,8 +29,43 @@ export const SCALE_MAX = 1.6;
 /** 置いた物を、棚の板・机の天板に吸い付ける距離（縦） */
 export const SNAP_DISTANCE = 14;
 
-export const ROOM_SETS = ["base", "oshi", "sakura", "natsu", "halloween", "xmas", "yumekawa", "showcase"] as const;
+export const ROOM_SETS = [
+  "base",
+  "oshi",
+  "sakura",
+  "natsu",
+  "halloween",
+  "xmas",
+  "yumekawa",
+  "showcase",
+  "library",
+  "cafe",
+  "space",
+  "beach",
+  "live",
+  "altar",
+  "retro",
+  "lv3",
+  "lv5",
+  "lv7",
+  "lv10",
+] as const;
 export type RoomSet = (typeof ROOM_SETS)[number];
+
+/**
+ * なかよしレベルの特典のセット（ショップでは売らない）。どれか1つの推しグッズがそのレベルに届くと解放される。
+ * DB の companion_level_rewards が user_unlocks に 'room:lvN' を入れる
+ */
+export const LEVEL_SETS = { lv3: 3, lv5: 5, lv7: 7, lv10: 10 } as const satisfies Partial<Record<RoomSet, number>>;
+export type LevelSet = keyof typeof LEVEL_SETS;
+
+/** 解放に要るレベル（レベルの特典のセットだけ。ほかは null） */
+export function setUnlockLevel(set: RoomSet): number | null {
+  return (LEVEL_SETS as Partial<Record<RoomSet, number>>)[set] ?? null;
+}
+
+/** ショップで売るセット（基本とレベルの特典を除いたもの） */
+export const SHOP_SETS = ROOM_SETS.filter((s) => s !== "base" && setUnlockLevel(s) === null);
 
 export type RoomAssetKind = "wallpaper" | "floor" | "furniture" | "frame";
 
@@ -92,7 +129,76 @@ export const ROOM_ASSETS: RoomAssetMeta[] = [
   a("showcase.case", "furniture"),
   a("showcase.pedestal", "furniture"),
   a("showcase.gold", "frame"),
+  // ここから下は migration 20261013100000_oshi_room_more_sets.sql の INSERT と同じ並び
+  a("library.wall", "wallpaper"),
+  a("library.floor", "floor"),
+  a("library.bookcase", "furniture"),
+  a("library.globe", "furniture"),
+  a("library.frame", "frame"),
+  a("cafe.wall", "wallpaper"),
+  a("cafe.floor", "floor"),
+  a("cafe.counter", "furniture"),
+  a("cafe.sweets", "furniture"),
+  a("cafe.frame", "frame"),
+  a("space.wall", "wallpaper"),
+  a("space.floor", "floor"),
+  a("space.rocket", "furniture"),
+  a("space.planet", "furniture"),
+  a("space.frame", "frame"),
+  a("beach.wall", "wallpaper"),
+  a("beach.floor", "floor"),
+  a("beach.parasol", "furniture"),
+  a("beach.float", "furniture"),
+  a("beach.frame", "frame"),
+  a("live.wall", "wallpaper"),
+  a("live.floor", "floor"),
+  a("live.speaker", "furniture"),
+  a("live.mic", "furniture"),
+  a("live.fans", "furniture"),
+  a("live.frame", "frame"),
+  a("altar.wall", "wallpaper"),
+  a("altar.floor", "floor"),
+  a("altar.stand", "furniture"),
+  a("altar.balloon", "furniture"),
+  a("altar.flower", "furniture"),
+  a("altar.frame", "frame"),
+  a("retro.wall", "wallpaper"),
+  a("retro.floor", "floor"),
+  a("retro.arcade", "furniture"),
+  a("retro.tv", "furniture"),
+  a("retro.frame", "frame"),
+  a("lv3.cushion", "furniture"),
+  a("lv3.flower", "frame"),
+  a("lv5.wall", "wallpaper"),
+  a("lv5.trophy", "furniture"),
+  a("lv7.floor", "floor"),
+  a("lv7.chandelier", "furniture"),
+  a("lv10.wall", "wallpaper"),
+  a("lv10.arch", "furniture"),
+  a("lv10.crown", "frame"),
 ];
+
+/**
+ * 単品でも買える家具・フレーム（ショップの「お部屋の単品」）。並びは migration 20261013100000 の INSERT と同じ。
+ * 解放キーは roomItemUnlockKey（'room:<目録の key>'）
+ */
+export const ROOM_SINGLE_ITEMS = [
+  "oshi.penlight",
+  "sakura.tree",
+  "natsu.kingyo",
+  "xmas.tree",
+  "yumekawa.cloud",
+  "showcase.case",
+  "library.bookcase",
+  "cafe.sweets",
+  "space.rocket",
+  "live.mic",
+  "altar.stand",
+  "retro.arcade",
+  "yumekawa.heart",
+  "showcase.gold",
+  "live.frame",
+] as const;
 
 const ASSET_BY_KEY = new Map(ROOM_ASSETS.map((m) => [m.key, m]));
 
@@ -109,11 +215,28 @@ export function roomUnlockKey(set: RoomSet): string {
   return `room:${set}`;
 }
 
-/** 使えるか（無料の基本セットか、買ってあるか） */
+/** 家具・フレーム1つだけを解放するキー（例 room:sakura.tree）。セットのキーとは「.」があるかで見分ける */
+export function roomItemUnlockKey(key: string): string {
+  return `room:${key}`;
+}
+
+/** 解放キーが単品のものなら、その目録の key を返す（room:sakura.tree → sakura.tree）。セットのキーや知らない物は null */
+export function roomItemFromUnlockKey(unlockKey: string | null | undefined): string | null {
+  if (!unlockKey?.startsWith("room:")) return null;
+  const key = unlockKey.slice("room:".length);
+  return key.includes(".") && roomAsset(key) ? key : null;
+}
+
+/** 単品で買えるか */
+export function isSingleItem(key: string): boolean {
+  return (ROOM_SINGLE_ITEMS as readonly string[]).includes(key);
+}
+
+/** 使えるか（無料の基本セットか、セットを持っているか、その物を単品で持っているか）。DB の oshi_room_require_asset と同じ */
 export function isAssetUsable(key: string, owned: ReadonlySet<string>): boolean {
   const meta = roomAsset(key);
   if (!meta) return false;
-  return meta.set === "base" || owned.has(roomUnlockKey(meta.set));
+  return meta.set === "base" || owned.has(roomUnlockKey(meta.set)) || owned.has(roomItemUnlockKey(key));
 }
 
 /** 翻訳キーの末尾（base.shelf → base_shelf） */
@@ -165,6 +288,29 @@ export const FURNITURE_DEFS: Record<string, FurnitureDef> = {
   "yumekawa.moon": { w: 70, h: 80, layer: "wall", light: { x: 35, y: 40, r: 70 } },
   "showcase.case": { w: 120, h: 200, layer: "stand", surfaces: [{ y: 4, x0: 4, x1: 116 }, { y: 98, x0: 10, x1: 110 }, { y: 188, x0: 10, x1: 110 }] },
   "showcase.pedestal": { w: 80, h: 92, layer: "stand", surfaces: [{ y: 6, x0: 6, x1: 74 }], light: { x: 40, y: -40, r: 80 } },
+  // 本の詰まった段の上には置けない。上の天板・2段目の右半分・いちばん下の段に置ける
+  "library.bookcase": { w: 120, h: 190, layer: "stand", surfaces: [{ y: 2, x0: 4, x1: 116 }, { y: 126, x0: 60, x1: 110 }, { y: 180, x0: 10, x1: 86 }] },
+  "library.globe": { w: 60, h: 96, layer: "stand" },
+  // 天板の左はしにコーヒーマシンがあるので、置けるのはその右（マシンの分だけ箱を上に高くしてある）
+  "cafe.counter": { w: 160, h: 140, layer: "stand", surfaces: [{ y: 48, x0: 46, x1: 154 }] },
+  "cafe.sweets": { w: 70, h: 72, layer: "stand", surfaces: [{ y: 6, x0: 14, x1: 56 }] },
+  "space.rocket": { w: 70, h: 150, layer: "stand", light: { x: 35, y: 58, r: 60 } },
+  "space.planet": { w: 110, h: 80, layer: "wall", light: { x: 55, y: 46, r: 72 } },
+  "beach.parasol": { w: 130, h: 170, layer: "stand" },
+  "beach.float": { w: 70, h: 72, layer: "wall" },
+  "live.speaker": { w: 70, h: 110, layer: "stand", surfaces: [{ y: 3, x0: 4, x1: 66 }] },
+  "live.mic": { w: 50, h: 150, layer: "stand", light: { x: 25, y: 16, r: 64 } },
+  "live.fans": { w: 160, h: 84, layer: "wall" },
+  // ひな壇: 奥（上）ほど狭い3段。どの段にも推しグッズを並べられる
+  "altar.stand": { w: 170, h: 110, layer: "stand", surfaces: [{ y: 4, x0: 52, x1: 118 }, { y: 40, x0: 28, x1: 142 }, { y: 76, x0: 6, x1: 164 }] },
+  "altar.balloon": { w: 90, h: 140, layer: "stand" },
+  "altar.flower": { w: 84, h: 170, layer: "stand" },
+  "retro.arcade": { w: 80, h: 170, layer: "stand", light: { x: 40, y: 52, r: 62 } },
+  "retro.tv": { w: 110, h: 110, layer: "stand", surfaces: [{ y: 4, x0: 16, x1: 94 }] },
+  "lv3.cushion": { w: 92, h: 52, layer: "stand", surfaces: [{ y: 18, x0: 22, x1: 70 }] },
+  "lv5.trophy": { w: 60, h: 92, layer: "stand" },
+  "lv7.chandelier": { w: 120, h: 92, layer: "wall", light: { x: 60, y: 62, r: 100 } },
+  "lv10.arch": { w: 260, h: 120, layer: "wall" },
 };
 
 export type FrameShape = "rect" | "round" | "circle" | "heart";
@@ -189,6 +335,17 @@ export const FRAME_DEFS: Record<string, FrameDef> = {
   "xmas.wreath": { aspect: 1.1, window: { x: 0.19, y: 0.17, w: 0.62, h: 0.564 }, shape: "circle" },
   "yumekawa.heart": { aspect: 0.95, window: { x: 0.08, y: 0.08, w: 0.84, h: 0.84 }, shape: "heart" },
   "showcase.gold": { aspect: 1.26, window: { x: 0.17, y: 0.15, w: 0.66, h: 0.7 }, shape: "rect" },
+  // 楕円の窓（circle の角丸 50% は、縦長の窓では楕円になる）
+  "library.frame": { aspect: 1.3, window: { x: 0.17, y: 0.14, w: 0.66, h: 0.72 }, shape: "circle" },
+  "cafe.frame": { aspect: 1.24, window: { x: 0.14, y: 0.22, w: 0.72, h: 0.62 }, shape: "rect" },
+  "space.frame": { aspect: 1.0, window: { x: 0.17, y: 0.17, w: 0.66, h: 0.66 }, shape: "circle" },
+  "beach.frame": { aspect: 1.16, window: { x: 0.16, y: 0.24, w: 0.68, h: 0.6 }, shape: "round" },
+  // チケットは横長（右に半券）
+  "live.frame": { aspect: 0.72, window: { x: 0.07, y: 0.13, w: 0.6, h: 0.74 }, shape: "rect" },
+  "altar.frame": { aspect: 1.26, window: { x: 0.16, y: 0.14, w: 0.68, h: 0.72 }, shape: "rect" },
+  "retro.frame": { aspect: 1.2, window: { x: 0.14, y: 0.12, w: 0.72, h: 0.76 }, shape: "rect" },
+  "lv3.flower": { aspect: 1.14, window: { x: 0.19, y: 0.19, w: 0.62, h: 0.62 }, shape: "round" },
+  "lv10.crown": { aspect: 1.42, window: { x: 0.14, y: 0.31, w: 0.72, h: 0.62 }, shape: "round" },
 };
 
 // ---------------------------------------------------------------------------

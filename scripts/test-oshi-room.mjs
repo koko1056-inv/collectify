@@ -26,16 +26,41 @@ import {
   placeNewFurniture,
   removeFurniture,
   roomI18nId,
+  roomItemFromUnlockKey,
+  roomItemUnlockKey,
   roomSurfaces,
   roomUnlockKey,
+  setUnlockLevel,
   snapGoods,
   timeOfDayJst,
+  LEVEL_SETS,
+  ROOM_SINGLE_ITEMS,
+  SHOP_SETS,
 } from "../src/lib/oshiRoom.ts";
-import { ROOM_SET_KEYS } from "../src/lib/cosmetics.ts";
+import {
+  LEVEL_POINTS,
+  LEVEL_REWARDS,
+  LINE_COUNT,
+  TIER_START,
+  bondSummary,
+  expectedRewards,
+  idleBob,
+  levelItemsAt,
+  parseRewards,
+  pickLine,
+  reactionTier,
+  rewardAt,
+} from "../src/lib/oshiLevel.ts";
+import { ROOM_SET_KEYS, isRoomItemKey, isRoomSetKey } from "../src/lib/cosmetics.ts";
 import { oshiRoom } from "../src/translations/modules/oshiRoom.ts";
+import { cosmetics } from "../src/translations/modules/cosmetics.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const migration = readFileSync(resolve(root, "supabase/migrations/20261012300000_oshi_room.sql"), "utf8");
+// 目録とショップの商品は、はじめの部屋（20261012300000）と、増やしたセット・特典・単品（20261013100000）の2つにある
+const migration = ["20261012300000_oshi_room.sql", "20261013100000_oshi_room_more_sets.sql"]
+  .map((f) => readFileSync(resolve(root, "supabase/migrations", f), "utf8"))
+  .join("\n");
+const rewardsMigration = readFileSync(resolve(root, "supabase/migrations/20261013100100_oshi_level_rewards.sql"), "utf8");
 
 // ── 目録が DB と同じか（並び・種類・セット） ──
 const dbAssets = [...migration.matchAll(/\('([a-z0-9]+\.[a-z0-9_]+)', '(wallpaper|floor|furniture|frame)', '([a-z0-9]+)'\)/g)].map((m) => ({ key: m[1], kind: m[2], set: m[3] }));
@@ -44,17 +69,60 @@ assert.deepEqual(
   dbAssets,
   "ROOM_ASSETS と migration の oshi_room_assets がずれている"
 );
+assert.equal(new Set(ROOM_ASSETS.map((a) => a.key)).size, ROOM_ASSETS.length, "目録の key が重なっている");
+assert.deepEqual([...new Set(ROOM_ASSETS.map((a) => a.set))], [...ROOM_SETS], "ROOM_SETS と目録のセットの並びがずれている");
 
-// ── ショップの商品（room:*）が、セットと cosmetics.ts の ROOM_SET_KEYS と同じか ──
+// ── ショップの商品（room:*）が、セットと cosmetics.ts の ROOM_SET_KEYS と同じか（レベルの特典は売らない） ──
 const shopKeys = [...migration.matchAll(/'(room:[a-z0-9]+)'\)/g)].map((m) => m[1]);
-const paidSets = ROOM_SETS.filter((s) => s !== "base").map(roomUnlockKey);
-assert.deepEqual(shopKeys, paidSets, "ショップの room:* と ROOM_SETS がずれている");
+const paidSets = SHOP_SETS.map(roomUnlockKey);
+assert.deepEqual(shopKeys, paidSets, "ショップの room:* と ROOM_SETS（ショップのセット）がずれている");
 assert.deepEqual(ROOM_SET_KEYS, paidSets, "cosmetics.ts の ROOM_SET_KEYS と ROOM_SETS がずれている");
+for (const set of Object.keys(LEVEL_SETS)) assert.ok(!shopKeys.includes(roomUnlockKey(set)), `レベルの特典 ${set} がショップにある`);
 
-// ── 各セットは 壁紙1・床1・家具2〜6・フレーム1〜4 ──
+// ── 単品（room:<目録の key>）が、ROOM_SINGLE_ITEMS と同じか。ショップのセットの家具・フレームだけ ──
+const singleKeys = [...migration.matchAll(/'(room:[a-z0-9]+\.[a-z0-9_]+)'\)/g)].map((m) => m[1]);
+assert.deepEqual(singleKeys, ROOM_SINGLE_ITEMS.map(roomItemUnlockKey), "ショップの単品と ROOM_SINGLE_ITEMS がずれている");
+for (const key of ROOM_SINGLE_ITEMS) {
+  const meta = ROOM_ASSETS.find((a) => a.key === key);
+  assert.ok(meta, `単品 ${key} が目録に無い`);
+  assert.ok(meta.kind === "furniture" || meta.kind === "frame", `単品 ${key} は家具かフレームだけ`);
+  assert.ok(SHOP_SETS.includes(meta.set), `単品 ${key} はショップのセットの物だけ`);
+  assert.equal(roomItemFromUnlockKey(roomItemUnlockKey(key)), key);
+  assert.equal(isRoomItemKey(roomItemUnlockKey(key)), true);
+  assert.equal(isRoomSetKey(roomItemUnlockKey(key)), false);
+}
+assert.equal(roomItemFromUnlockKey("room:sakura"), null);
+assert.equal(roomItemFromUnlockKey("room:nope.thing"), null);
+assert.equal(roomItemFromUnlockKey("cover:starry"), null);
+assert.equal(isRoomItemKey("room:sakura"), false);
+// 単品の値段は 50〜100pt、セットは 150〜300pt
+for (const m of migration.matchAll(/'cosmetic', 'unlock', (\d+), 1, true, 'home', \d+, '(room:[a-z0-9._]+)'\)/g)) {
+  const cost = Number(m[1]);
+  if (m[2].includes(".")) assert.ok(cost >= 50 && cost <= 100, `単品の値段: ${m[2]} ${cost}`);
+  else assert.ok(cost >= 150 && cost <= 300, `セットの値段: ${m[2]} ${cost}`);
+}
+
+// ── ショップのセットは 壁紙1・床1・家具2〜3・フレーム1（基本は家具とフレームが多い）。レベルの特典は1〜3つ ──
 for (const set of ROOM_SETS) {
   const of = (kind) => ROOM_ASSETS.filter((a) => a.set === set && a.kind === kind).length;
+  if (setUnlockLevel(set) !== null) {
+    const n = ROOM_ASSETS.filter((a) => a.set === set).length;
+    assert.ok(n >= 1 && n <= 3, `${set} の特典の数`);
+    continue;
+  }
   assert.ok(of("wallpaper") >= 1 && of("floor") >= 1 && of("furniture") >= 2 && of("frame") >= 1, `${set} の中身が足りない`);
+  if (set !== "base") assert.ok(of("furniture") <= 3 && of("frame") === 1, `${set} の家具・フレームの数`);
+}
+
+// ── 家具の置ける面・明かりが、家具の箱の中にあるか ──
+for (const [key, def] of Object.entries(FURNITURE_DEFS)) {
+  for (const s of def.surfaces ?? []) {
+    assert.ok(s.y >= 0 && s.y <= def.h && s.x0 >= 0 && s.x1 <= def.w && s.x0 < s.x1, `${key} の面が箱の外: ${JSON.stringify(s)}`);
+  }
+}
+for (const [key, def] of Object.entries(FRAME_DEFS)) {
+  const w = def.window;
+  assert.ok(w.x >= 0 && w.y >= 0 && w.x + w.w <= 1 && w.y + w.h <= 1, `${key} の窓がフレームの外`);
 }
 
 // ── 形の定義と、日英の名前が全部あるか ──
@@ -70,11 +138,80 @@ for (const set of ROOM_SETS) {
 assert.deepEqual(Object.keys(FURNITURE_DEFS).sort(), ROOM_ASSETS.filter((a) => a.kind === "furniture").map((a) => a.key).sort());
 assert.deepEqual(Object.keys(FRAME_DEFS).sort(), ROOM_ASSETS.filter((a) => a.kind === "frame").map((a) => a.key).sort());
 
-// ── 使えるか（基本は無料・ほかは買ったセットだけ） ──
+// ── 使えるか（基本は無料・ほかは買ったセット・単品・レベルで解放したセットだけ。DB の oshi_room_require_asset と同じ） ──
 assert.equal(isAssetUsable("base.shelf", new Set()), true);
 assert.equal(isAssetUsable("sakura.tree", new Set()), false);
 assert.equal(isAssetUsable("sakura.tree", new Set(["room:sakura"])), true);
+assert.equal(isAssetUsable("sakura.tree", new Set(["room:sakura.tree"])), true);
+assert.equal(isAssetUsable("sakura.branch", new Set(["room:sakura.tree"])), false);
+assert.equal(isAssetUsable("lv5.wall", new Set()), false);
+assert.equal(isAssetUsable("lv5.wall", new Set(["room:lv3"])), false);
+assert.equal(isAssetUsable("lv5.wall", new Set(["room:lv5"])), true);
 assert.equal(isAssetUsable("nope.thing", new Set(["room:nope"])), false);
+
+// ── なかよしレベルの特典（lib/oshiLevel.ts）。ポイントの表は DB の point_rewards と同じか ──
+const dbPoints = {};
+for (const m of rewardsMigration.matchAll(/\('companion_lv(\d+)',\s*(\d+),/g)) dbPoints[m[1]] = Number(m[2]);
+for (const m of rewardsMigration.matchAll(/SET points = (\d+)[^;]*reason = 'companion_lv(\d+)'/g)) dbPoints[m[2]] = Number(m[1]);
+assert.deepEqual(
+  Object.fromEntries(Object.entries(LEVEL_POINTS).map(([k, v]) => [String(k), v])),
+  dbPoints,
+  "LEVEL_POINTS と migration の point_rewards がずれている"
+);
+assert.deepEqual(Object.keys(LEVEL_POINTS).map(Number), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
+assert.deepEqual(LEVEL_REWARDS.map((r) => r.level), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
+// レベルの特典のセットは Lv3・5・7・10 で、目録にある
+assert.deepEqual(Object.values(LEVEL_SETS), [3, 5, 7, 10]);
+for (const [set, lv] of Object.entries(LEVEL_SETS)) {
+  assert.ok(ROOM_SETS.includes(set));
+  assert.equal(setUnlockLevel(set), lv);
+  assert.deepEqual(levelItemsAt(lv), ROOM_ASSETS.filter((a) => a.set === set).map((a) => a.key));
+  assert.equal(rewardAt(lv).set, set);
+}
+assert.equal(setUnlockLevel("sakura"), null);
+assert.deepEqual(levelItemsAt(4), []);
+// 反応の段階
+assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(reactionTier), [1, 1, 1, 2, 2, 2, 3, 3, 3, 4]);
+assert.deepEqual(TIER_START, { 1: 1, 2: 4, 3: 7, 4: 10 });
+assert.equal(rewardAt(4).tier, 2);
+assert.equal(rewardAt(5).tier, null);
+assert.equal(rewardAt(10).tier, 4);
+assert.equal(rewardAt(1), null);
+assert.equal(rewardAt(11), null);
+assert.ok(idleBob(10) > idleBob(7) && idleBob(7) > idleBob(4) && idleBob(4) > idleBob(1));
+// 見込みの特典（写真の保存からのレベルアップ）: 間のレベルのポイントの合計と、まだ持っていないセット
+assert.deepEqual(expectedRewards(1, 5, new Set(["room:lv3"])), { points: 3 + 5 + 5 + 10, unlocked: ["lv5"] });
+assert.deepEqual(expectedRewards(9, 10, new Set()), { points: 30, unlocked: ["lv10"] });
+assert.deepEqual(expectedRewards(5, 5, new Set()), { points: 0, unlocked: [] });
+// サーバーの答えを読む（変な形でも落ちない）
+assert.deepEqual(parseRewards({ points: 15, unlocked: ["lv5", "evil", 3] }), { points: 15, unlocked: ["lv5"] });
+assert.equal(parseRewards(null), null);
+assert.deepEqual(parseRewards({ points: "x" }), { points: 0, unlocked: [] });
+// ひとこと: Lv1〜3 は言わない。直前と同じ番号は続けない
+assert.equal(pickLine(1, 0.5), null);
+assert.equal(pickLine(2, 0).key, "oshiRoom.lines.mid.1");
+assert.equal(pickLine(4, 0.9999).key, `oshiRoom.lines.max.${LINE_COUNT}`);
+for (let i = 0; i < 50; i++) {
+  const r = i / 50;
+  const a = pickLine(3, r);
+  const b = pickLine(3, r, a.n);
+  assert.notEqual(a.n, b.n);
+  assert.ok(b.n >= 1 && b.n <= LINE_COUNT);
+}
+for (const lang of ["ja", "en"]) {
+  for (const g of ["mid", "high", "max"]) {
+    for (let n = 1; n <= LINE_COUNT; n++) assert.ok(oshiRoom[lang].lines[g][n], `${lang} のひとことが無い: ${g}.${n}`);
+  }
+  for (const tier of [2, 3, 4]) {
+    assert.ok(oshiRoom[lang].fx.tierUp[tier] && oshiRoom[lang].next.tier[tier], `${lang} の反応の段階の文言が無い: ${tier}`);
+  }
+  for (const set of SHOP_SETS) {
+    const id = roomUnlockKey(set).replace(":", "_");
+    assert.ok(cosmetics[lang].items[id]?.name && cosmetics[lang].items[id]?.desc, `${lang} のショップの名前が無い: ${id}`);
+  }
+}
+assert.deepEqual(bondSummary([10, 3, 1]), { total: 14, best: 10 });
+assert.deepEqual(bondSummary([]), { total: 0, best: 0 });
 
 // ── サーバーの確かめ（save_oshi_room）と同じ範囲に入っているか ──
 const UUIDS = ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", "55555555-5555-5555-5555-555555555555"];

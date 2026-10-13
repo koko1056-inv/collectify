@@ -56,3 +56,14 @@ export function petalPath(x: number, y: number, len: number, deg: number): strin
     `Q${mid[0] - n[0]} ${mid[1] - n[1]} ${x} ${y}Z`
   );
 }
+
+/** ドット絵（# が1マス）。レトロゲームの壁・家具・フレームで使う */
+export const PIXEL_HEART = [".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."];
+export const PIXEL_STAR = ["...#...", "..###..", "#######", ".#####.", ".##.##.", "##...##"];
+
+/** ドット絵の # のマス（左上 x, y、1マス size）。描く側が rect にする */
+export function pixelCells(rows: string[], x: number, y: number, size: number): { x: number; y: number; s: number }[] {
+  const out: { x: number; y: number; s: number }[] = [];
+  rows.forEach((row, j) => [...row].forEach((c, i) => c === "#" && out.push({ x: x + i * size, y: y + j * size, s: size })));
+  return out;
+}

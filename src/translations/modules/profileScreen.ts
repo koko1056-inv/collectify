@@ -18,6 +18,8 @@ export const profileScreen = {
     // 推しグッズ（最大5つ・順位つき）。以前の「お気に入りTOP5」（favorites）と「相棒グッズ」（companions）をまとめた
     oshiGoods: {
       title: "推しグッズ",
+      bondTotal: "なかよしLv合計",
+      bondAria: "いちばんのなかよし: Lv.{level} {title}（{name}）。なかよしLv合計 {total}",
       raise: "育てる",
       choose: "選ぶ",
       emptyOwn: "いちばん好きなグッズを5つまで。選ぶと順位つきで飾られ、推しの部屋で育てられます",
@@ -261,6 +263,8 @@ export const profileScreen = {
     },
     oshiGoods: {
       title: "Oshi goods",
+      bondTotal: "Total bond Lv",
+      bondAria: "Closest bond: Lv.{level} {title} ({name}). Total bond Lv {total}",
       raise: "Raise",
       choose: "Choose",
       emptyOwn: "Pick up to 5 goods you love most. They're shown ranked here, and you can raise them in your Oshi Room",

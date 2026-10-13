@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Crown } from "lucide-react";
+import { bondSummary } from "@/lib/oshiLevel";
+import { FX_DURATION, type RoomFxEvent } from "./fx";
 import { useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,10 +42,27 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
     };
   }, [room.data, ids]);
   const picked = list.find((g) => g.user_item_id === selected);
+  const bond = bondSummary(list.map((g) => g.level));
+
+  // タップしたグッズの反応（自分の部屋と同じく、なかよしレベルで豊かになる）。吹き出しには持ち主のひとことではなく称号を出す
+  const [fx, setFx] = useState<RoomFxEvent[]>([]);
+  const timers = useRef<number[]>([]);
+  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), []);
+  const react = (g: ProfileOshiGoods) => {
+    const id = Date.now() + Math.random();
+    setFx((prev) => [...prev.filter((e) => e.item !== g.user_item_id), { id, kind: "react", item: g.user_item_id, level: g.level, viewer: true }]);
+    timers.current.push(window.setTimeout(() => setFx((prev) => prev.filter((e) => e.id !== id)), FX_DURATION.react));
+  };
+
   // 選んでいるグッズをもう一度タップすると詳細を開く（自分の部屋と同じ）
   const selectGoods = (id: string) => {
-    if (id === selected && picked) setDetail(picked);
-    else setSelected(id);
+    if (id === selected && picked) {
+      setDetail(picked);
+      return;
+    }
+    setSelected(id);
+    const g = list.find((v) => v.user_item_id === id);
+    if (g) react(g);
   };
 
   return (
@@ -58,17 +78,32 @@ export function OshiRoomViewDialog({ profileId, name, open, onOpenChange }: { pr
           <p className="py-10 text-center text-sm text-muted-foreground">{t("oshiRoom.view.unavailable")}</p>
         ) : (
           <>
-            <RoomScene
-              state={state}
-              goods={map}
-              oshi={room.data?.oshiColor ?? "pink"}
-              time={timeOfDayJst()}
-              mode="readonly"
-              reduceMotion={reduceMotion}
-              selectedGoods={selected}
-              onSelectGoods={selectGoods}
-              label={t("oshiRoom.roomAriaOf", { name })}
-            />
+            <div className="relative">
+              <RoomScene
+                state={state}
+                goods={map}
+                oshi={room.data?.oshiColor ?? "pink"}
+                time={timeOfDayJst()}
+                mode="readonly"
+                reduceMotion={reduceMotion}
+                selectedGoods={selected}
+                onSelectGoods={selectGoods}
+                fx={fx}
+                label={t("oshiRoom.roomAriaOf", { name })}
+              />
+              {/* 部屋の札: なかよしLvの合計と、いちばん育てた推しのレベル（自慢の見せどころ） */}
+              {list.length > 0 && (
+                <span className="pointer-events-none absolute left-2.5 top-2.5 z-40 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-2.5 py-1 text-2xs font-bold shadow-sm backdrop-blur-sm">
+                  <Crown className="h-3.5 w-3.5 text-points" />
+                  <span>
+                    {t("oshiRoom.view.bondTotal")} <span className="tabular-nums text-primary">{bond.total}</span>
+                  </span>
+                  {bond.best >= 2 && (
+                    <span className="rounded-full bg-primary px-1.5 py-px text-3xs tabular-nums text-primary-foreground">{t("oshiRoom.view.bondBest", { level: bond.best })}</span>
+                  )}
+                </span>
+              )}
+            </div>
             <div className="min-h-[3rem] rounded-2xl bg-muted/50 px-3 py-2 text-center" aria-live="polite">
               {picked ? (
                 <>

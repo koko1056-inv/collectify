@@ -49,8 +49,16 @@ export type RoomSetKey =
   | "room:halloween"
   | "room:xmas"
   | "room:yumekawa"
-  | "room:showcase";
+  | "room:showcase"
+  | "room:library"
+  | "room:cafe"
+  | "room:space"
+  | "room:beach"
+  | "room:live"
+  | "room:altar"
+  | "room:retro";
 
+/** ショップで売るセットの並び（lib/oshiRoom.ts の SHOP_SETS と同じ。なかよしレベルの特典 room:lvN は売らないので入れない） */
 export const ROOM_SET_KEYS: RoomSetKey[] = [
   "room:oshi",
   "room:sakura",
@@ -59,6 +67,13 @@ export const ROOM_SET_KEYS: RoomSetKey[] = [
   "room:xmas",
   "room:yumekawa",
   "room:showcase",
+  "room:library",
+  "room:cafe",
+  "room:space",
+  "room:beach",
+  "room:live",
+  "room:altar",
+  "room:retro",
 ];
 
 export function isCoverKey(v: string | null | undefined): v is CoverKey {
@@ -69,6 +84,13 @@ export function isFrameKey(v: string | null | undefined): v is FrameKey {
 }
 export function isRoomSetKey(v: string | null | undefined): v is RoomSetKey {
   return !!v && (ROOM_SET_KEYS as string[]).includes(v);
+}
+/**
+ * 推しの部屋の単品（家具・フレーム1つ）の解放キーか。形は 'room:<目録の key>'（例 room:sakura.tree）。
+ * セットのキー（room:sakura）とは「.」があるかで見分ける。目録にあるかは lib/oshiRoom.ts の roomItemFromUnlockKey で確かめる
+ */
+export function isRoomItemKey(v: string | null | undefined): boolean {
+  return !!v && /^room:[a-z0-9]+\.[a-z0-9_]+$/.test(v);
 }
 export function isShareTemplateKey(v: string | null | undefined): v is ShareTemplateKey {
   return !!v && (SHARE_TEMPLATE_KEYS as string[]).includes(v);
