@@ -22,6 +22,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface PostDetailModalProps {
   post: GoodsPost | null;
@@ -113,7 +114,8 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 <X className="h-5 w-5" />
               </Button>
               <img
-                src={post.image_url}
+                src={getOptimizedImageUrl(post.image_url, { width: DETAIL_IMAGE_WIDTH })}
+                onError={fallbackToOriginal(post.image_url)}
                 alt={post.caption || t("social.posts.postImageAlt")}
                 className="max-h-[90vh] w-full object-contain"
               />
@@ -176,7 +178,8 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     >
                       {post.user_items.image && (
                         <img
-                          src={post.user_items.image}
+                          src={getOptimizedImageUrl(post.user_items.image, { width: 144 })}
+                          onError={fallbackToOriginal(post.user_items.image)}
                           alt={post.user_items.title}
                           className="h-12 w-12 object-cover rounded"
                         />

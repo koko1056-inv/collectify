@@ -103,6 +103,28 @@ export function useOfficialItems(options: UseOfficialItemsOptions = {}) {
   });
 }
 
+/** 作品を選んだときに、全件より先に読む先頭の件数（一覧の最初の1画面＋少し） */
+export const CONTENT_PREVIEW_SIZE = 60;
+
+/**
+ * 作品を選んだときの一覧の「先頭だけ」。useOfficialItems と同じ並び順で、最初の CONTENT_PREVIEW_SIZE 件。
+ *
+ * useOfficialItems は作品のグッズを全件読む（絞り込みを手元でするため）。ちいかわのように 1 万件ある作品だと
+ * 約 10MB・11 回のリクエストで、データセンターの回線でも 9 秒、スマホでは十数秒、一覧に何も出なかった
+ * （「一覧から選ぶ」は推しの作品を開いた状態で始まるので、ほとんどの人がこれを待っていた）。
+ * 先頭だけを先に読んで出しておけば、画像はすぐ読み始められる。並びは同じなので、全件が届いても先頭は入れ替わらない。
+ */
+export function useOfficialItemsPreview(content: string | null | undefined, enabled = true) {
+  const name = content?.trim() || null;
+  return useQuery<OfficialItem[]>({
+    queryKey: ["official-items-preview", name],
+    enabled: enabled && !!name,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    queryFn: async () => toItems(await fetchPage({ content: name }, 0, CONTENT_PREVIEW_SIZE)),
+  });
+}
+
 export interface CatalogContent {
   name: string;
   count: number;

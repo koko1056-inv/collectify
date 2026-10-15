@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export const PROFILE_IMAGES_BUCKET = "profile_images" as const;
 
@@ -36,7 +37,8 @@ export async function ensureProfileImagesPublicUrl(params: {
 
   const { error: uploadError } = await supabase.storage
     .from(PROFILE_IMAGES_BUCKET)
-    .upload(filePath, blob, { contentType, upsert: false });
+    // パスは毎回新しいので、キャッシュは長くてよい（既定の 1 時間だと、見るたびに取り直しになる）
+    .upload(filePath, blob, { contentType, upsert: false, cacheControl: UPLOAD_CACHE_CONTROL });
   if (uploadError) throw uploadError;
 
   const { data } = supabase.storage.from(PROFILE_IMAGES_BUCKET).getPublicUrl(filePath);

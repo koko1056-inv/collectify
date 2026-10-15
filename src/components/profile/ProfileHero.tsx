@@ -32,6 +32,7 @@ import { AvatarFrame } from "@/components/cosmetics/AvatarFrame";
 import { DefaultCover } from "@/components/cosmetics/DefaultCover";
 import { CosmeticsSheet } from "@/components/cosmetics/CosmeticsSheet";
 import { getCoverLook, isCoverKey, isFrameKey, resolveOshiColor } from "@/lib/cosmetics";
+import { UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -86,7 +87,8 @@ export function ProfileHero({
       const path = `${user.id}/cover-${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("profile_images")
-        .upload(path, file, { contentType: file.type, upsert: false });
+        // パスは毎回新しいので、キャッシュは長くてよい（既定の 1 時間だと、見るたびに取り直しになる）
+        .upload(path, file, { contentType: file.type, upsert: false, cacheControl: UPLOAD_CACHE_CONTROL });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage
         .from("profile_images")
@@ -259,7 +261,7 @@ export function ProfileHero({
               {/* 着せ替えの縁（ポイントで解放）。付けていなければそのまま */}
               <AvatarFrame frameKey={frameKey} oshiColor={oshiColor} className="-m-1">
                 <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-4 border-card bg-card shadow-md">
-                  <AvatarImage src={avatarSrc} className="object-cover" />
+                  <AvatarImage src={avatarSrc} renderWidth={384} className="object-cover" />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold text-2xl">
                     {displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>

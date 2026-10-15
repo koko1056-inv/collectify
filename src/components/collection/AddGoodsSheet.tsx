@@ -29,6 +29,7 @@ import {
   useCatalogFeed,
   useContentNamesEn,
   useOfficialItems,
+  useOfficialItemsPreview,
 } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
@@ -347,18 +348,28 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     [namesEn, language]
   );
   const workQuery = useOfficialItems({ content: filter.content, enabled: !!filter.content });
+  // 作品の全件が届くまでの間は、先頭の数十件を先に出す（全件は 1 万件・10MB になる作品もあり、十数秒なにも出なかった）。
+  // 手元の絞り込み（キーワード・タグ・持っていないものだけ）をしているときは、先頭だけでは結果が欠けるので使わない
+  const workLoading = !!filter.content && (!workQuery.data || workQuery.isPlaceholderData);
+  const previewable = workLoading && !filter.query.trim() && !filter.hideOwned && activeFilterCount(filter) === 1;
+  const workPreview = useOfficialItemsPreview(filter.content, previewable);
+  const usePreview = previewable && !!workPreview.data && !workQuery.isError;
   const feed = useCatalogFeed(deferredQuery, !filter.content);
   const active = filter.content ? workQuery : feed;
-  const items = useMemo(() => (filter.content ? workQuery.data ?? [] : feed.items), [filter.content, workQuery.data, feed.items]);
+  const items = useMemo(
+    () => (filter.content ? (usePreview ? workPreview.data ?? [] : workQuery.data ?? []) : feed.items),
+    [filter.content, usePreview, workPreview.data, workQuery.data, feed.items]
+  );
   const { isError, refetch } = active;
   // 作品を切り替えた直後は、前の一覧を残したまま新しい一覧を取りに行っている。
   // その一覧を新しい作品で絞り込むと空になり、「見つかりません」が一瞬出てしまうので、読み込み中として扱う。
   const isLoading =
-    active.isLoading ||
-    active.isPlaceholderData ||
-    (active.isFetching && items.length === 0) ||
-    // 言葉を入れた直後（検索結果がまだ追いついていない一瞬）
-    (!filter.content && filter.query !== deferredQuery);
+    !usePreview &&
+    (active.isLoading ||
+      active.isPlaceholderData ||
+      (active.isFetching && items.length === 0) ||
+      // 言葉を入れた直後（検索結果がまだ追いついていない一瞬）
+      (!filter.content && filter.query !== deferredQuery));
 
   // 既に持っているグッズを一度に取得する。
   // 行ごとに問い合わせると、表示件数ぶんクエリが飛んでしまう。
@@ -463,8 +474,9 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       void feed.fetchNextPage();
     }
   }, [moreOnServer, feed, filtered.length, visible]);
-  const hasMore = filtered.length > visible || moreOnServer;
-  const loadingMore = feed.isFetchingNextPage && !filter.content;
+  // 先頭だけを出している間は、続き（全件）を読んでいる印を末尾に出す
+  const hasMore = filtered.length > visible || moreOnServer || usePreview;
+  const loadingMore = (feed.isFetchingNextPage && !filter.content) || usePreview;
 
   // 一覧の末尾が見えたら、続きを足す（スクロールするだけで増えていく）。
   // 足した直後にまだ末尾が見えていれば、依存の変化で監視し直されて、もう一度足される。
@@ -488,7 +500,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   }, [sentinel, hasMore, loadingMore, moreOnServer, feed, filtered.length, visible]);
   // 件数は、絞り込み（タグ・持っていないものだけ）をしていなければサーバーが数えた全体の数
   const hasClientFilter = activeFilterCount(filter) > 0;
-  const totalCount = !filter.content && !hasClientFilter && feed.total !== null ? feed.total : filtered.length;
+  const previewTotal = usePreview ? contents.find((c) => c.name === filter.content)?.count : undefined;
+  const totalCount = !filter.content && !hasClientFilter && feed.total !== null ? feed.total : previewTotal ?? filtered.length;
 
   // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）。件数はサーバーで数えた全体の数。
   // 横にスクロールできるので全作品を並べる（件数の少ないアーティストなどが隠れないように）。
@@ -669,13 +682,15 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           ) : (
             // マイコレクションと同じ、写真つきのカードを並べて選ぶ
             <div className="grid grid-cols-3 gap-2.5 pb-2">
-              {results.map((item) => {
+              {results.map((item, index) => {
                 const owned = ownedIds?.has(item.id) ?? false;
                 const wished = wishedIds?.has(item.id) ?? false;
                 return (
                   <div key={item.id} className="relative min-w-0">
                     <GoodsPickTile
                       image={item.image}
+                      // 3列なので、最初の 3 行（開いたときに見える分）
+                      priority={index < 9}
                       title={item.title}
                       subtitle={contentLabel(item.content_name)}
                       selected={owned}

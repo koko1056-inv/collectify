@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export interface ItemPost {
   id: string;
@@ -183,13 +184,15 @@ export function useCreateItemPost() {
       // 2. 画像アップロード + レコード作成
       const imageRecords: { post_id: string; image_url: string; display_order: number }[] = [];
       for (let i = 0; i < images.length; i++) {
-        const file = images[i];
+        // 投稿の写真はそのまま上げていたので、1〜2MB の PNG が並び、みんなの投稿の画面が重かった。
+        // ほかの写真と同じく、上げる前に縮める（長辺 1600px の JPEG）。キャッシュも長くする（パスは毎回新しい）
+        const file = await compressImageFile(images[i], ITEM_IMAGE_OPTIONS);
         const ext = file.name.split(".").pop() || "jpg";
         const path = `${user.id}/${post.id}/${i}.${ext}`;
 
         const { error: upErr } = await supabase.storage
           .from("item-posts")
-          .upload(path, file, { contentType: file.type, upsert: false });
+          .upload(path, file, { contentType: file.type, upsert: false, cacheControl: UPLOAD_CACHE_CONTROL });
         if (upErr) throw upErr;
 
         const { data: pub } = supabase.storage.from("item-posts").getPublicUrl(path);

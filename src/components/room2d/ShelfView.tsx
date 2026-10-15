@@ -8,6 +8,7 @@ import { FurniturePiece2D } from "./FurniturePiece2D";
 import { getFurnitureById, FurnitureStyle } from "./displayFurniturePresets";
 import { getWallpaperById, DEFAULT_WALLPAPER_ID } from "./wallpapers";
 import { IsometricRoomFrame, DEFAULT_HORIZON_Y, DEFAULT_FLOOR_INSET } from "./IsometricRoomFrame";
+import { fallbackToOriginal, getAvatarImageUrl } from "@/utils/optimized-image";
 
 const WALLPAPER_PREFIX = "wp:";
 const THEME_PREFIX = "theme:"; // 後方互換のため、旧テーマIDも壁紙にマッピング
@@ -154,7 +155,7 @@ export function ShelfView(props: ShelfViewProps) {
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden ring-4 ring-white/80 shadow-xl"
             style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }}
           >
-            <img src={props.avatarUrl} alt="avatar" className="w-full h-full object-cover" crossOrigin="anonymous" />
+            <img src={getAvatarImageUrl(props.avatarUrl, 192)} onError={fallbackToOriginal(props.avatarUrl)} alt="avatar" className="w-full h-full object-cover" crossOrigin="anonymous" />
           </div>
         </div>
       )}

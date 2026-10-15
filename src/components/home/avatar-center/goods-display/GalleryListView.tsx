@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface Props {
   userId?: string;
@@ -54,7 +55,8 @@ export function GalleryListView({ userId, enabled }: Props) {
               className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
             >
               <img
-                src={gallery.image_url}
+                src={getOptimizedImageUrl(gallery.image_url, { width: 1080 })}
+                onError={fallbackToOriginal(gallery.image_url)}
                 alt={gallery.title || "Gallery"}
                 className="w-full h-64 object-cover cursor-pointer"
                 onClick={() => window.open(gallery.image_url, "_blank")}
@@ -74,7 +76,8 @@ export function GalleryListView({ userId, enabled }: Props) {
                       <>
                         {gallery.profiles.avatar_url && (
                           <img
-                            src={gallery.profiles.avatar_url}
+                            src={getAvatarImageUrl(gallery.profiles.avatar_url, 64)}
+                            onError={fallbackToOriginal(gallery.profiles.avatar_url)}
                             alt={
                               gallery.profiles.display_name ||
                               gallery.profiles.username

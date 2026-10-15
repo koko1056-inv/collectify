@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { addToCollection } from "@/utils/collection-actions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export function AdminItemForm() {
   const [currentStep, setCurrentStep] = useState("step1");
@@ -369,7 +370,7 @@ export function AdminItemForm() {
 
                                 const { error: uploadError } = await supabase.storage
                                   .from('kuji_images')
-                                  .upload(filePath, file);
+                                  .upload(filePath, file, { cacheControl: UPLOAD_CACHE_CONTROL });
 
                                 if (uploadError) throw uploadError;
 

@@ -27,6 +27,11 @@ interface GoodsPickTileProps {
   onImageClick?: () => void;
   ariaLabel?: string;
   imageAriaLabel?: string;
+  /**
+   * 開いた時点で見えている最初の数枚に付ける。loading="lazy" だと見えるかどうかの判定を待ってから読み始めるので、
+   * 先頭の数枚はすぐに・優先して読む。
+   */
+  priority?: boolean;
 }
 
 /**
@@ -52,6 +57,7 @@ export const GoodsPickTile = memo(function GoodsPickTile({
   onImageClick,
   ariaLabel,
   imageAriaLabel,
+  priority = false,
 }: GoodsPickTileProps) {
   const { t } = useLanguage();
   const actionDisabled = disabled || busy;
@@ -80,7 +86,8 @@ export const GoodsPickTile = memo(function GoodsPickTile({
             src={getOptimizedImageUrl(image, { width: 320 })}
             onError={fallbackToOriginal(image)}
             alt=""
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
             decoding="async"
             className="absolute inset-0 h-full w-full object-contain"
           />

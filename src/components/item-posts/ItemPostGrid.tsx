@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, MessageCircle, Images, PackageCheck } from "lucide-react";
 import { ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { cn } from "@/lib/utils";
+import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { PostReactionSummary } from "@/hooks/item-posts/useItemPostReactions";
@@ -68,11 +69,16 @@ function ItemPostTile({
       )}
     >
       {cover ? (
+        // 投稿の写真の元画像は 1〜2MB の PNG が多い（1画面18枚で 25MB を読んでいた）。
+        // マスは スマホ 2列（約190px）なので、高密度の画面でも 600px あれば足りる
         <img
-          src={cover}
+          src={getOptimizedImageUrl(cover, { width: 600 })}
+          onError={fallbackToOriginal(cover)}
           alt=""
           className="w-full h-full object-cover"
-          loading="lazy"
+          loading={delayIndex < 4 ? "eager" : "lazy"}
+          fetchPriority={delayIndex < 4 ? "high" : undefined}
+          decoding="async"
         />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/10" />
@@ -89,9 +95,12 @@ function ItemPostTile({
       {post.profile?.avatar_url && (
         <div className="absolute top-2 left-2 w-7 h-7 rounded-full overflow-hidden ring-2 ring-white/80 shadow-md">
           <img
-            src={post.profile.avatar_url}
+            src={getAvatarImageUrl(post.profile.avatar_url, 96)}
+            onError={fallbackToOriginal(post.profile.avatar_url)}
             alt=""
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       )}

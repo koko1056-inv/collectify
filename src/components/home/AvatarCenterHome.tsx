@@ -379,7 +379,7 @@ function HeroAvatar({
               className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/40 to-primary/30 blur-2xl"
             />
             <Avatar className="relative w-44 h-44 sm:w-56 sm:h-56 border-4 border-background shadow-2xl ring-2 ring-primary/30">
-              <AvatarImage src={imageUrl} className="object-cover" />
+              <AvatarImage src={imageUrl} renderWidth={672} className="object-cover" />
               <AvatarFallback className="bg-primary/10 text-primary">
                 <User className="w-16 h-16" />
               </AvatarFallback>

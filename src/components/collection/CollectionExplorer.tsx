@@ -3,6 +3,7 @@ import { Trophy, Share2, ChevronDown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 import {
   countFacets,
   type FacetKind,
@@ -95,7 +96,8 @@ export function CollectionExplorer({
                     <div className="relative h-20 bg-muted">
                       {p.cover_image && (
                         <img
-                          src={p.cover_image}
+                          src={getOptimizedImageUrl(p.cover_image, { width: 480 })}
+                          onError={fallbackToOriginal(p.cover_image)}
                           alt=""
                           loading="lazy"
                           className="h-full w-full object-cover"

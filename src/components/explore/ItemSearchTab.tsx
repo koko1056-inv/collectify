@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { addToCollection } from "@/utils/collection-actions";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface ItemRow {
   id: string;
@@ -266,7 +267,17 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
                 className="flex flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="relative aspect-square w-full overflow-hidden bg-muted">
-                  {r.image && <img src={r.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
+                  {/* カタログの外部画像は原寸（1000px 超・数百KB）なので、サーバーで縮めたサムネを読む */}
+                  {r.image && (
+                    <img
+                      src={getOptimizedImageUrl(r.image, { width: 480 })}
+                      onError={fallbackToOriginal(r.image)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
+                  )}
                   {r.trade_count > 0 && (
                     <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground shadow">
                       <Repeat className="h-3 w-3" />

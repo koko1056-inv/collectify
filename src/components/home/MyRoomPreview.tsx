@@ -127,7 +127,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
         {profile?.avatar_url && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
             <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-              <AvatarImage src={profile.avatar_url} />
+              <AvatarImage src={profile.avatar_url} renderWidth={256} />
               <AvatarFallback>{getInitial(null, profile.username)}</AvatarFallback>
             </Avatar>
           </div>
