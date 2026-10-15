@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useRecentRegistrations, type RecentRegistration } from "@/hooks/useRecentRegistrations";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { PublicUserItemModal } from "@/components/item-details/PublicUserItemModal";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 /**
  * 「いま登録されたグッズ」。
@@ -32,7 +33,17 @@ export function RecentRegistrationsStrip() {
           <div key={r.user_item_id} className="snap-start shrink-0 w-28">
             <button type="button" onClick={() => setOpened(r)} className="block w-full text-left">
               <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-                {r.image && <img src={r.image} alt="" loading="lazy" className="h-full w-full object-contain" />}
+                {/* 112px のマス。元画像（ユーザーの写真は 1MB 超もある）ではなく縮めたものを読む */}
+                {r.image && (
+                  <img
+                    src={getOptimizedImageUrl(r.image, { width: 320 })}
+                    onError={fallbackToOriginal(r.image)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-contain"
+                  />
+                )}
               </div>
               <p className="mt-1 line-clamp-2 text-2xs font-medium leading-tight">{r.title}</p>
             </button>

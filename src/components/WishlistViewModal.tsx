@@ -14,6 +14,7 @@ import { ShareModal } from "./ShareModal";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface EditingWishlist {
   id: string;
@@ -151,7 +152,7 @@ export function WishlistViewModal({
               releaseDate: item.official_items.release_date,
               description: item.official_items.description
             })}>
-                    <img src={item.official_items.image} alt={item.official_items.title} className="h-16 w-16 object-contain rounded-md bg-muted/30" />
+                    <img src={getOptimizedImageUrl(item.official_items.image, { width: 192 })} onError={fallbackToOriginal(item.official_items.image)} alt={item.official_items.title} className="h-16 w-16 object-contain rounded-md bg-muted/30" />
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Package } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface Props {
   meId: string | undefined | null;
@@ -106,7 +107,8 @@ export function CollectionDiffModal({ meId, otherId, open, onOpenChange }: Props
                           <div className="aspect-square bg-muted rounded-md overflow-hidden border">
                             {item.image && (
                               <img
-                                src={item.image}
+                                src={getOptimizedImageUrl(item.image, { width: 320 })}
+                                onError={fallbackToOriginal(item.image)}
                                 alt={item.title}
                                 loading="lazy"
                                 className="w-full h-full object-contain"

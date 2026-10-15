@@ -13,6 +13,7 @@ import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { UserItemPostsSection } from "@/components/item-posts/UserItemPostsSection";
+import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface PublicUserItemModalProps {
   isOpen: boolean;
@@ -215,7 +216,13 @@ export function PublicUserItemModal({
         ) : (
           <div className="space-y-4">
             <div className="aspect-square rounded-2xl overflow-hidden bg-muted">
-              <img src={image} alt={title} className="w-full h-full object-contain" />
+              <img
+                src={getOptimizedImageUrl(image, { width: DETAIL_IMAGE_WIDTH })}
+                onError={fallbackToOriginal(image)}
+                alt={title}
+                decoding="async"
+                className="w-full h-full object-contain"
+              />
             </div>
 
             {officialItem?.release_date && (

@@ -30,6 +30,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyAiRoomLikes, useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
 import { useAuth } from "@/contexts/AuthContext";
+import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 export default function AiWorkDetail() {
   const { t } = useLanguage();
@@ -127,7 +128,8 @@ export default function AiWorkDetail() {
               {/* Hero */}
               <div className="relative rounded-3xl overflow-hidden bg-muted border border-border/40 shadow-xl">
                 <img
-                  src={room.image_url}
+                  src={getOptimizedImageUrl(room.image_url, { width: DETAIL_IMAGE_WIDTH })}
+                  onError={fallbackToOriginal(room.image_url)}
                   alt={room.title || t("screens.aiWorkDetail.imageAlt")}
                   className="w-full h-auto max-h-[70vh] object-contain bg-black/5"
                 />
@@ -254,7 +256,7 @@ export default function AiWorkDetail() {
                         key={i}
                         className="aspect-square rounded-xl overflow-hidden bg-muted border border-border/40"
                       >
-                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <img src={getOptimizedImageUrl(src, { width: 320 })} onError={fallbackToOriginal(src)} alt="" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -273,7 +275,8 @@ export default function AiWorkDetail() {
                     className="block w-full max-w-xs rounded-2xl overflow-hidden bg-muted border border-border hover:border-primary/40 transition-all"
                   >
                     <img
-                      src={lineage.parent.image_url}
+                      src={getOptimizedImageUrl(lineage.parent.image_url, { width: 960 })}
+                      onError={fallbackToOriginal(lineage.parent.image_url)}
                       alt=""
                       className="w-full aspect-video object-cover"
                     />
@@ -301,7 +304,8 @@ export default function AiWorkDetail() {
                         className="rounded-2xl overflow-hidden bg-muted border border-border hover:border-primary/40 transition-all"
                       >
                         <img
-                          src={c.image_url}
+                          src={getOptimizedImageUrl(c.image_url, { width: 600 })}
+                          onError={fallbackToOriginal(c.image_url)}
                           alt=""
                           className="w-full aspect-video object-cover"
                         />

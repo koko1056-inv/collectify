@@ -3,6 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { getDisplayStyle, DisplayStyle } from "../room3d/displayStyles";
+import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface Item2DProps {
   item: RoomItem;
@@ -122,7 +123,7 @@ function ItemDisplay({
           )}
           style={{ filter: "drop-shadow(0 8px 8px rgba(0,0,0,0.25))" }}
         >
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+          <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
         </div>
       );
 
@@ -141,7 +142,7 @@ function ItemDisplay({
             className="w-full h-full overflow-hidden"
             style={{ boxShadow: "inset 0 0 8px rgba(0,0,0,0.4)" }}
           >
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
           </div>
         </div>
       );
@@ -156,7 +157,7 @@ function ItemDisplay({
               filter: "drop-shadow(0 4px 8px rgba(0,100,200,0.3))",
             }}
           >
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -183,7 +184,7 @@ function ItemDisplay({
             className="w-full aspect-[3/5] overflow-hidden rounded-t-lg"
             style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.35))" }}
           >
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
           </div>
           <div
             className="w-3/4 h-[10%] mx-auto -mt-1 rounded-md relative"
@@ -215,7 +216,7 @@ function ItemDisplay({
           }}
         >
           <div className="w-full h-full rounded-[35%] overflow-hidden">
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
           </div>
         </div>
       );
@@ -236,7 +237,7 @@ function ItemDisplay({
                 "drop-shadow(0 0 6px rgba(251,191,36,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
             }}
           >
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
           </div>
           <div
             className="w-2/3 h-[12%] mx-auto -mt-1 rounded"
@@ -252,7 +253,7 @@ function ItemDisplay({
     default:
       return (
         <div className={cn("w-full aspect-square overflow-hidden rounded-md", selectionRing)}>
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" draggable={false} />
+          <img src={getOptimizedImageUrl(imageUrl, { width: 480 })} onError={fallbackToOriginal(imageUrl)} alt="" className="w-full h-full object-cover" draggable={false} />
         </div>
       );
   }

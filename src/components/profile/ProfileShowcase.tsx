@@ -267,7 +267,7 @@ function ShowcaseCard({
       >
         {imageUrl ? (
           <>
-            <img src={imageUrl} alt={title || label} className="w-full h-full object-cover" />
+            <img src={getOptimizedImageUrl(imageUrl, { width: 600 })} onError={fallbackToOriginal(imageUrl)} alt={title || label} className="w-full h-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
               <div className="flex items-center gap-1 text-white text-3xs font-medium">
                 <Icon className="w-3 h-3" />

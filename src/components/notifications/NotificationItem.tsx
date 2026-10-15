@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { STAMP_BY_TYPE, type StampType } from '@/features/stamps/types';
 import { useReplyStamp } from '@/features/stamps/useGreetingStamp';
+import { fallbackToOriginal, getOptimizedImageUrl } from '@/utils/optimized-image';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -166,7 +167,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           {notification.type === 'new_item' && data.image && (
             <div className="flex items-center gap-2 mb-2">
               <img
-                src={data.image}
+                src={getOptimizedImageUrl(data.image, { width: 96 })}
+                onError={fallbackToOriginal(data.image)}
                 alt={data.item_title}
                 className="w-8 h-8 rounded object-contain bg-muted/30"
               />
@@ -183,7 +185,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           {(notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && data.image && (
             <div className="flex items-center gap-2 mb-2">
               <img
-                src={data.image}
+                src={getOptimizedImageUrl(data.image, { width: 96 })}
+                onError={fallbackToOriginal(data.image)}
                 alt={t("misc.notifications.postImageAlt")}
                 className="w-8 h-8 rounded object-contain bg-muted/30"
               />

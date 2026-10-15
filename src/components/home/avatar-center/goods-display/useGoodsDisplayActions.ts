@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface SaveGalleryParams {
   userId: string;
@@ -63,7 +64,7 @@ export function useUploadBackgroundPreset() {
 
       const { error: uploadError } = await supabase.storage
         .from("kuji_images")
-        .upload(filePath, file);
+        .upload(filePath, file, { cacheControl: UPLOAD_CACHE_CONTROL });
       if (uploadError) throw uploadError;
 
       const {
@@ -110,7 +111,7 @@ export async function shareDisplayToTwitter(
     const filePath = `${userId}/share/${crypto.randomUUID()}.png`;
     const { error: uploadError } = await supabase.storage
       .from("kuji_images")
-      .upload(filePath, file);
+      .upload(filePath, file, { cacheControl: UPLOAD_CACHE_CONTROL });
     if (uploadError) throw uploadError;
 
     const {

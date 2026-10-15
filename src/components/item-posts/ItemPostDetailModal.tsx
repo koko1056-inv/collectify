@@ -39,6 +39,7 @@ import { ReactionBar } from "./ReactionBar";
 import { shareContent } from "@/utils/share";
 import { buildShareText } from "@/utils/shareLinks";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -132,7 +133,8 @@ export function ItemPostDetailModal({
           <div className="relative aspect-square overflow-hidden">
             {currentImage && (
               <img
-                src={currentImage.image_url}
+                src={getOptimizedImageUrl(currentImage.image_url, { width: DETAIL_IMAGE_WIDTH })}
+                onError={fallbackToOriginal(currentImage.image_url)}
                 alt=""
                 className="w-full h-full object-contain"
               />

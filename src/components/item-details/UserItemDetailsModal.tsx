@@ -17,6 +17,7 @@ import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
+import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -166,16 +167,31 @@ export function UserItemDetailsModal({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          // 詳細を読んでいる間も、一覧から受け取った画像は先に出す（同じURLなので、読み終えた後はそのまま使われる）
+          <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+            {image ? (
+              <img
+                src={getOptimizedImageUrl(image, { width: DETAIL_IMAGE_WIDTH })}
+                onError={fallbackToOriginal(image)}
+                alt={title}
+                decoding="async"
+                fetchPriority="high"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            )}
           </div>
         ) : (
           <div className="space-y-4">
             {/* メイン画像 */}
             <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+              {/* 元画像（ユーザーの写真は 1MB 超の PNG もある）ではなく、画面の幅に合わせて縮めたものを読む */}
               <img
-                src={itemDetails?.image || image}
+                src={getOptimizedImageUrl(itemDetails?.image || image, { width: DETAIL_IMAGE_WIDTH })}
+                onError={fallbackToOriginal(itemDetails?.image || image)}
                 alt={title}
+                decoding="async"
                 className="w-full h-full object-contain"
               />
               {/* シェアボタン */}

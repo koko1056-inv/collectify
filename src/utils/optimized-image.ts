@@ -20,6 +20,13 @@ export const CATALOG_THUMB_MAX_WIDTH = 480;
  */
 export const CATALOG_THUMBS_ENABLED = true;
 
+/**
+ * 詳細画面（1枚を大きく出す）で読む幅。ダイアログは最大で幅 448px 前後なので、3倍密度の画面でも 1080px で足りる。
+ * 元画像（ユーザーの写真は 1〜2MB の PNG もある）をそのまま読むと、4G で 1 枚 1 秒以上かかっていた。
+ * 外部のカタログ画像はサムネ（480px）より大きいので、元画像のまま（getOptimizedImageUrl がそうする）。
+ */
+export const DETAIL_IMAGE_WIDTH = 1080;
+
 const thumbCache = new Map<string, string>();
 
 /**
@@ -84,16 +91,47 @@ export function toProxyUrl(src: string): string {
 }
 
 /**
- * 画像変換URLの読み込みに失敗したとき、一度だけ元のURLに切り替える onError ハンドラ。
+ * アバター（丸い小さな顔写真）用。Storage の画像だけを画像変換で縮める。
  *
- * 画像変換は Supabase のプラン依存の機能なので、使えない環境では
- * 変換URLが失敗する。そのまま何も出ないより、重くても元画像を出すほうがよい。
+ * profile_images の元画像は 1024px・1MB 以上の PNG が多く、ヘッダーの 28px のアイコンにも
+ * それをそのまま読んでいた（みんなの投稿の画面で 1 枚 1.2MB）。
+ * 外部のアバター（SNS のアイコンなど）はカタログのサムネが無いので、そのまま返す
+ * （getOptimizedImageUrl だとサムネを探して 400 を 1 回余計に受けるため）。
  */
-export function fallbackToOriginal(originalUrl: string) {
+export function getAvatarImageUrl(src: string | null | undefined, width: number): string | undefined {
+  if (!src) return undefined;
+  if (!src.includes("/storage/v1/object/")) return src;
+  return toRenderUrl(src, width, 75) ?? src;
+}
+
+/**
+ * 縮めた画像（画像変換・カタログのサムネ）の読み込みに失敗したときの onError ハンドラ。
+ *  1回目: 元のURLに切り替える（画像変換が使えない・サムネがまだ無い）
+ *  2回目: 外部の画像なら proxy-image 経由にする（直リンクを断るサイトがある）
+ *
+ * 同じ <img> に別の画像が入った（React が要素を使い回した）ときは、段階を数え直す。
+ * 以前は「一度切り替えたか」だけを覚えていたので、使い回された <img> では二度と元に戻せなかった。
+ */
+export function fallbackToOriginal(originalUrl: string | null | undefined) {
   return (e: { currentTarget: HTMLImageElement }) => {
     const img = e.currentTarget;
-    if (img.dataset.originalFallback === "1") return; // 無限ループ防止
-    img.dataset.originalFallback = "1";
-    img.src = originalUrl;
+    if (!originalUrl) return;
+    if (img.dataset.fallbackFor !== originalUrl) {
+      img.dataset.fallbackFor = originalUrl;
+      img.dataset.fallbackStage = "0";
+    }
+    const stage = Number(img.dataset.fallbackStage ?? "0");
+    if (stage === 0) {
+      img.dataset.fallbackStage = "1";
+      // srcset が残っていると src を変えても使われない
+      img.removeAttribute("srcset");
+      img.src = originalUrl;
+      return;
+    }
+    if (stage === 1 && originalUrl.startsWith("https://") && !originalUrl.includes("/storage/v1/") && !originalUrl.includes("/functions/v1/proxy-image")) {
+      img.dataset.fallbackStage = "2";
+      img.src = toProxyUrl(originalUrl);
+    }
+    // それ以上は何もしない（無限ループ防止）
   };
 }
