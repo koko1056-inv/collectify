@@ -110,7 +110,7 @@ export function OnboardingChecklist() {
       interests: checklistData.hasInterests,
       'first-item': checklistData.hasItem,
       favorites: checklistData.hasFavorites5,
-      // 集めるもの（目標）は、いまは端末内に置いている（useCollectionGoals）
+      // 集めるもの（目標）は collection_goals（useCollectionGoals）。ピン留めした直後から完了にする
       goal: goals.length > 0,
       'trade-offer': checklistData.hasTradeOffer,
     };

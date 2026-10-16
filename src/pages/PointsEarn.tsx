@@ -25,7 +25,7 @@ import { ONBOARDING_STEPS } from "@/components/onboarding/steps";
  * 推しフォト・なかよしLv・はじめてガイドなど、実際にもらえるものの半分が載っていなかった。
  * ここでは額を画面に直書きせず、サーバーの表（point_rewards / login_bonus_tiers / onboarding_reward_steps）から読む。
  * 表に行が無い・止めてある（is_active = false）ものは出さない。
- * → グッズの登録・コンプの報酬（docs/pending-migrations/07）は、DB に適用されて実際に付与されるようになってから、ここに出てくる。
+ * → グッズの登録・コンプの報酬は 20261016060631（core_loop_points）で表に入った。
  *
  * 並びはアプリの中心（登録する → 眺める → コンプ → 交換）に合わせ、「コレクションを進める」を先頭にする。
  */

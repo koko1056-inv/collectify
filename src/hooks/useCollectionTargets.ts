@@ -19,9 +19,9 @@ import {
  * コンプの「的」（シリーズ・キャラ・キャラ×種類 など）の分母と、足りないグッズを揃えるフック。
  *
  * 分母の出どころは2通り:
- *  1. サーバーの RPC get_collection_targets（マイグレーションを用意済み・本番は未適用）
+ *  1. サーバーの RPC get_collection_targets（20261016060445・20261016061007）
  *     → あればそれを使う。1回の呼び出しで、分母も「あと少し」の足りないグッズも返る。
- *  2. RPC が無いとき（いま）: 必要な的の分だけ、REST で件数だけ数える（count=exact の HEAD）。
+ *  2. RPC が無いとき（古い DB・呼べなかったとき）: 必要な的の分だけ、REST で件数だけ数える（count=exact の HEAD）。
  *     カタログは数万件あるので、グッズの一覧は取らない。候補は buildTargets で上位に絞ってあり、
  *     同時に投げる数も CONCURRENCY までにする。分母はカタログ全体の数で、持っている数では変わらないので長めに覚えておく。
  * 足りないグッズは、残りが少なく分母も小さい上位数件だけ、その的のグッズを取って差を取る。
@@ -49,7 +49,7 @@ function isMissingFunction(error: { code?: string; message?: string } | null): b
 }
 
 async function fetchTargetsRpc(userId: string): Promise<RpcRow[] | null> {
-  // 型定義（types.ts）には、まだ本番に無い関数は載っていないので、名前を any 経由で渡す
+  // 型定義（types.ts）にはまだこの関数が載っていないので、名前を any 経由で渡す
   const rpc = supabase.rpc as unknown as (
     fn: string,
     args: Record<string, unknown>

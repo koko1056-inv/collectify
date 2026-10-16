@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * 以前はアプリ側に額を直書きしていたため、サーバーに行の無い手順にも「+20pt」と出せてしまった。
  * ここで読んだ表に行がある（かつ有効な）手順だけ額を返し、無い手順は undefined（画面では「+pt」を出さない）。
  *
- * is_active 列は docs/pending-migrations/06 で足す。まだ無い本番では列が返らないので、行があれば有効とみなす。
+ * is_active 列は 20261016060553 で足した。列の無い古い DB では返らないので、行があれば有効とみなす。
  * 表は anon でも読める（GRANT SELECT）。
  */
 export function useOnboardingRewardPoints() {
