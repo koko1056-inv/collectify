@@ -15,8 +15,8 @@
 --   - アプリは onboarding_reward_steps を読んで額を出すので、アプリの変更は要らない
 --
 -- 「集めるもの」（goal）は、目標がまだ端末内（localStorage）にあり、サーバーで確かめられないので報酬を付けない。
--- 02_collection_goals を適用し、アプリの useCollectionGoals を DB 版に差し替えたあとで、
--- onboarding_step_done に goal（collection_goals に1行以上）を足し、表に行を入れる。
+-- 20261016060420_collection_goals を適用し、アプリの useCollectionGoals を DB 版に差し替えたあとで、
+-- onboarding_step_done に goal（collection_goals に1行以上）を足し、表に行を入れる（→ 20261016061007 で足した）。
 --
 -- DROP 文は使っていない。何度流しても同じ結果になる。
 

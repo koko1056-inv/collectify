@@ -14,7 +14,7 @@
 --   missing    残りが1〜2個で、分母が60個以下のときだけ、持っていないグッズ（id, title, image）
 -- 作品（content_name）とシリーズの進捗は、これまでどおり get_collection_progress が返す（ここでは返さない）。
 -- 候補はアプリの buildTargets と同じ上限（キャラ6・キャラ×種類8・シリーズ×キャラ4）＋ 目標（collection_goals）。
--- 先に 20261016100000_collection_goals.sql を適用しておくこと。
+-- 先に 20261016060420_collection_goals.sql を適用しておくこと。
 
 -- タグを「種類＋名前（小文字）」で引くための索引（シリーズだけは tags_series_key_idx が既にある）
 create index if not exists tags_category_key_idx

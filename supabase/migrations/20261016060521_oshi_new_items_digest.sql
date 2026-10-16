@@ -1,4 +1,4 @@
--- 推しの新商品の通知を「1日1回のまとめ」にする（本番は未適用。適用は運営が判断する）
+-- 推しの新商品の通知を「1日1回のまとめ」にする
 --
 -- いまの仕組み（調べた結果）
 --   official_items の INSERT に行トリガーが2つ（notify_new_official_item / trigger_notify_users_of_new_item）、

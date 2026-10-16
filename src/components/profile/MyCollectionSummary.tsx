@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * アプリの中心は「登録する → 眺める → コンプ → 交換」なので、マイページでもまずその現在地を見せる。
  *  - 登録: グッズの件数
  *  - コンプ: そろえた作品・シリーズの数（get_collection_progress。コレクション画面と同じ判定）
- *  - 集めるもの: 目標の数（いまは端末内。useCollectionGoals）
+ *  - 集めるもの: 目標の数（collection_goals。useCollectionGoals）
  *  - 推しの部屋: 飾っている推しグッズの数となかよし Lv の合計。押すと /oshi
  */
 export function MyCollectionSummary({ userId }: { userId: string }) {

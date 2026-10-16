@@ -28,8 +28,8 @@ import {
  * 項目 ID はサーバーの onboarding_rewards（受け取り済みの記録）と onboarding_step_done（達成の判定）が使う。
  * 外した項目の ID は消さずに LEGACY_ONBOARDING_STEPS に残す:
  *  - 受け取り済みの記録はそのまま残る（DB の行は消さない）
- *  - サーバー側でまだ有効な間（docs/pending-migrations/06 を適用するまで）は達成すると付与されるので、
- *    その通知（OnboardingRewardWatcher）に項目名を出せるようにしておく
+ *  - サーバーでは止めてある（onboarding_reward_steps.is_active = false。20261016060553）が、
+ *    古い記録の通知（OnboardingRewardWatcher）にも項目名を出せるようにしておく
  */
 export interface OnboardingStepDef {
   id: string;
@@ -45,7 +45,7 @@ export const ONBOARDING_STEPS = [
   { id: "first-item", labelKey: "misc.checklist.firstItemFlowLabel", descriptionKey: "misc.checklist.firstItemFlowDesc", icon: Package },
   // 眺める・愛着: 推しグッズを選ぶと推しの部屋に飾られる（判定は以前の「推しグッズを選ぶ」と同じ）
   { id: "favorites", labelKey: "misc.checklist.favoritesFlowLabel", descriptionKey: "misc.checklist.favoritesFlowDesc", icon: Star },
-  // コンプ: 集めるもの（目標）を1つ決める。目標はまだ端末内にあるので、サーバーの報酬は付けていない
+  // コンプ: 集めるもの（目標）を1つ決める（目標は collection_goals。サーバーが達成を確かめて付与する）
   { id: "goal", labelKey: "misc.checklist.goalLabel", descriptionKey: "misc.checklist.goalDesc", icon: Target },
   // 交換: 交換に出す（X の譲・求画像も同じ画面から作れる）
   { id: "trade-offer", labelKey: "misc.checklist.tradeFlowLabel", descriptionKey: "misc.checklist.tradeFlowDesc", icon: ArrowLeftRight },
