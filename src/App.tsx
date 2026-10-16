@@ -62,6 +62,7 @@ const Collection = lazy(() => import("./pages/Collection").catch(() => ({ defaul
 const Oshi = lazy(() => import("./pages/Oshi"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Trade = lazy(() => import("./pages/Trade"));
+const OshiReleases = lazy(() => import("./pages/OshiReleases"));
 import { EditProfileRedirect, MyRoomRedirect } from "@/components/navigation/LegacyRedirects";
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
@@ -204,6 +205,7 @@ const App: React.FC = () => {
                       <Route path="/post/:postId" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                       <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
+                      <Route path="/releases" element={<ProtectedRoute><OshiReleases /></ProtectedRoute>} />
                       <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
                       <Route path="/my-room" element={<MyRoomRedirect />} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />

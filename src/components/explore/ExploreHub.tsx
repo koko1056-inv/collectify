@@ -230,6 +230,18 @@ export function ExploreHub() {
   );
 }
 
+/** AI作品が無いときの「作ってみる」。AIルーム／アバターの作成画面へ */
+function AiCreateButton({ tab }: { tab: "rooms" | "avatar" }) {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  return (
+    <Button onClick={() => navigate(tab === "avatar" ? "/ai-rooms?tab=avatar" : "/ai-rooms")} className="gap-1.5">
+      <Wand2 className="h-4 w-4" />
+      {tab === "avatar" ? t("discover.empty.aiAvatarCta") : t("discover.empty.aiRoomCta")}
+    </Button>
+  );
+}
+
 // ============= AIルームタブ =============
 const PAGE_SIZE = 24;
 
@@ -302,7 +314,14 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
   }
 
   if (filtered.length === 0) {
-    return <EmptyState icon={HomeIcon} message={t("chrome.explore.emptyRooms")} />;
+    // 0件は「最初の1人になろう」: 作る画面への入口を出す（検索で0件のときは出さない）
+    return (
+      <EmptyState
+        icon={HomeIcon}
+        message={t("chrome.explore.emptyRooms")}
+        action={!searchQuery && <AiCreateButton tab="rooms" />}
+      />
+    );
   }
 
   return (
@@ -392,6 +411,7 @@ function AvatarsTab({ searchQuery }: { searchQuery: string }) {
         icon={Wand2}
         message={t("chrome.explore.emptyAvatars")}
         description={t("chrome.explore.emptyAvatarsDesc")}
+        action={!searchQuery && <AiCreateButton tab="avatar" />}
       />
     );
   }

@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Check, ChevronDown, Flame, Gift, Heart, Loader2, MessageCircle, Repeat2, Sparkles } from "lucide-react";
+import { CalendarDays, Camera, Check, ChevronDown, Flame, Gift, MessageCircle, Repeat2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
-import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
+import { useOshiNewBadge } from "@/hooks/useOshiReleases";
 import { useOshiPhotos } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -15,14 +12,16 @@ import { IconTile } from "@/components/ui/icon-tile";
 /**
  * 今日のチェック。毎日開く理由を、1枚のカードにまとめる。
  *  1) 連続ログイン（炎）と、次のボーナス段階までの残り日数 — 途切れさせたくなくなる
- *  2) 推しの新着グッズ — 毎日の自動追加で、開くたびに何か新しいものがある
+ *  2) 推しの新商品 — 毎日の自動追加で、開くたびに何か新しいものがある。
+ *     押すと「推しの新商品」の画面（/releases: 今週発売・カレンダー・新着）を開く。
+ *     前に見たとき以降に入った推しの新着の件数をバッジで出す（見たら消える）
  *  3) 今日できる、ポイントの付く交流（投稿・コメント・交換）
  */
 export function DailyHubCard() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const hub = useDailyHub();
-  const [open, setOpen] = useState(false);
+  const releases = useOshiNewBadge();
   const [expanded, setExpanded] = useState(false);
   const oshi = useOshiPhotos();
 
@@ -59,14 +58,16 @@ export function DailyHubCard() {
             <ChevronDown className={cn("ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform", expanded && "rotate-180")} aria-hidden="true" />
           </button>
 
-          {hub.newTotal > 0 && (
-            <StripButton
-              onClick={() => setOpen(true)}
-              icon={<Sparkles className="h-4 w-4" />}
-              label={t("engage.dailyHub.newShort", { n: hub.newTotal })}
-              ariaLabel={t("engage.dailyHub.newForYou", { n: hub.newTotal })}
-            />
-          )}
+          {/* 以前は推しの新着があるときだけ出し、小さなダイアログを開いていた。
+              いまは発売カレンダーへの入口として常に出し、まだ見ていない新着があれば件数を出す */}
+          <StripButton
+            onClick={() => navigate(releases.unseen > 0 ? "/releases?tab=new" : "/releases")}
+            icon={releases.unseen > 0 ? <Sparkles className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}
+            label={releases.unseen > 0 ? t("engage.dailyHub.newShort", { n: releases.unseen > 99 ? "99+" : releases.unseen }) : t("discover.releases.stripLabel")}
+            ariaLabel={releases.unseen > 0 ? t("engage.dailyHub.newForYou", { n: releases.unseen }) : t("discover.releases.title")}
+            badge={releases.unseen > 0}
+            testId="daily-releases"
+          />
           <StripButton
             onClick={() => navigate("/oshi")}
             icon={oshi.todayDone ? <Check className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
@@ -92,7 +93,6 @@ export function DailyHubCard() {
         )}
       </Card>
 
-      <NewForYouDialog open={open} onOpenChange={setOpen} />
     </>
   );
 }
@@ -103,20 +103,27 @@ function StripButton({
   label,
   ariaLabel,
   done,
+  badge,
+  testId,
 }: {
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   ariaLabel: string;
   done?: boolean;
+  /** まだ見ていないものがある印（右上の点） */
+  badge?: boolean;
+  testId?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border bg-card px-1 py-1.5 hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+      data-testid={testId}
+      className="relative flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border bg-card px-1 py-1.5 hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
     >
+      {badge && <span aria-hidden="true" className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />}
       <span className={cn("text-primary", done && "text-success")} aria-hidden="true">
         {icon}
       </span>
@@ -136,79 +143,5 @@ function ActionChip({ icon, label, pt, onClick }: { icon: React.ReactNode; label
       <span>{label}</span>
       <span className="font-bold tabular-nums text-primary">{pt}pt</span>
     </button>
-  );
-}
-
-/** 推しの新着を一覧で見て、タップで「持ってる」「ほしい」に入れる */
-function NewForYouDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { t } = useLanguage();
-  const hub = useDailyHub();
-  const { added, wished, busyId, add, wish } = useQuickAddGoods();
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-md overflow-hidden p-0">
-        <DialogHeader className="px-4 pt-4">
-          <DialogTitle>{t("engage.dailyHub.dialogTitle")}</DialogTitle>
-          <DialogDescription>{t("engage.dailyHub.dialogDesc")}</DialogDescription>
-        </DialogHeader>
-        <div className="max-h-[68vh] overflow-y-auto px-4 pb-4">
-          <div className="grid grid-cols-3 gap-2.5">
-            {hub.newItems.map((item) => {
-              const owned = added.has(item.id);
-              const isWished = wished.has(item.id);
-              return (
-                <div key={item.id} className="relative min-w-0">
-                  <GoodsPickTile
-                    image={item.image}
-                    title={item.title}
-                    subtitle={item.content_name}
-                    selected={owned}
-                    busy={busyId === item.id}
-                    disabled={owned}
-                    onClick={() => add(item)}
-                    ariaLabel={owned ? `${item.title} ${t("misc.onboarding.starter.added")}` : item.title}
-                    footer={
-                      <span
-                        className={cn(
-                          "mt-auto rounded-md py-1 text-center text-3xs font-bold",
-                          owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
-                        )}
-                      >
-                        {owned ? t("misc.onboarding.starter.added") : `+ ${t("chrome.fab.addShort")}`}
-                      </span>
-                    }
-                  />
-                  {!owned && (
-                    <button
-                      type="button"
-                      disabled={isWished || busyId === item.id}
-                      onClick={() => wish(item)}
-                      aria-pressed={isWished}
-                      aria-label={`${item.title} ${t("collectionScreen.addSheet.wantIt")}`}
-                      className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-background/90 shadow backdrop-blur disabled:opacity-100"
-                    >
-                      {busyId === item.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Heart className={cn("h-4 w-4", isWished ? "fill-primary text-primary" : "text-muted-foreground")} />
-                      )}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {hub.newTotal > hub.newItems.length && (
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              {t("engage.dailyHub.more", { n: hub.newTotal - hub.newItems.length })}
-            </p>
-          )}
-          <Button variant="outline" className="mt-3 w-full" onClick={() => onOpenChange(false)}>
-            {t("engage.dailyHub.close")}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }

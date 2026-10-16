@@ -15,6 +15,7 @@ import { addToCollection } from "@/utils/collection-actions";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { OshiDiscoveryPanel } from "@/components/releases/OshiDiscoveryPanel";
 
 interface ItemRow {
   id: string;
@@ -140,10 +141,13 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
   }
 
   if (!q) {
+    // 検索する前の画面。以前は「検索してください」の大きな空の表示だけだったので、
+    // 案内は小さくし、推しの新着・発売予定・この作品で人気のグッズを並べて、探さなくても見て回れるようにする
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <EmptyState
           icon={Search}
+          className="py-4"
           message={t("engage.search.emptyTitle")}
           description={t("engage.search.emptyDesc")}
         />
@@ -164,6 +168,7 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
             </div>
           </div>
         )}
+        <OshiDiscoveryPanel />
       </div>
     );
   }

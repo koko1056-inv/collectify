@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowDownUp, ArrowLeftRight, Gift, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowDownUp, ArrowLeftRight, ChevronRight, Gift, ImageIcon, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -37,6 +37,7 @@ import { PartnerCollectionPicker } from "./PartnerCollectionPicker";
 import { TradeSectionHeader } from "./TradeSectionHeader";
 import { SpotlightChip, TradeSpotlightCard } from "./TradeSpotlight";
 import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
+import { TradePostDialog } from "./TradePostDialog";
 
 /**
  * 交換相手の候補。
@@ -73,6 +74,16 @@ export function TradeMatchingSection() {
     myItem: TradeMatchItem;
   } | null>(null);
   const [isOfferPickerOpen, setIsOfferPickerOpen] = useState(false);
+  // X の交換投稿用「譲・求」画像。?post=1 で開く（グッズの「交換」を初めてオンにしたときの案内から来る）
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isPostOpen, setIsPostOpen] = useState(false);
+  useEffect(() => {
+    if (searchParams.get("post") !== "1") return;
+    setIsPostOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("post");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const { data: matches, isLoading, isError, refetch } = useTradeMatches();
   const { data: readiness } = useTradeReadiness();
@@ -145,6 +156,24 @@ export function TradeMatchingSection() {
 
       {/* 進行中の交換への入口。申し込んだあと戻ってくる場所がここになる */}
       <TradeInboxButton variant="full" />
+
+      {/* X の「譲・求」投稿の画像を作る入口。アプリの中の交換相手がまだ少ないうちは、
+          推し活の交換の中心である X で相手をさがすのがいちばん早い */}
+      <button
+        type="button"
+        data-testid="trade-post-entry"
+        onClick={() => setIsPostOpen(true)}
+        className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
+      >
+        <IconTile size="sm" tone="primary">
+          <ImageIcon />
+        </IconTile>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold">{t("discover.tradePost.entryTitle")}</p>
+          <p className="text-xs text-muted-foreground">{t("discover.tradePost.entryDesc")}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </button>
 
       {/* 欲しいものを持っている人。そこから申請（相談）できる */}
       <WishHoldersSection
@@ -242,6 +271,13 @@ export function TradeMatchingSection() {
               icon={ArrowLeftRight}
               title={t("trade.matching.noMutual")}
               description={t("trade.matching.noMutualDesc")}
+              // 「何もない」で終わらせず、アプリの外（X）で相手をさがす次の一手を出す
+              action={
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setIsPostOpen(true)}>
+                  <ImageIcon className="h-4 w-4" />
+                  {t("discover.tradePost.emptyMutualCta")}
+                </Button>
+              }
             />
           ) : (
             <div className="space-y-3">
@@ -378,6 +414,15 @@ export function TradeMatchingSection() {
       )}
 
       <TradeOfferPicker open={isOfferPickerOpen} onOpenChange={setIsOfferPickerOpen} />
+
+      <TradePostDialog
+        open={isPostOpen}
+        onOpenChange={setIsPostOpen}
+        onPickOffers={() => {
+          setIsPostOpen(false);
+          setIsOfferPickerOpen(true);
+        }}
+      />
 
       {selectedMatch && (
         <TradeRequestModal

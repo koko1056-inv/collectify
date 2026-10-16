@@ -144,10 +144,21 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   }
 
   if (!wishlistItems || wishlistItems.length === 0) {
+    // 自分のリストなら、空のまま終わらせず「推しの新商品から選ぶ／探す」を出す
+    const isMine = !!user && user.id === userId;
     return (
       <EmptyState
         icon={ShoppingBasket}
         title={t("collectionScreen.wishlist.empty")}
+        description={isMine ? t("discover.empty.wishDesc") : undefined}
+        action={
+          isMine ? (
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => navigate("/releases")}>{t("discover.empty.wishReleases")}</Button>
+              <Button variant="outline" onClick={() => navigate("/search?tab=goods")}>{t("discover.empty.wishSearch")}</Button>
+            </div>
+          ) : undefined
+        }
       />
     );
   }

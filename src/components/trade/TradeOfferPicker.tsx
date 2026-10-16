@@ -128,6 +128,7 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
     queryClient.invalidateQueries({ queryKey: ["trade-series-partners", user?.id] });
     queryClient.invalidateQueries({ queryKey: ["trade-readiness", user?.id] });
     queryClient.invalidateQueries({ queryKey: ["my-trade-offers", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["trade-post-give", user?.id] });
     queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user?.id] });
     queryClient.invalidateQueries({ queryKey: ["user-items"] });
   };
