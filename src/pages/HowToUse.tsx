@@ -1,4 +1,5 @@
 import { ONBOARDING_STEPS } from "@/components/onboarding/steps";
+import { useOnboardingRewardPoints } from "@/hooks/useOnboardingRewardPoints";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -163,6 +164,9 @@ export default function HowToUse() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { resetTours } = useOnboarding();
+  // 額はサーバーの表から読む（表に行の無い手順には「+pt」を出さない）
+  const { data: stepPoints } = useOnboardingRewardPoints();
+  const stepsTotal = ONBOARDING_STEPS.reduce((sum, s) => sum + (stepPoints?.[s.id] ?? 0), 0);
 
   // ブランド名だけグラデーションを当てたいので、{app} の前後で分割して描画する。
   // 文全体を1キーで持つことで、日英で語順が変わっても崩れない。
@@ -232,9 +236,11 @@ export default function HowToUse() {
                       <span className="flex-1 text-sm font-medium">
                         {t(step.labelKey)}
                       </span>
-                      <Badge variant="secondary" className="font-bold">
-                        +{step.points}pt
-                      </Badge>
+                      {stepPoints?.[step.id] ? (
+                        <Badge variant="secondary" className="font-bold">
+                          +{stepPoints[step.id]}pt
+                        </Badge>
+                      ) : null}
                     </li>
                   ))}
                 </ol>
@@ -420,7 +426,7 @@ export default function HowToUse() {
                         </IconTile>
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsStepsDone")}</div>
-                          <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsStepsValue", { n: ONBOARDING_STEPS.reduce((sum, s) => sum + s.points, 0) })}</div>
+                          <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsStepsValue", { n: stepsTotal })}</div>
                         </div>
                       </div>
                     </div>
@@ -492,7 +498,8 @@ export default function HowToUse() {
                 size="lg"
                 variant="outline"
                 className="text-base px-8"
-                onClick={() => navigate("/me?tab=ai")}
+                // 以前は AI 作品のタブへ送っていた。眺める場所の本命は推しの部屋なので、そちらへ
+                onClick={() => navigate("/oshi")}
               >
                 <Home className="w-5 h-5 mr-2" />
                 {t("screens.howToUse.ctaMyRoom")}

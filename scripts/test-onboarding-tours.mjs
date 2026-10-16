@@ -38,6 +38,20 @@ async function load(entry) {
     platform: "node",
     // tours.ts は型だけのimportしか持たないので外部依存は無い。
     external: ["react", "react-dom"],
+    // steps.ts はアイコン（lucide-react）を持つ。ここでは中身を見ないので、何でも返す空の部品に置き換える
+    // （本物を束ねると React が要り、Node では読み込めない）。
+    plugins: [
+      {
+        name: "stub-lucide",
+        setup(b) {
+          b.onResolve({ filter: /^lucide-react$/ }, () => ({ path: "lucide-react", namespace: "stub" }));
+          b.onLoad({ filter: /.*/, namespace: "stub" }, () => ({
+            contents: "module.exports = new Proxy({}, { get: (_, k) => (k === '__esModule' ? false : {}) });",
+            loader: "js",
+          }));
+        },
+      },
+    ],
   });
   const code = out.outputFiles[0].text;
   return import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
@@ -181,6 +195,52 @@ for (const t of PAGE_TOURS) {
     check(`${t.id}: query キー "${key}" は既知`, KNOWN_QUERY_KEYS.has(key));
   }
 }
+
+// ── 10. はじめてガイド（チェックリスト）の項目と、押したときの案内 ──
+// 項目は「登録する → 眺める → コンプ → 交換」の流れに沿って5つ前後に絞っている。
+// 増やしすぎると以前の10項目に戻ってしまうので、上限を見張る。
+// 各項目は行き先（GUIDE_TASKS）を持ち、その行き先・指す場所・文言がそろっていること。
+const { ONBOARDING_STEPS, LEGACY_ONBOARDING_STEPS, findOnboardingStep } = await load("src/components/onboarding/steps.ts");
+const { GUIDE_TASKS, guideHref, guideForLocation } = await load("src/components/onboarding/guideTasks.ts");
+const { misc } = await load("src/translations/modules/misc.ts");
+
+console.log(`\nはじめてガイド: ${ONBOARDING_STEPS.length} 項目\n`);
+check("ガイドは4〜6項目", ONBOARDING_STEPS.length >= 4 && ONBOARDING_STEPS.length <= 6, `${ONBOARDING_STEPS.length} 項目`);
+const stepIds = ONBOARDING_STEPS.map((s) => s.id);
+check("ガイドの項目IDが一意", new Set(stepIds).size === stepIds.length, stepIds.join(", "));
+// 外した項目もサーバーの受け取り記録（onboarding_rewards）に残るので、通知で名前が引けること
+for (const id of ["account", "profile", "first-item", "favorites", "wishlist", "ai-room", "avatar", "follow", "trade-offer", "bookmark"]) {
+  check(`以前の項目 ${id} の名前が引ける`, !!findOnboardingStep(id));
+}
+check("今の項目と以前の項目が重ならない", !LEGACY_ONBOARDING_STEPS.some((l) => stepIds.includes(l.id)));
+for (const step of [...ONBOARDING_STEPS, ...LEGACY_ONBOARDING_STEPS]) {
+  for (const key of [step.labelKey, step.descriptionKey]) {
+    const inner = key.replace(/^misc\./, "");
+    check(`ja: ${key}`, lookup(misc.ja, inner) !== undefined);
+    check(`en: ${key}`, lookup(misc.en, inner) !== undefined);
+  }
+}
+for (const id of stepIds) {
+  const task = GUIDE_TASKS[id];
+  check(`${id}: 行き先がある`, !!task);
+  if (!task) continue;
+  const path = task.path.split("?")[0];
+  check(`${id}: ${path} はルートとして存在する`, routes.has(path));
+  for (const s of task.steps) {
+    check(`${id}: data-tour="${s.target}" が存在する`, anchors.has(s.target));
+    for (const key of [s.titleKey, s.bodyKey]) {
+      const inner = key.replace(/^tour\./, "");
+      check(`${id}: ja ${key}`, lookup(tour.ja, inner) !== undefined);
+      check(`${id}: en ${key}`, lookup(tour.en, inner) !== undefined);
+    }
+  }
+  // 押した先で、その案内が実際に出る（?guide= 付きの URL で guideForLocation が当たる）
+  const href = guideHref(id);
+  const u = new URL(href, "https://x.test");
+  check(`${id}: ${href} で案内が出る`, guideForLocation(u.pathname, u.search)?.id === id);
+}
+// 外した項目の ?guide= は何も出さない（古いリンクから来ても暗転しない）
+check("以前の項目 ai-room の ?guide= では案内を出さない", guideForLocation("/ai-rooms", "?guide=ai-room") === null);
 
 console.log(`\n${failures === 0 ? "すべて通過" : `${failures} 件失敗`}\n`);
 process.exit(failures === 0 ? 0 : 1);

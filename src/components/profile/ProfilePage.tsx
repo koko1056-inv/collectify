@@ -22,6 +22,8 @@ import { ProfileOshiGoods } from "./ProfileOshiGoods";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "./ProfileTabs";
+import { MyCollectionSummary } from "./MyCollectionSummary";
+import { EnjoySection } from "./EnjoySection";
 
 // 自分のコレクションは下タブ①が持つので、マイページには置かない（以前は3か所に同じ一覧が出ていた）。
 // 以前の「マイルーム」の AI スタジオは「AI作品」タブに入れた。
@@ -107,11 +109,17 @@ export function ProfilePage() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          {/* 推しコンテンツ */}
-          <div className="px-4 mt-6">
+          {/* 自分のコレクションの要約（登録・コンプ・集めるもの・推しの部屋）。
+              マイページでもまず「本題がいまどこまで進んでいるか」を見せる */}
+          <div className="px-4 mt-4">
+            <MyCollectionSummary userId={user.id} />
+          </div>
+
+          {/* 推しコンテンツ（はじめてガイドの「推しの作品を選ぶ」がここを指す） */}
+          <div className="px-4 mt-6" data-tour="me-interests">
             <ProfileInterests
               currentInterests={profile.interests || []}
-              onUpdate={refetchProfile}
+              onUpdate={afterProfileChange}
             />
           </div>
 
@@ -119,13 +127,11 @@ export function ProfilePage() {
               以前は「お気に入り TOP5」と「相棒グッズ」の2つの欄が並んでいた */}
           <ProfileOshiGoods profileId={user.id} isOwnProfile />
 
-          {/* ショーケース: お気に入りルーム / アバター */}
-          <ProfileShowcase
-            profileId={user.id}
-            isOwnProfile
-            featuredRoomId={profile.featured_room_id ?? null}
-            featuredAvatarId={profile.featured_avatar_id ?? null}
-          />
+          {/* 楽しむ: AI推しルーム・AIアバター・ポイント。本題の脇の遊びはここにまとめる。
+              以前はここに AI のショーケース（マイステージ）が大きく出ていた。ショーケースは「AI作品」タブの先頭へ移した */}
+          <div className="px-4 mt-6">
+            <EnjoySection />
+          </div>
 
           {/* タブナビ */}
           <div className="px-4 mt-6">
@@ -149,7 +155,18 @@ export function ProfilePage() {
               </div>
             )}
             {activeTab === "saved" && <ProfileBookmarks />}
-            {activeTab === "ai" && <MyStudioPanel profile={profile} />}
+            {activeTab === "ai" && (
+              <div className="space-y-4">
+                {/* ショーケース（お気に入りルーム / アバター）。ほかの人のプロフィールでは、これまでどおり上の方に出る */}
+                <ProfileShowcase
+                  profileId={user.id}
+                  isOwnProfile
+                  featuredRoomId={profile.featured_room_id ?? null}
+                  featuredAvatarId={profile.featured_avatar_id ?? null}
+                />
+                <MyStudioPanel profile={profile} />
+              </div>
+            )}
           </div>
         </div>
       </main>

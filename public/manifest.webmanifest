@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Collectify",
   "short_name": "Collectify",
-  "description": "推しグッズのコレクション管理・交換・シェア",
+  "description": "推しグッズの図鑑。登録して、眺めて、コンプして、交換する",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -73,7 +73,7 @@
     {
       "name": "交換",
       "short_name": "交換",
-      "url": "/search?tab=trade",
+      "url": "/trade",
       "icons": [
         {
           "src": "/icon-192.png",

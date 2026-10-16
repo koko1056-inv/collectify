@@ -102,6 +102,10 @@ export const tour = {
       follow: { title: "気になる人をフォローしよう", body: "同じ推しの人や、たくさん集めている人のプロフィールを開いて「フォロー」を押しましょう。" },
       tradeOffer: { title: "交換に出すグッズを選ぼう", body: "ここから、ダブっているグッズなどを交換に出せます。出すと交換相手が見つかるようになります。" },
       bookmark: { title: "気に入ったAI作品を保存しよう", body: "みんなのAI作品を開いて、しおりのボタンで保存できます。" },
+      interests: { title: "推しの作品を選ぼう", body: "ここで推しの作品を選ぶと、その作品の新商品やコンプの的が出てくるようになります。" },
+      firstItemFlow: { title: "グッズを登録しよう", body: "この＋から、写真を撮るか一覧から選んで登録できます。一覧ではシリーズをまとめて選べます。" },
+      goal: { title: "集めるものを決めよう", body: "コンプまでのカードの☆を押すと、そのシリーズやキャラが「集めるもの」になり、いちばん上に並びます。" },
+      tradeFlow: { title: "交換に出すグッズを選ぼう", body: "ここから、ダブっているグッズを交換に出せます。上の「X で探す」からは、譲・求の画像も作れます。" },
     },
     me: {
       tabs: {
@@ -231,6 +235,10 @@ export const tour = {
       follow: { title: "Follow people you like", body: "Open the profile of someone with the same fave, then tap \"Follow\"." },
       tradeOffer: { title: "Offer goods for trade", body: "Put duplicates up for trade here so trade partners can find you." },
       bookmark: { title: "Save AI works you like", body: "Open an AI work and save it with the bookmark button." },
+      interests: { title: "Choose your fave series", body: "Pick the series you love here, and their new releases and completion targets will show up." },
+      firstItemFlow: { title: "Add your goods", body: "Tap + to take a photo or pick from the catalog. In the catalog you can select a whole series at once." },
+      goal: { title: "Choose what to complete", body: "Tap ☆ on a completion card to pin that series or character. It moves to the top." },
+      tradeFlow: { title: "Offer goods for trade", body: "Put spares up for trade here. \"Find on X\" above also makes a have/want image." },
     },
     me: {
       tabs: {

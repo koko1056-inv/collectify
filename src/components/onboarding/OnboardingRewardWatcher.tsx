@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ONBOARDING_STEPS } from "./steps";
+import { findOnboardingStep } from "./steps";
 import { ONBOARDING_REWARD_CHECK_EVENT } from "@/lib/onboardingRewards";
 
 /** 保存のあとの再読み込みは連続して起きるので、まとめて1回だけ確かめる */
@@ -56,7 +56,8 @@ export function OnboardingRewardWatcher() {
       if (granted.length === 0) return;
 
       for (const g of granted) {
-        const step = ONBOARDING_STEPS.find((s) => s.id === g.step_id);
+        // 画面から外した以前の項目も、サーバーで有効な間は付与されるので、名前は以前の一覧からも引く
+        const step = findOnboardingStep(g.step_id);
         toast.success(t("misc.checklist.achievedTitle", { label: step ? t(step.labelKey) : g.step_id }), {
           description: t("misc.checklist.achievedDesc", { points: g.points }),
         });

@@ -65,7 +65,7 @@ export const chrome = {
 
     explore: {
       title: "みんな",
-      subtitle: "みんなの投稿・グッズ・AI作品を覗いてみよう",
+      subtitle: "みんなの投稿・推しの部屋・グッズを覗いてみよう",
       searchPlaceholder: "グッズ・作品・ユーザーを検索",
       tabRooms: "AIルーム",
       tabAvatars: "AIアバター",
@@ -218,6 +218,7 @@ export const chrome = {
     },
 
     collection: {
+      tagline: "推しグッズの図鑑。登録して、眺めて、コンプして、交換しよう",
       emptyTitle: "最初のグッズを追加しよう！",
       emptyDescLine1: "あなたの大切なコレクションを",
       emptyDescLine2: "記録してみましょう",
@@ -510,7 +511,7 @@ export const chrome = {
 
     explore: {
       title: "People",
-      subtitle: "Browse everyone's posts, goods and AI creations",
+      subtitle: "Browse everyone's posts, Oshi Rooms and goods",
       searchPlaceholder: "Search goods, series or users",
       tabRooms: "AI rooms",
       tabAvatars: "AI avatars",
@@ -663,6 +664,7 @@ export const chrome = {
     },
 
     collection: {
+      tagline: "Your fave-merch catalog: add it, admire it, complete sets, trade spares",
       emptyTitle: "Add your first goods!",
       emptyDescLine1: "Start keeping a record",
       emptyDescLine2: "of the collection you treasure",

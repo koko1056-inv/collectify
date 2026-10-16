@@ -42,8 +42,8 @@ serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  let title = "Collectify - 推しグッズコレクション管理";
-  let description = "アニメ・ゲーム・アイドルのグッズをコレクション管理。3Dルームで推し部屋を作ってシェアしよう！";
+  let title = "Collectify - 推しグッズの図鑑";
+  let description = "推しグッズの図鑑アプリ。アニメ・ゲーム・アイドルのグッズを登録して眺め、シリーズのコンプを目指し、ダブったグッズは交換に出せます。";
   let imageUrl = `${APP_URL}/og-image.png`;
   let pageUrl = APP_URL;
 

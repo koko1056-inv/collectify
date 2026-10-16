@@ -91,7 +91,8 @@ export function CompletionTargets({
   if (targets.length === 0 && works.length === 0 && goals.length === 0 && !isCounting) return null;
 
   return (
-    <section aria-label={t("collectGoals.targets.title")} className="space-y-2.5" data-completion-targets>
+    // data-tour="collection-goals": はじめてガイドの「集めるもの」の項目が、ここを光らせて☆の場所を案内する
+    <section aria-label={t("collectGoals.targets.title")} className="space-y-2.5" data-completion-targets data-tour="collection-goals">
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="text-sm font-bold">{t("collectGoals.targets.title")}</h3>
         <span className="truncate text-2xs text-muted-foreground">
