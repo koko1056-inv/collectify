@@ -1,19 +1,14 @@
 import { useMemo, useState } from "react";
-import { Trophy, Share2, ChevronDown } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 import {
   countFacets,
   type FacetKind,
   type FacetCount,
 } from "@/utils/itemFacets";
-import {
-  isComplete,
-  progressPercent,
-  type SeriesProgress,
-} from "@/hooks/useCollectionProgress";
+import type { SeriesProgress } from "@/hooks/useCollectionProgress";
+import { CompletionTargets } from "./CompletionTargets";
 
 export interface CollectionFacet {
   kind: FacetKind;
@@ -27,6 +22,10 @@ interface CollectionExplorerProps {
   onFacetChange: (f: CollectionFacet | null) => void;
   /** 作品カードのシェアボタン。渡されなければ非表示（他人のコレクションなど） */
   onShareSeries?: (p: SeriesProgress) => void;
+  /** 棚の持ち主。コンプの的（キャラ単位など）を数えるのに使う */
+  userId?: string | null;
+  /** 自分の棚か。目標のピン留め・「あと1個」の追加は自分の棚だけ */
+  isOwn?: boolean;
 }
 
 const KINDS: FacetKind[] = ["series", "character", "type", "source"];
@@ -38,6 +37,8 @@ export function CollectionExplorer({
   facet,
   onFacetChange,
   onShareSeries,
+  userId,
+  isOwn = false,
 }: CollectionExplorerProps) {
   const { t } = useLanguage();
   const [kind, setKind] = useState<FacetKind>("series");
@@ -54,9 +55,6 @@ export function CollectionExplorer({
   const chips = activeKind ? counts[activeKind] : [];
   const visibleChips = expanded ? chips : chips.slice(0, COLLAPSED_COUNT);
 
-  // 1件しかない作品は「進捗」として見せる意味が薄いので、2件以上のカタログがあるものだけ
-  const progressCards = progress.filter((p) => p.total >= 2);
-
   const isSelected = (k: FacetKind, v: string) =>
     facet?.kind === k && facet.value.toLowerCase() === v.toLowerCase();
 
@@ -65,78 +63,16 @@ export function CollectionExplorer({
 
   return (
     <div className="space-y-3" data-tour="collection-explorer">
-      {/* 作品ごとのコンプ進捗 */}
-      {progressCards.length > 0 && (
-        <section aria-label={t("engage.collection.progressTitle")} className="space-y-1.5">
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-sm font-bold">{t("engage.collection.progressTitle")}</h3>
-            <span className="text-2xs text-muted-foreground">
-              {t("engage.collection.progressHint")}
-            </span>
-          </div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide snap-x">
-            {progressCards.map((p) => {
-              const pct = progressPercent(p);
-              const done = isComplete(p);
-              const selected = isSelected("series", p.series_label);
-              return (
-                <div
-                  key={p.series_label}
-                  className={cn(
-                    "snap-start shrink-0 w-[148px] rounded-2xl border bg-card overflow-hidden text-left transition-colors",
-                    selected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/40"
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggle("series", p.series_label)}
-                    className="block w-full text-left"
-                    aria-pressed={selected}
-                  >
-                    <div className="relative h-20 bg-muted">
-                      {p.cover_image && (
-                        <img
-                          src={getOptimizedImageUrl(p.cover_image, { width: 480 })}
-                          onError={fallbackToOriginal(p.cover_image)}
-                          alt=""
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                      {done && (
-                        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-warning px-2 py-0.5 text-3xs font-bold text-warning-foreground shadow">
-                          <Trophy className="h-3 w-3" />
-                          {t("engage.collection.complete")}
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-2.5 space-y-1.5">
-                      <p className="text-xs font-bold leading-tight line-clamp-2 min-h-[2rem]">
-                        {p.series_label}
-                      </p>
-                      <Progress value={pct} className="h-1.5" />
-                      <p className="text-2xs text-muted-foreground tabular-nums">
-                        {t("engage.collection.ownedOf", { owned: p.owned, total: p.total })}
-                        <span className="ml-1 font-bold text-foreground">{pct}%</span>
-                      </p>
-                    </div>
-                  </button>
-                  {onShareSeries && (
-                    <button
-                      type="button"
-                      onClick={() => onShareSeries(p)}
-                      className="flex w-full items-center justify-center gap-1 border-t border-border py-1.5 text-2xs font-medium text-primary hover:bg-primary/5"
-                    >
-                      <Share2 className="h-3 w-3" />
-                      {t("engage.collection.shareSeries")}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* コンプの的。作品全体の大きな分母より、シリーズ・キャラの小さな的を主役にする */}
+      <CompletionTargets
+        userId={userId}
+        items={items}
+        progress={progress}
+        isOwn={isOwn}
+        isSelected={isSelected}
+        onToggleFacet={toggle}
+        onShareSeries={onShareSeries}
+      />
 
       {/* 作品 / キャラ / 種類 / 入手方法 で辿る */}
       {availableKinds.length > 0 && (

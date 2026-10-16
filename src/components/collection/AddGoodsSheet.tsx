@@ -1,7 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, ChevronLeft, ChevronRight, Heart, Lightbulb, ListChecks, Loader2, Pencil, Search, Star } from "lucide-react";
+import { Camera, Check, CheckCheck, ChevronLeft, ChevronRight, Heart, Lightbulb, ListChecks, Loader2, Pencil, Search, Star, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,19 @@ import {
   useOfficialItems,
   useOfficialItemsPreview,
 } from "@/hooks/useOfficialItems";
-import { addToCollection } from "@/utils/collection-actions";
+import { addManyToCollection, addToCollection, BULK_ADD_MAX, type BulkAddItem } from "@/utils/collection-actions";
+import { addOfficialItemToWishlist, fetchWishedOfficialIds, wishedOfficialIdsKey } from "@/utils/wishlist-actions";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
@@ -322,6 +334,8 @@ function AddOption({
 const PAGE = 60;
 /** 作品を選ばない一覧で、勝手に読み足す上限（これを超えたら「もっと見る」で） */
 const AUTO_FETCH_MAX = 1200;
+/** 「全部選ぶ」でこれより多く選ぶときは、いったん確かめる（作品まるごとだと数千件になることがある） */
+const SELECT_ALL_CONFIRM = 100;
 
 function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const { t, language } = useLanguage();
@@ -389,17 +403,9 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
   // 「ほしい」に入れてあるものも先に取る。行ごとに聞くとクエリが増える。
   const { data: wishedIds } = useQuery({
-    queryKey: ["wished-official-item-ids", user?.id],
+    queryKey: wishedOfficialIdsKey(user?.id),
     enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wishlists")
-        .select("official_item_id")
-        .eq("user_id", user!.id)
-        .not("official_item_id", "is", null);
-      if (error) throw error;
-      return new Set((data ?? []).map((r) => r.official_item_id as string));
-    },
+    queryFn: () => fetchWishedOfficialIds(user!.id),
   });
 
   // 推しの作品を先に出す。カタログが大きいと、新しい順だけでは特定の作品が何百件も先に埋もれてしまう。
@@ -433,24 +439,9 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     if (!user) return;
     setWishingId(item.id);
     try {
-      const { error } = await supabase.from("wishlists").insert({
-        user_id: user.id,
-        official_item_id: item.id,
-      });
-      if (error) throw error;
+      // 引き直すキーは、コンプの「あと1個」からの追加と共通にしてある
+      await addOfficialItemToWishlist(queryClient, user.id, item.id);
       toast.success(t("collectionScreen.addSheet.wishedToast", { title: item.title }));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["wished-official-item-ids", user.id] }),
-        // キーは既存のウィッシュ追加（MemoizedOfficialGoodsCard）と揃える。
-        // 違うキーを投げても何も再取得されず、他画面が古い表示のまま残る。
-        queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] }),
-        queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", item.id, user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["trade-matches", user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["trade-series-partners", user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["trade-readiness", user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user.id] }),
-      ]);
     } catch (e) {
       console.error("Failed to add to wishlist:", e);
       toast.error(t("collectionScreen.addSheet.wishFailed"));
@@ -526,6 +517,98 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   }, [contents, favoriteContents]);
   const results = filtered.slice(0, visible);
 
+  // ---- まとめて選ぶ ----
+  // 推し活の人はグッズを数十〜数百個持っている。1個ずつ「+追加」を押すのが最初の登録の大きな手間だったので、
+  // タップで選んで、最後に1回で追加できるようにする。いつもの1タップ追加はそのまま残し、切り替えで選ぶモードに入る。
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Map<string, OfficialItem>>(() => new Map());
+  const [bulkAdding, setBulkAdding] = useState(false);
+  // 多すぎる「全部選ぶ」の確認（作品全体だと1万件を超えることもある）
+  const [confirmAll, setConfirmAll] = useState<OfficialItem[] | null>(null);
+
+  const stopSelecting = () => {
+    setSelecting(false);
+    setPicked(new Map());
+  };
+  const togglePick = (item: OfficialItem) => {
+    if (!picked.has(item.id) && picked.size >= BULK_ADD_MAX) {
+      toast.info(t("collectGoals.bulk.capped", { max: BULK_ADD_MAX }));
+      return;
+    }
+    setPicked((prev) => {
+      const next = new Map(prev);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.set(item.id, item);
+      return next;
+    });
+  };
+
+  // 「このシリーズを全部選ぶ」を出すのは、作品かシリーズ（series タグ1つ）で絞り込んでいるときだけ。
+  // 何も絞っていない一覧で全部を選べても、数万件になって意味がない。
+  const seriesPick = filter.selection.series?.length === 1 ? filter.selection.series[0] : null;
+  const scopeLabel = seriesPick ?? (filter.content ? contentLabel(filter.content) : null);
+  const selectable = useMemo(() => filtered.filter((i) => !ownedIds?.has(i.id)), [filtered, ownedIds]);
+  const allPicked = selectable.length > 0 && selectable.every((i) => picked.has(i.id));
+  // 作品の全件が届く前（先頭だけ出している間）に押すと、一部しか選ばれないので待ってもらう
+  const scopeReady = !isLoading && !usePreview && !workLoading;
+
+  // 別のシリーズで選んでおいたものは残したまま、このシリーズの分を足す（シリーズをまたいで選んでいけるように）
+  const pickAll = (list: OfficialItem[]) => {
+    setSelecting(true);
+    const fresh = list.filter((i) => !picked.has(i.id));
+    const room = Math.max(0, BULK_ADD_MAX - picked.size);
+    const next = new Map(picked);
+    for (const i of fresh.slice(0, room)) next.set(i.id, i);
+    setPicked(next);
+    if (fresh.length > room) toast.info(t("collectGoals.bulk.capped", { max: BULK_ADD_MAX }));
+  };
+  const handlePickAll = () => {
+    if (allPicked) {
+      // はずすのも、いま絞り込んでいるシリーズの分だけ
+      const ids = new Set(selectable.map((i) => i.id));
+      setPicked((prev) => new Map([...prev].filter(([id]) => !ids.has(id))));
+      return;
+    }
+    if (selectable.length > SELECT_ALL_CONFIRM) setConfirmAll(selectable);
+    else pickAll(selectable);
+  };
+
+  const handleBulkAdd = async () => {
+    if (!user || picked.size === 0) return;
+    setBulkAdding(true);
+    try {
+      const list: BulkAddItem[] = [...picked.values()].map((item) => ({
+        officialItemId: item.id,
+        title: item.title,
+        image: item.image,
+        contentName: item.content_name,
+        releaseDate: item.release_date,
+        prize: item.price,
+      }));
+      const result = await addManyToCollection(user.id, list);
+      if (result.success) {
+        toast.success(t("collectGoals.bulk.addedToast", { n: result.added }), {
+          description: result.skippedOwned > 0 ? t("collectGoals.bulk.skippedOwned", { n: result.skippedOwned }) : undefined,
+        });
+        stopSelecting();
+        await invalidateCollectionChanged(queryClient, { userId: user.id });
+        // 「最初のグッズを登録」などのはじめてガイドの報酬を、その場で確かめてもらう
+        requestOnboardingRewardCheck();
+      } else if (result.isAtLimit) {
+        toast.error(t("collectionScreen.addFlow.limitTitle"), {
+          description: t("collectGoals.bulk.limitDesc", { n: result.remainingSlots ?? 0, max: result.maxSlots ?? 0 }),
+        });
+      } else {
+        console.error("addManyToCollection failed:", result.error);
+        toast.error(t("collectionScreen.common.error"), {
+          description: t("notices.adminItem.collectionFailedDesc"),
+        });
+      }
+    } finally {
+      setBulkAdding(false);
+    }
+  };
+
   const handleAdd = async (item: (typeof items)[number]) => {
     if (!user) return;
     setAddingId(item.id);
@@ -574,9 +657,22 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("chrome.common.back")}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <DrawerTitle className="text-base font-bold">
+          <DrawerTitle className="min-w-0 flex-1 truncate text-base font-bold">
             {t("collectionScreen.addSheet.pickTitle")}
           </DrawerTitle>
+          {/* まとめて選ぶ。いつもの1タップ追加とぶつからないよう、明示的に切り替える */}
+          <Button
+            type="button"
+            variant={selecting ? "secondary" : "ghost"}
+            size="sm"
+            aria-pressed={selecting}
+            onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
+            data-bulk-toggle
+            className="h-8 shrink-0 gap-1 rounded-full px-3 text-xs font-bold"
+          >
+            {selecting ? <X className="h-3.5 w-3.5" aria-hidden="true" /> : <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />}
+            {selecting ? t("collectGoals.bulk.stop") : t("collectGoals.bulk.start")}
+          </Button>
         </div>
         <DrawerDescription className="sr-only">
           {t("collectionScreen.addSheet.pickDesc")}
@@ -648,9 +744,36 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
         )}
 
         {!isLoading && !isError && (
-          <p className="mt-2 text-2xs text-muted-foreground tabular-nums">
-            {t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: totalCount })}
-          </p>
+          <div className="mt-2 flex min-h-7 items-center gap-2">
+            <p className="min-w-0 flex-1 text-2xs text-muted-foreground tabular-nums">
+              {selecting
+                ? t("collectGoals.bulk.hint")
+                : t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: totalCount })}
+            </p>
+            {/* シリーズまるごと: 全部選んでから、持っていないものを外してもらう */}
+            {scopeLabel && selectable.length > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!scopeReady}
+                onClick={handlePickAll}
+                data-bulk-pick-all
+                className="h-7 max-w-[62%] shrink-0 gap-1 rounded-full border-primary/40 px-2.5 text-2xs font-bold text-primary"
+              >
+                {scopeReady ? (
+                  <CheckCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                ) : (
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
+                )}
+                <span className="truncate">
+                  {allPicked
+                    ? t("collectGoals.bulk.unpickAll")
+                    : t("collectGoals.bulk.pickAll", { name: scopeLabel, n: selectable.length.toLocaleString() })}
+                </span>
+              </Button>
+            )}
+          </div>
         )}
 
         <ScrollArea className="mt-2 min-h-0 flex-1 pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
@@ -685,6 +808,18 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
               {results.map((item, index) => {
                 const owned = ownedIds?.has(item.id) ?? false;
                 const wished = wishedIds?.has(item.id) ?? false;
+                const isPicked = selecting && picked.has(item.id);
+                let footerLabel = `+ ${t("chrome.fab.addShort")}`;
+                let footerTone = "bg-primary text-primary-foreground";
+                if (owned) {
+                  footerLabel = t("collectionScreen.addSheet.owned");
+                  footerTone = "bg-muted text-muted-foreground";
+                } else if (selecting) {
+                  footerLabel = isPicked ? `✓ ${t("collectGoals.bulk.picked")}` : t("collectGoals.bulk.pick");
+                  footerTone = isPicked
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-primary ring-1 ring-inset ring-primary/30";
+                }
                 return (
                   <div key={item.id} className="relative min-w-0">
                     <GoodsPickTile
@@ -693,32 +828,26 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                       priority={index < 9}
                       title={item.title}
                       subtitle={contentLabel(item.content_name)}
-                      selected={owned}
+                      // 選ぶモードでは、追加済みと「選択中」を見分けられるよう、印は選んだものだけに付ける
+                      selected={selecting ? isPicked : owned}
                       busy={addingId === item.id}
                       disabled={owned}
-                      onClick={() => handleAdd(item)}
-                      onImageClick={() => setDetailItem(item)}
+                      // 選ぶモードでは、写真を押しても選ぶ（詳細を開くより、選ぶ操作を続けやすく）
+                      onClick={() => (selecting ? togglePick(item) : handleAdd(item))}
+                      onImageClick={selecting ? undefined : () => setDetailItem(item)}
                       imageAriaLabel={t("engage.catalog.detail", { title: item.title })}
-                      ariaLabel={
-                        owned
-                          ? `${item.title} ${t("collectionScreen.addSheet.owned")}`
-                          : `${item.title} ${t("chrome.fab.addShort")}`
-                      }
+                      ariaLabel={`${item.title} ${owned ? t("collectionScreen.addSheet.owned") : footerLabel.replace(/^[+✓] /, "")}`}
                       footer={
-                        <span
-                          className={cn(
-                            "mt-auto rounded-md py-1 text-center text-3xs font-bold",
-                            owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
-                          )}
-                        >
-                          {owned ? t("collectionScreen.addSheet.owned") : `+ ${t("chrome.fab.addShort")}`}
+                        <span className={cn("mt-auto rounded-md py-1 text-center text-3xs font-bold", footerTone)}>
+                          {footerLabel}
                         </span>
                       }
                     />
                     {/* 持っていないものは「ほしい」に入れられる。
                         交換は欲しいもの側が無いと相手が見つからない。
-                        タイルの外に置く（ボタンの中にボタンは置けない）。 */}
-                    {!owned && (
+                        タイルの外に置く（ボタンの中にボタンは置けない）。
+                        選ぶモードの間は、選ぶ操作と混ざらないよう隠す。 */}
+                    {!owned && !selecting && (
                       <button
                         type="button"
                         disabled={wished || wishingId === item.id}
@@ -745,7 +874,65 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
             </div>
           )}
         </ScrollArea>
+
+        {/* 選んだ数と「n個を追加」。一覧の下に置いて、どこまでスクロールしても押せるようにする */}
+        {selecting && (
+          <div
+            data-bulk-bar
+            className="mt-2 flex items-center gap-2 rounded-2xl border border-border bg-background/95 p-2 shadow-lg backdrop-blur"
+          >
+            <span className="pl-2 text-sm font-bold tabular-nums">
+              {t("collectGoals.bulk.selectedCount", { n: picked.size })}
+            </span>
+            {picked.size > 0 && (
+              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setPicked(new Map())}>
+                {t("collectGoals.bulk.clear")}
+              </Button>
+            )}
+            <div className="flex-1" />
+            <Button
+              type="button"
+              size="sm"
+              disabled={picked.size === 0 || bulkAdding}
+              onClick={handleBulkAdd}
+              className="h-9 gap-1.5 rounded-full px-4 font-bold"
+            >
+              {bulkAdding ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              )}
+              {t("collectGoals.bulk.addN", { n: picked.size })}
+            </Button>
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={!!confirmAll} onOpenChange={(o) => !o && setConfirmAll(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("collectGoals.bulk.confirmTitle", { n: (confirmAll?.length ?? 0).toLocaleString() })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(confirmAll?.length ?? 0) > BULK_ADD_MAX
+                ? t("collectGoals.bulk.confirmDescCapped", { max: BULK_ADD_MAX })
+                : t("collectGoals.bulk.confirmDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("collectionScreen.common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmAll) pickAll(confirmAll);
+                setConfirmAll(null);
+              }}
+            >
+              {t("collectGoals.bulk.confirmOk")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {detailItem && (
         <ItemDetailsModal
