@@ -22,7 +22,7 @@ import { mediaType, readBodyCapped, safeFetch, SsrfError } from "../_shared/ssrf
  *
  * 【安全のための決まり】
  * - 取りに行くのは DB の official_items.image にある URL だけ（呼び出し側から URL は受け取らない）
- * - 1回の呼び出しで少しずつ（既定 8 枚、最大 20 枚。変換の CPU 時間が 1 秒を超えたら残りは返す）。
+ * - 1回の呼び出しで少しずつ（既定 8 枚、最大 20 枚。変換の CPU 時間の見積もりが予算を超える画像は返す）。
  *   同時取得は 3 本まで
  * - SSRF 検査（内部アドレス・リダイレクト先の再検査）は proxy-image と同じ _shared/ssrf.ts
  * - 失敗しても止めずに catalog_image_thumbs に理由を残す（404 などはやり直さない）
@@ -69,10 +69,19 @@ const CONCURRENCY = 3;
 /** 1回の呼び出しで、これを過ぎたら新しい画像に手を付けない（関数の制限時間より十分短く） */
 const TIME_BUDGET_MS = 100_000;
 /**
- * Edge Function は1リクエストあたりの CPU 時間が約2秒まで。変換（同期処理）にかかった時間の合計が
- * これを超えたら、残りは手を付けずに返す。手元の計測で1枚 100〜450ms（中央値 150ms 前後）。
+ * Edge Function は1リクエストあたりの CPU 時間が約2秒まで。超えると関数ごと落ち（546）、
+ * 同じ呼び出しの画像がまとめてやり直しになる。変換（同期処理）の前に、その画像の見積もりを足して
+ * これを超えるなら手を付けずに返す（1枚目だけは見積もりにかかわらず変換する）。
  */
-const CPU_BUDGET_MS = 1_000;
+const CPU_BUDGET_MS = 1_400;
+
+/**
+ * 変換にかかる CPU 時間の見積もり（ミリ秒）。ほとんどが JPEG の読み込みで、ファイルの大きさにほぼ比例する。
+ * 手元で 3.5MB の 4000px JPEG が約 0.6 秒、Edge Function ではその 1.5〜2.5 倍かかる。
+ */
+function estimateConvertMs(bytes: number): number {
+  return 50 + bytes / 2_500;
+}
 
 /**
  * これより大きい JPEG は、読むときに縮めて読む（DCT の縮小。4000px → 1000px など）。
@@ -292,6 +301,14 @@ serve(async (req) => {
     const results: Array<Record<string, unknown>> = [];
     const released: string[] = [];
     let cpuMs = 0;
+    let converted = 0;
+
+    if (queue.length > 0) {
+      // wasm の読み込み（起動して最初の呼び出しだけ）も CPU を使うので数える
+      const initStart = Date.now();
+      await ensureMagick();
+      cpuMs += Date.now() - initStart;
+    }
 
     const worker = async () => {
       while (queue.length > 0) {
@@ -305,9 +322,16 @@ serve(async (req) => {
         try {
           const src = await fetchSource(job.src_url);
           const fetchedMs = Date.now() - t0;
-          await ensureMagick();
+          // 取得は3本並んで進むので、取得前に見た予算は当てにならない（以前はここで3枚続けて変換して落ちた）。
+          // 変換の直前に見積もりで確かめる。ここから変換が終わるまで await が無いので、他の変換と重ならない
+          if (converted > 0 && cpuMs + estimateConvertMs(src.byteLength) > CPU_BUDGET_MS) {
+            released.push(job.src_hash);
+            continue;
+          }
+          converted++;
+          const c0 = Date.now();
           const thumb = toThumb(src);
-          const convertMs = Date.now() - t0 - fetchedMs;
+          const convertMs = Date.now() - c0;
           cpuMs += convertMs;
 
           const { error: upError } = await admin.storage
