@@ -384,12 +384,23 @@ serve(async (req) => {
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker));
 
     if (released.length > 0) {
-      // 「途中で止まった取得」と同じ扱いにして、次の呼び出しですぐ拾い直させる
-      await admin
+      // 「途中で止まった取得」と同じ扱いにして、次の呼び出しですぐ拾い直させる。
+      // 手を付けていないので、受け取ったときに足した試行回数も戻す（戻さないと、大きな画像が返され続けて
+      // 3 回で「失敗」になってしまう）
+      const { data: rows } = await admin
         .from("catalog_image_thumbs")
-        .update({ claimed_at: new Date(0).toISOString() })
+        .select("src_hash, attempts")
         .in("src_hash", released)
         .eq("status", "processing");
+      await Promise.all(
+        ((rows ?? []) as Array<{ src_hash: string; attempts: number }>).map((r) =>
+          admin
+            .from("catalog_image_thumbs")
+            .update({ claimed_at: new Date(0).toISOString(), attempts: Math.max(0, r.attempts - 1) })
+            .eq("src_hash", r.src_hash)
+            .eq("status", "processing")
+        ),
+      );
     }
 
     const okCount = results.filter((r) => r.ok).length;
