@@ -76,11 +76,36 @@ const TIME_BUDGET_MS = 100_000;
 const CPU_BUDGET_MS = 1_400;
 
 /**
- * 変換にかかる CPU 時間の見積もり（ミリ秒）。ほとんどが JPEG の読み込みで、ファイルの大きさにほぼ比例する。
- * 手元で 3.5MB の 4000px JPEG が約 0.6 秒、Edge Function ではその 1.5〜2.5 倍かかる。
+ * 変換にかかる CPU 時間の見積もり（ミリ秒）。
+ * - JPEG は縮めて読めるので、読み込み（ファイルの大きさにほぼ比例）が主。手元で 3.5MB の 4000px が約 0.6 秒、
+ *   Edge Function ではその 1.5〜2.5 倍
+ * - PNG は原寸で読むので画素数に比例
+ * - WebP などは大きさが分からず原寸で読む。Edge Function で 650KB・4000px の WebP が 1.2 秒かかった
  */
-function estimateConvertMs(bytes: number): number {
-  return 50 + bytes / 2_500;
+function estimateConvertMs(bytes: Uint8Array): number {
+  const size = peekSize(bytes);
+  if (size?.type === "jpeg") return 50 + bytes.byteLength / 2_500;
+  if (size?.type === "png") return 50 + (size.width * size.height) / 12_000;
+  return 50 + bytes.byteLength / 500;
+}
+
+/**
+ * 画像の CDN が縮めた画像を返せるなら、そちらを取りに行く（取る量も変換の CPU も大きく減る）。
+ * Shopify は 4000px の画像をそのまま返すことがあり、1 枚で変換の予算を使い切っていた。
+ */
+const CDN_FETCH_WIDTH = MAX_EDGE * 2;
+function sizedSourceUrl(raw: string): string {
+  try {
+    const u = new URL(raw);
+    const shopify = u.hostname === "cdn.shopify.com" || u.pathname.startsWith("/cdn/shop/");
+    if (shopify && !u.searchParams.has("width") && !u.searchParams.has("height")) {
+      u.searchParams.set("width", String(CDN_FETCH_WIDTH));
+      return u.toString();
+    }
+  } catch {
+    // そのまま返す
+  }
+  return raw;
 }
 
 /**
@@ -137,7 +162,7 @@ function unwrapProxyUrl(raw: string): string {
 }
 
 async function fetchSource(raw: string): Promise<Uint8Array> {
-  const target = unwrapProxyUrl(raw);
+  const target = sizedSourceUrl(unwrapProxyUrl(raw));
   let response: Response;
   try {
     ({ response } = await safeFetch(target, {
@@ -147,7 +172,8 @@ async function fetchSource(raw: string): Promise<Uint8Array> {
       // 直リンク禁止のサイトがあるので、Referer はそのサイト自身にする（proxy-image と同じ）
       headers: (u) => ({
         "User-Agent": BROWSER_UA,
-        "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
+        // JPEG を先に頼む（JPEG は縮めて読めるが、WebP・AVIF は原寸で読むしかなく CPU を食う）
+        "Accept": "image/jpeg,image/png;q=0.9,image/*;q=0.8,*/*;q=0.5",
         "Accept-Language": "ja,en;q=0.9",
         "Referer": u.origin + "/",
       }),
@@ -324,7 +350,7 @@ serve(async (req) => {
           const fetchedMs = Date.now() - t0;
           // 取得は3本並んで進むので、取得前に見た予算は当てにならない（以前はここで3枚続けて変換して落ちた）。
           // 変換の直前に見積もりで確かめる。ここから変換が終わるまで await が無いので、他の変換と重ならない
-          if (converted > 0 && cpuMs + estimateConvertMs(src.byteLength) > CPU_BUDGET_MS) {
+          if (converted > 0 && cpuMs + estimateConvertMs(src) > CPU_BUDGET_MS) {
             released.push(job.src_hash);
             continue;
           }
