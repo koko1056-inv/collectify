@@ -28,6 +28,8 @@ import { setPendingAiItems } from "@/utils/ai-studio-handoff";
 import { toast } from "sonner";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
+import { usePreorders } from "@/hooks/usePreorders";
+import { PreorderList } from "@/components/preorders/PreorderList";
 import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CollectionExplorer, type CollectionFacet } from "./collection/CollectionExplorer";
@@ -126,6 +128,8 @@ export function UserCollection({
   const queryClient = useQueryClient();
 
   const isOwnCollection = !userId || userId === user?.id;
+  // まだグッズが1つも無くても、予約中のものは見られるようにする（空の画面の下に出す）
+  const { preorders } = usePreorders();
 
   const handleRandomModalOpen = useCallback(() => {
     setIsRandomModalOpen(true);
@@ -352,6 +356,7 @@ export function UserCollection({
   }
   if (items.length === 0) {
     return (
+      <>
       <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
         <Card className="max-w-sm w-full border-dashed border-2">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
@@ -416,6 +421,13 @@ export function UserCollection({
           </CardContent>
         </Card>
       </div>
+      {isOwnCollection && user && preorders.length > 0 && (
+        <section className="scroll-mt-20" aria-label={t("preorders.button.preordered")}>
+          <h3 className="mb-2 px-1 text-sm font-bold">{t("preorders.button.preordered")}</h3>
+          <PreorderList />
+        </section>
+      )}
+      </>
     );
   }
   const handleToggleSelectionMode = () => {

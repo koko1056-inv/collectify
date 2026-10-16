@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TagManageModal } from "./tag/TagManageModal";
-import { deleteUserItem } from "@/utils/tag/user-item-operations";
-import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { ItemDetailsDeleteDialog } from "@/components/item-details/ItemDetailsDeleteDialog";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemNoteField } from "./item-details/ItemNoteField";
 import { QuantityInput } from "./item-details/QuantityInput";
@@ -250,30 +249,6 @@ export function ItemDetailsModal({
     };
   }, [itemId, user?.id, isUserItem, queryClient, refetchIsInCollection, refetchOwnersCount]);
 
-  const handleDeleteItem = async () => {
-    if (!isUserItem || !itemId) return;
-    try {
-      const {
-        error,
-        officialItemId
-      } = await deleteUserItem(itemId);
-      if (error) throw error;
-
-      // コレクションから計算している数字（コンプ進捗・登録数など）をまとめて引き直す。
-      // 以前は ["user-items"] などしか引き直しておらず、削除してもコンプ進捗・登録数が古いまま残った
-      void invalidateCollectionChanged(queryClient, { userId: user?.id, officialItemId });
-      toast.success(t("chrome.itemDetails.deletedTitle"), {
-        description: t("chrome.itemDetails.deletedDesc"),
-      });
-      onClose();
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      toast.error(t("chrome.common.error"), {
-        description: t("chrome.itemDetails.deleteFailed"),
-      });
-    }
-  };
-
   const handleSaveUserItemFields = async () => {
     if (!isUserItem || !itemId) return;
     setIsSaving(true);
@@ -429,21 +404,19 @@ export function ItemDetailsModal({
         </DialogContent>
       </Dialog>
 
-      {isDeleteConfirmOpen && (
-        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <h2 className="text-lg font-bold mb-2">{t("chrome.itemDetails.deleteHeading")}</h2>
-            <p className="mb-4">{t("chrome.itemDetails.deleteConfirm", { title })}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
-                {t("chrome.common.cancel")}
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteItem}>
-                {t("chrome.itemDetails.delete")}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      {/* 外すときは「手放した（記録を残す）」か「登録ミス」を選ぶ（コレクションのカードと同じ確認） */}
+      {isUserItem && (
+        <ItemDetailsDeleteDialog
+          open={isDeleteConfirmOpen}
+          setOpen={setIsDeleteConfirmOpen}
+          title={title}
+          itemId={itemId}
+          isUserItem
+          onCloseModal={() => {
+            setIsDeleteConfirmOpen(false);
+            onClose();
+          }}
+        />
       )}
       
       <TagManageModal 

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
+import { addToCollection, copyOfficialItemTags, incrementItemQuantity } from "@/utils/collection-actions";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 export interface OfficialItemSummary {
@@ -110,17 +110,7 @@ export function useAddOfficialItem({ onAdded }: { onAdded?: () => Promise<unknow
       }
 
       // タグをコピー
-      if (result.userItemId) {
-        const { data: tags, error: tagsError } = await supabase
-          .from("item_tags")
-          .select("tag_id")
-          .eq("official_item_id", item.id);
-        if (!tagsError && tags && tags.length > 0) {
-          await supabase
-            .from("user_item_tags")
-            .insert(tags.map((tag) => ({ user_item_id: result.userItemId!, tag_id: tag.tag_id })));
-        }
-      }
+      if (result.userItemId) await copyOfficialItemTags(result.userItemId, item.id);
 
       await onAdded?.();
       // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）

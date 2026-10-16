@@ -1,10 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+/** 手放した理由（交換は交換の成立時にサーバーが記録する） */
+export type ReleaseReason = "sold" | "gift" | "other";
+
 /**
- * ユーザーアイテムを削除する
+ * ユーザーアイテムを削除する。
+ * release を渡すと、消す前の内容を「手放した」（past_items）に記録する（登録ミスで消すときは渡さない）。
  */
-export const deleteUserItem = async (itemId: string) => {
+export const deleteUserItem = async (itemId: string, options: { release?: ReleaseReason } = {}) => {
   try {
     // 交換が成立して進行中の品は消せない。先に確かめておかないと、いいね等だけ消えて途中で止まる
     const { data: inTrade } = await supabase.rpc("trade_item_in_progress", { _item: itemId });
@@ -15,7 +19,7 @@ export const deleteUserItem = async (itemId: string) => {
     // Get the official_item_id before deleting
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
-      .select("official_item_id")
+      .select("user_id, official_item_id, title, image, content_name, quantity, purchase_price, purchase_date, purchase_shop")
       .eq("id", itemId)
       .single();
     
@@ -53,7 +57,24 @@ export const deleteUserItem = async (itemId: string) => {
       .eq("id", itemId);
     
     if (deleteError) throw deleteError;
-    
+
+    // 手放した記録。消せたあとに書く（記録だけ残って本体が消えない、を避ける）。書けなくても削除は成功として扱う
+    if (options.release && userItem) {
+      const { error: pastError } = await supabase.from("past_items").insert({
+        user_id: userItem.user_id,
+        official_item_id: userItem.official_item_id,
+        title: (userItem.title || "").slice(0, 300),
+        image: userItem.image,
+        content_name: userItem.content_name,
+        quantity: Math.min(999, Math.max(1, userItem.quantity ?? 1)),
+        reason: options.release,
+        purchase_price: userItem.purchase_price,
+        purchase_date: userItem.purchase_date,
+        purchase_shop: userItem.purchase_shop,
+      });
+      if (pastError) console.error("Error recording past item:", pastError);
+    }
+
     return { success: true, officialItemId };
   } catch (error) {
     console.error("Error deleting user item:", error);

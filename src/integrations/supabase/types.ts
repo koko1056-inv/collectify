@@ -2392,6 +2392,39 @@ export type Database = {
           },
         ]
       }
+      past_items: {
+        Row: {
+          content_name: string | null
+          id: string
+          image: string | null
+          official_item_id: string | null
+          purchase_date: string | null
+          purchase_price: string | null
+          purchase_shop: string | null
+          quantity: number
+          reason: string
+          released_at: string
+          title: string
+          trade_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content_name?: string | null
+          image?: string | null
+          official_item_id?: string | null
+          purchase_date?: string | null
+          purchase_price?: string | null
+          purchase_shop?: string | null
+          quantity?: number
+          reason: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          [_ in never]: never
+        }
+        Relationships: []
+      }
       point_packages: {
         Row: {
           apple_product_id: string | null
@@ -2791,6 +2824,39 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "goods_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preorders: {
+        Row: {
+          created_at: string
+          id: string
+          official_item_id: string
+          price: number | null
+          quantity: number
+          release_notified_at: string | null
+          shop: string | null
+          user_id: string
+        }
+        Insert: {
+          official_item_id: string
+          price?: number | null
+          quantity?: number
+          shop?: string | null
+          user_id: string
+        }
+        Update: {
+          price?: number | null
+          quantity?: number
+          shop?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preorders_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
             referencedColumns: ["id"]
           },
         ]
@@ -3680,6 +3746,7 @@ export type Database = {
           prize: string
           purchase_date: string | null
           purchase_price: string | null
+          purchase_shop: string | null
           quantity: number
           release_date: string
           theme: string | null
@@ -3702,6 +3769,7 @@ export type Database = {
           prize: string
           purchase_date?: string | null
           purchase_price?: string | null
+          purchase_shop?: string | null
           quantity?: number
           release_date: string
           theme?: string | null
@@ -3724,6 +3792,7 @@ export type Database = {
           prize?: string
           purchase_date?: string | null
           purchase_price?: string | null
+          purchase_shop?: string | null
           quantity?: number
           release_date?: string
           theme?: string | null

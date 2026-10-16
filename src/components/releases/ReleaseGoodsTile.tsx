@@ -28,6 +28,8 @@ export function ReleaseGoodsTile({
   const busy = actions.busyId === item.id;
   // カタログの名前は【予約】【発送時期】などの注記で長い。一覧では外して「予約」の札にする（詳細では元の名前）
   const preorder = isPreorderTitle(item.title);
+  // 自分が予約しているものは、カタログの「予約」の札より優先して「予約中」と出す
+  const preordered = actions.isPreordered(item.id);
   return (
     <div className={cn("relative min-w-0", className)} data-testid="release-tile">
       <button
@@ -46,11 +48,18 @@ export function ReleaseGoodsTile({
             decoding="async"
             className="h-full w-full object-contain"
           />
-          {preorder && (
+          {preordered ? (
+            <span
+              className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-3xs font-bold leading-none text-primary-foreground shadow-sm"
+              data-testid="release-tile-preordered"
+            >
+              {t("preorders.tile.preordered")}
+            </span>
+          ) : preorder ? (
             <span className="absolute bottom-1.5 left-1.5 rounded-md bg-background/90 px-1.5 py-0.5 text-3xs font-bold leading-none text-foreground shadow-sm">
               {t("discover.tile.preorder")}
             </span>
-          )}
+          ) : null}
           {isNew && (
             <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-3xs font-bold leading-none text-primary-foreground shadow-sm">
               NEW

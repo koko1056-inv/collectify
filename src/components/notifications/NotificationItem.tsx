@@ -1,4 +1,4 @@
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight, Flag, type LucideIcon } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, CalendarCheck, ArrowLeftRight, Flag, type LucideIcon } from 'lucide-react';
 import { IconTile, type IconTileTone } from '@/components/ui/icon-tile';
 import { Button } from '@/components/ui/button';
 import { Notification, NotificationData } from '@/types/notification';
@@ -31,8 +31,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'new_item':
         return { icon: Package, tone: 'info' };
       case 'oshi_new_items':
-        // 推しの新商品のまとめ（1日1回）。マイグレーションを当てると届く
+        // 推しの新商品のまとめ（1日1回）
         return { icon: Sparkles, tone: 'info' };
+      case 'preorder_release':
+        // 予約していたグッズの発売日（1日1回のまとめ）
+        return { icon: CalendarCheck, tone: 'success' };
       case 'comment':
         return { icon: MessageCircle, tone: 'primary' };
       case 'reply':
@@ -92,6 +95,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     // Navigate based on notification type
     if (notification.type === 'new_item' && notification.data.item_id) {
       navigate(`/item/${notification.data.item_id}`);
+    } else if (notification.type === 'preorder_release') {
+      // 予約していたグッズの発売日: コレクションの「予約中」で「届いた」を押せる
+      navigate(notification.data.url || '/collection?view=preorders');
     } else if (notification.type === 'oshi_new_items') {
       // 推しの新商品のまとめ: 推しの新商品の画面の「新着」へ
       navigate(notification.data.url || '/releases?tab=new');
@@ -170,7 +176,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           )}
 
           {/* Special rendering for new item notifications */}
-          {(notification.type === 'new_item' || notification.type === 'oshi_new_items') && data.image && (
+          {(notification.type === 'new_item' || notification.type === 'oshi_new_items' || notification.type === 'preorder_release') && data.image && (
             <div className="flex items-center gap-2 mb-2">
               <img
                 src={getOptimizedImageUrl(data.image, { width: 96 })}

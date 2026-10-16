@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CollectionGrid } from "./CollectionGrid";
 import { DragEndEvent } from "@dnd-kit/core";
 import { CollectionWishlist } from "./CollectionWishlist";
@@ -8,6 +9,12 @@ import { Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePreorders } from "@/hooks/usePreorders";
+import { PreorderList } from "@/components/preorders/PreorderList";
+import { PastItemsList } from "./PastItemsList";
+
+type ViewType = "grid" | "wishlist" | "preorders" | "past";
 
 interface CollectionViewToggleProps {
   userId: string;
@@ -38,15 +45,44 @@ export function CollectionViewToggle({
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
   const { t } = useLanguage();
-  // 「通常表示 / 欲しい物リスト」の切替（マイタグ選択時は無効）
-  const [viewType, setViewType] = useState<"grid" | "wishlist">("grid");
+  const { user } = useAuth();
+  const isOwn = !!user && user.id === userId;
+  // 予約中は本人だけ（いくら使ったかは人に見せない）
+  const { preorders } = usePreorders();
+  const [params, setParams] = useSearchParams();
+  const rootRef = useRef<HTMLDivElement>(null);
+  // 「通常表示 / 欲しい物リスト / 予約中」の切替（マイタグ選択時は無効）。
+  // ?view=preorders（発売日の通知・コレクション上のお知らせ）から開いたときは予約中を出す
+  const [viewType, setViewType] = useState<ViewType>(() => {
+    const v = params.get("view");
+    return isOwn && (v === "preorders" || v === "past") ? v : "grid";
+  });
+  const viewParam = params.get("view");
+  useEffect(() => {
+    if ((viewParam !== "preorders" && viewParam !== "past") || !isOwn) return;
+    setViewType(viewParam);
+    onPersonalTagChange?.("");
+    rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 開いた合図（view）が変わったときだけ
+  }, [viewParam, isOwn]);
 
   // 現在アクティブなタブ：マイタグ選択中ならそのタグ、なければ viewType
   const activeView: string = selectedPersonalTag || viewType;
 
   const handleSelectTab = (value: string) => {
-    if (value === "grid" || value === "wishlist") {
-      setViewType(value as "grid" | "wishlist");
+    // タブを自分で選んだら、URL の「予約中を開く」合図は消す（戻る・再読み込みで勝手に戻らないように）
+    if (viewParam) {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("view");
+          return next;
+        },
+        { replace: true }
+      );
+    }
+    if (value === "grid" || value === "wishlist" || value === "preorders" || value === "past") {
+      setViewType(value);
       onPersonalTagChange?.("");
     } else {
       // マイタグ選択時は通常表示に戻す
@@ -58,17 +94,26 @@ export function CollectionViewToggle({
   const tabs: { value: string; label: string }[] = [
     { value: "grid", label: t("collectionScreen.viewToggle.grid") },
     { value: "wishlist", label: t("collectionScreen.viewToggle.wishlist") },
+    ...(isOwn
+      ? [
+          { value: "preorders", label: preorders.length > 0 ? `${t("preorders.button.preordered")} ${preorders.length}` : t("preorders.button.preordered") },
+          // 手放したグッズ（交換で渡した・売った・あげた）。図鑑の歴史として残す
+          { value: "past", label: t("records.past.tab") },
+        ]
+      : []),
     ...allUserTags.map((tag) => ({ value: tag, label: tag })),
   ];
 
   const showWishlist = activeView === "wishlist";
+  const showPreorders = isOwn && activeView === "preorders";
+  const showPast = isOwn && activeView === "past";
 
   const emptyTitle = selectedPersonalTag
     ? `${t("collectionScreen.viewToggle.taggedEmptyPrefix")}${selectedPersonalTag}${t("collectionScreen.viewToggle.taggedEmptySuffix")}`
     : t("collectionScreen.viewToggle.empty");
 
   return (
-    <div className="w-full">
+    <div className="w-full scroll-mt-20" ref={rootRef}>
       {/* タブ列：通常表示 / 欲しい物リスト / マイタグ... */}
       <div className="relative mb-4">
         <ScrollArea className="w-full">
@@ -95,7 +140,11 @@ export function CollectionViewToggle({
         </ScrollArea>
       </div>
 
-      {showWishlist ? (
+      {showPreorders ? (
+        <PreorderList />
+      ) : showPast ? (
+        <PastItemsList />
+      ) : showWishlist ? (
         <CollectionWishlist userId={userId} />
       ) : items.length === 0 ? (
         <EmptyState icon={Package} title={emptyTitle} />

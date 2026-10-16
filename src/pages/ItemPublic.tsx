@@ -2,7 +2,7 @@ import { BackButton } from "@/components/navigation/BackButton";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Heart, Loader2, Plus, Share2 } from "lucide-react";
+import { Check, Heart, History, Loader2, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Navbar } from "@/components/Navbar";
@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { addToCollection } from "@/utils/collection-actions";
+import { PreorderButton } from "@/components/preorders/PreorderButton";
+import { pastDate, usePastItems } from "@/hooks/usePastItems";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
@@ -56,6 +58,7 @@ export default function ItemPublic() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<"add" | "wish" | null>(null);
+  const past = usePastItems();
 
   const { data: item, isLoading } = useQuery({
     queryKey: ["public-item", id],
@@ -116,6 +119,7 @@ export default function ItemPublic() {
 
   if (!validId) return <Navigate to="/collection" replace />;
   // 重複として統合されたグッズは、統合先のページへ
+  const previously = item ? past.lastFor(item.id) : undefined;
   if (item?.merged_into) return <Navigate to={`/item/${item.merged_into}`} replace />;
 
   const owned = state?.owned ?? false;
@@ -269,6 +273,17 @@ export default function ItemPublic() {
                 </div>
               )}
 
+              {/* 以前持っていたグッズ（手放した記録）。いま持っていなくても、図鑑の歴史として出す */}
+              {user && previously && (
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground" data-testid="previously-owned">
+                  <History className="h-3.5 w-3.5" />
+                  {t("records.past.previouslyOwned", {
+                    reason: t(`records.release.reasons.${previously.reason}`),
+                    date: pastDate(previously.releasedAt),
+                  })}
+                </p>
+              )}
+
               {user ? (
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button onClick={handleAdd} disabled={owned || busy !== null} className="gap-1.5">
@@ -291,6 +306,10 @@ export default function ItemPublic() {
                       {wished ? t("engage.itemPage.wished") : t("engage.itemPage.wish")}
                     </Button>
                   )}
+                  {/* 予約した（持っていても2個目を予約できる）。届いたらコレクションの「予約中」から入れる */}
+                  <PreorderButton
+                    target={{ officialItemId: item.id, title: item.title, releaseDate: item.release_date, catalogPrice: item.price }}
+                  />
                   <Button variant="ghost" onClick={handleShare} className="gap-1.5">
                     <Share2 className="h-4 w-4" />
                     {t("engage.itemPage.share")}

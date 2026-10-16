@@ -10,6 +10,7 @@ import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
 import { OshiRoomMiniCard } from "@/components/oshi/OshiRoomMiniCard";
+import { PreorderArrivalBanner } from "@/components/preorders/PreorderArrivalBanner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 
@@ -58,6 +59,9 @@ export default function Collection() {
           {/* 枠の使用状況は 80% を超えてから出す（常に出すと、最初の画面にグッズが1つも見えなかった）。
               普段の使用数はポイント画面と設定で見られる */}
           {user && <SlotUsageMeter type="collection" minPercent={80} />}
+
+          {/* 発売日を過ぎた予約（届いた？）。無いときは何も出さない */}
+          {user && <PreorderArrivalBanner />}
 
           <FilterSheet
             searchQuery={searchQuery}

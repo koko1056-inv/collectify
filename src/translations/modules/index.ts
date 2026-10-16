@@ -23,6 +23,8 @@ import { cosmetics } from './cosmetics';
 import { oshiRoom } from './oshiRoom';
 import { discover } from './discover';
 import { collectGoals } from './collectGoals';
+import { preorders } from './preorders';
+import { records } from './records';
 
 export const moduleTranslations = {
   ja: {
@@ -49,6 +51,8 @@ export const moduleTranslations = {
     oshiRoom: oshiRoom.ja,
     discover: discover.ja,
     collectGoals: collectGoals.ja,
+    preorders: preorders.ja,
+    records: records.ja,
   },
   en: {
     admin: admin.en,
@@ -74,5 +78,7 @@ export const moduleTranslations = {
     oshiRoom: oshiRoom.en,
     discover: discover.en,
     collectGoals: collectGoals.en,
+    preorders: preorders.en,
+    records: records.en,
   },
 };
