@@ -467,6 +467,8 @@ export function UserCollection({
         facet={facet}
         onFacetChange={setFacet}
         onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+        userId={effectiveUserId}
+        isOwn={isOwnCollection}
       />
 
       {/* ツールバー */}
