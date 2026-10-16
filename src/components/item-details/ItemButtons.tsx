@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAddOfficialItem } from "@/hooks/useAddOfficialItem";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, Plus } from "lucide-react";
+import { PreorderButton } from "@/components/preorders/PreorderButton";
 interface ItemButtonsProps {
   isInCollection: boolean;
   itemId: string;
@@ -91,7 +92,7 @@ export function ItemButtons({
   
   // ItemButtonsコンポーネントが何も返していなかったので、UIを追加
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {!isInCollection ? (
         <Button
           onClick={handleAddToCollection}
@@ -122,6 +123,8 @@ export function ItemButtons({
           </Button>
         </>
       )}
+      {/* 予約した（持っていても2個目を予約できる）。届いたらコレクションの「予約中」から入れる */}
+      <PreorderButton target={{ officialItemId: itemId, title, releaseDate, catalogPrice: price }} />
       <Button 
         variant="outline" 
         onClick={handleAddToWishlist} 

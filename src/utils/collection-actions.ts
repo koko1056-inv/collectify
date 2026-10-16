@@ -274,6 +274,13 @@ export async function incrementItemQuantity(
   }
 }
 
+/** 公式グッズのタグを、コレクションの行にも写す（絞り込み・コンプの的はこのタグで数える） */
+export async function copyOfficialItemTags(userItemId: string, officialItemId: string): Promise<void> {
+  const { data: tags, error } = await supabase.from("item_tags").select("tag_id").eq("official_item_id", officialItemId);
+  if (error || !tags || tags.length === 0) return;
+  await supabase.from("user_item_tags").insert(tags.map((tag) => ({ user_item_id: userItemId, tag_id: tag.tag_id })));
+}
+
 // コンテンツ追加時のポイント付与。額と冪等性はサーバー側（claim_reward）が決める。
 export async function awardContentAddPoints(_userId: string, contentId: string, _contentName: string) {
   const awarded = await claimReward("content_add", contentId);

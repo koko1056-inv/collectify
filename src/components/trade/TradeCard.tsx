@@ -119,6 +119,8 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
           queryClient.invalidateQueries({ queryKey: ["my-trade-offers"] }),
           queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids"] }),
           queryClient.invalidateQueries({ queryKey: ["wished-official-item-ids"] }),
+          // 渡したグッズは「手放した（交換で）」に記録される
+          queryClient.invalidateQueries({ queryKey: ["past-items"] }),
         ]);
       }
       await invalidateTrades(queryClient, user?.id);

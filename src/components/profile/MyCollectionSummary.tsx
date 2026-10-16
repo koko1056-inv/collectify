@@ -1,13 +1,15 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Boxes, ChevronRight, Home, Star, Target, Trophy, Package } from "lucide-react";
+import { Boxes, ChevronRight, Home, ReceiptText, Star, Target, Trophy, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCollectionProgress, isComplete } from "@/hooks/useCollectionProgress";
 import { useCollectionGoals } from "@/hooks/useCollectionGoals";
 import { useCompanions } from "@/hooks/useOshi";
-import { levelFromXp } from "@/utils/companion";
+import { levelFromXp, todayJst } from "@/utils/companion";
+import { toEntry, totalIn } from "@/utils/spending";
+import { formatYen } from "@/utils/preorders";
 import { IconTile } from "@/components/ui/icon-tile";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -20,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  - コンプ: そろえた作品・シリーズの数（get_collection_progress。コレクション画面と同じ判定）
  *  - 集めるもの: 目標の数（collection_goals。useCollectionGoals）
  *  - 推しの部屋: 飾っている推しグッズの数となかよし Lv の合計。押すと /oshi
+ *  - 推し活費: 今月の額（買った値段を入れたグッズ）。押すと /spending（自分だけに見える）
  */
 export function MyCollectionSummary({ userId }: { userId: string }) {
   const { t } = useLanguage();
@@ -38,6 +41,24 @@ export function MyCollectionSummary({ userId }: { userId: string }) {
     },
     staleTime: 60_000,
     refetchOnMount: true,
+  });
+
+  // 今月の推し活費（["spending", ...] の下に置き、値段を直したら一緒に読み直す）
+  const thisMonth = todayJst().slice(0, 7);
+  const { data: monthSpend } = useQuery({
+    queryKey: ["spending", "summary", userId, thisMonth],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("purchase_price, purchase_date, created_at, quantity, content_name")
+        .eq("user_id", userId)
+        .not("purchase_price", "is", null)
+        .limit(3000);
+      if (error) throw error;
+      const entries = (data ?? []).map(toEntry).filter((e): e is NonNullable<typeof e> => !!e);
+      return { total: totalIn(entries, thisMonth), any: entries.length > 0 };
+    },
+    staleTime: 60_000,
   });
 
   const completeCount = useMemo(() => (progress ?? []).filter(isComplete).length, [progress]);
@@ -112,6 +133,27 @@ export function MyCollectionSummary({ userId }: { userId: string }) {
           </span>
         </span>
         <span className="shrink-0 text-xs font-medium text-primary">{t("profileScreen.summary.openRoom")}</span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </button>
+
+      {/* 推し活費（自分だけ）。値段を入れたグッズを月ごとに数える */}
+      <button
+        type="button"
+        onClick={() => navigate("/spending")}
+        className="mt-2 flex w-full items-center gap-3 rounded-xl border border-border p-2.5 text-left transition-colors hover:bg-muted/50"
+        data-testid="summary-spending"
+      >
+        <IconTile tone="muted" size="sm">
+          <ReceiptText />
+        </IconTile>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold">{t("records.spending.entryTitle")}</span>
+          <span className="block text-2xs text-muted-foreground tabular-nums">
+            {monthSpend?.any
+              ? t("records.spending.entryMonth", { amount: formatYen(monthSpend.total) })
+              : t("records.spending.entryEmpty")}
+          </span>
+        </span>
         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       </button>
     </section>

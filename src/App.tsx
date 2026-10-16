@@ -97,6 +97,7 @@ const Explore = lazy(() => import("./pages/Explore").catch(() => ({ default: () 
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
 const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default: () => <div>Error loading page</div> })));
 const PointsEarn = lazy(() => import("./pages/PointsEarn").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Spending = lazy(() => import("./pages/Spending").catch(() => ({ default: () => <div>Error loading page</div> })));
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
 const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -215,6 +216,7 @@ const App: React.FC = () => {
                       <Route path="/point-shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
                       {/* ポイントのもらい方（ポイントショップ・マイページの「楽しむ」・コレクションの炎から入る） */}
                       <Route path="/point-shop/earn" element={<ProtectedRoute><PointsEarn /></ProtectedRoute>} />
+                      <Route path="/spending" element={<ProtectedRoute><Spending /></ProtectedRoute>} />
                       <Route path="/points" element={<Navigate to="/point-shop" replace />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
