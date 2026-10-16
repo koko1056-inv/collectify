@@ -21,6 +21,7 @@ import { pwa } from './pwa';
 import { safety } from './safety';
 import { cosmetics } from './cosmetics';
 import { oshiRoom } from './oshiRoom';
+import { collectGoals } from './collectGoals';
 
 export const moduleTranslations = {
   ja: {
@@ -45,6 +46,7 @@ export const moduleTranslations = {
     safety: safety.ja,
     cosmetics: cosmetics.ja,
     oshiRoom: oshiRoom.ja,
+    collectGoals: collectGoals.ja,
   },
   en: {
     admin: admin.en,
@@ -68,5 +70,6 @@ export const moduleTranslations = {
     safety: safety.en,
     cosmetics: cosmetics.en,
     oshiRoom: oshiRoom.en,
+    collectGoals: collectGoals.en,
   },
 };
