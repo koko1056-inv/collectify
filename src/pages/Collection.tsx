@@ -6,17 +6,17 @@ import { UserCollection } from "@/components/UserCollection";
 import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
 import { FilterSheet } from "@/components/FilterSheet";
-import { useNavigate } from "react-router-dom";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
 import { OshiRoomMiniCard } from "@/components/oshi/OshiRoomMiniCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function Collection() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
@@ -47,15 +47,13 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          {/* 「Collectifyはじめてガイド」。ログイン後に最初に開く画面がここになったので、
-              以前置いていた /my-room からこちらへ移した。
+          {/* アプリの一言説明。初めての人が「何のアプリか」で迷わないよう、いちばん上に1行だけ置く。
+              ログイン画面・ウェルカム・OGP の説明と同じ「推しグッズの図鑑」の軸で書く */}
+          <p className="px-1 text-2xs text-muted-foreground" data-testid="app-tagline">{t("chrome.collection.tagline")}</p>
+
+          {/* 「Collectifyはじめてガイド」。ログイン後に最初に開く画面がここなので、ここに置く。
               タブから辿り着けない画面に置いておくと誰も進められない。 */}
           {user && <OnboardingChecklist />}
-
-          {/* 自分の推しの部屋の小さな窓（今日のお世話の残り・なかよしLv・いいね）。タップで /oshi へ。
-              はじめてガイドより下に置く: ガイドが出ている人（はじめたばかり）には、まずガイドを進めてもらいたい。
-              ガイドを終えた・畳んだ人には、これがいちばん上に来る */}
-          {user && <OshiRoomMiniCard />}
 
           {/* 枠の使用状況は 80% を超えてから出す（常に出すと、最初の画面にグッズが1つも見えなかった）。
               普段の使用数はポイント画面と設定で見られる */}
@@ -83,6 +81,10 @@ export default function Collection() {
               selectedPersonalTag={selectedPersonalTag}
               onPersonalTagChange={handlePersonalTagChange}
               onPickFromCatalog={() => { setAddSheetView("pick"); setIsAddSheetOpen(true); }}
+              // 自分の推しの部屋の小さな窓（今日のお世話の残り・なかよしLv・いいね）。タップで /oshi へ。
+              // 推しの部屋は「眺める・愛着」の場所なので、上の「推しの新着（登録のきっかけ）・コンプ」の下に置く。
+              // 以前は画面のいちばん上（ガイドの直下）にあり、最初の画面が部屋とガイドで埋まっていた
+              belowProgress={user ? <OshiRoomMiniCard /> : null}
             />
           </div>
         </div>

@@ -1,92 +1,59 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ONBOARDING_STEP_POINTS, type OnboardingStepId } from './steps';
+import { useCollectionGoals } from '@/hooks/useCollectionGoals';
+import { useOnboardingRewardPoints } from '@/hooks/useOnboardingRewardPoints';
+import { LEGACY_FULL_GUIDE_IDS, ONBOARDING_STEPS, type OnboardingStepId } from './steps';
 import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconTile } from '@/components/ui/icon-tile';
-import {
-  CheckCircle2,
-  User,
-  Package,
-  Star,
-  Home,
-  UserCircle2,
-  ChevronDown,
-  ChevronUp,
-  ChevronRight,
-  Gift,
-  Sparkles,
-  Minus,
-  Heart,
-  Users,
-  Wand2,
-  Compass,
-  ArrowLeftRight,
-  type LucideIcon,
-} from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, ChevronRight, Gift, Sparkles, Minus, type LucideIcon } from 'lucide-react';
 
 interface ChecklistItem {
-  id: string;
+  id: OnboardingStepId;
   labelKey: string;
   descriptionKey: string;
   icon: LucideIcon;
   completed: boolean;
-  action?: () => void;
-  points: number;
-  freeTrial?: boolean;
-  group: 'start' | 'collection' | 'ai' | 'community';
+  /** サーバーが実際に付与する額。表に行が無い手順は undefined（「+pt」を出さない） */
+  points: number | undefined;
 }
 
-// グループ見出しの印の色。以前は amber / emerald / fuchsia / blue の直書きで、
-// 4色が並んで落ち着かなかった。意味のトークンだけで、はじめる=primary、
-// 集める=success、AI=info、みんな=muted と控えめに分ける
-const GROUP_META: Record<
-  ChecklistItem['group'],
-  { labelKey: string; icon: LucideIcon; color: string }
-> = {
-  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-primary' },
-  collection: {
-    labelKey: 'misc.checklist.groupCollection',
-    icon: Package,
-    color: 'text-success',
-  },
-  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-info' },
-  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-muted-foreground' },
-};
-
+/**
+ * 「Collectifyはじめてガイド」。コレクション画面のいちばん上に出す。
+ *
+ * 以前は「はじめの一歩・コレクション・AIスタジオ・コミュニティ」の4グループ・10項目で、
+ * 開くと画面がガイドで埋まり、AI やフォローまで並んで「何のアプリか」がぼやけていた。
+ * いまはアプリの中心の流れ（作品を選ぶ → 登録 → 飾る → コンプの目標 → 交換）に沿った5項目を、番号付きで1列に並べる。
+ * 並び順がそのまま推奨順で、畳んでいる間は「次にやること」を1件だけ見せる。
+ *
+ * 達成の判定はここでも行う（表示用）が、報酬の付与はサーバー（claim_completed_onboarding_rewards）が判定し、
+ * OnboardingRewardWatcher が頼む。ここでは付与しない。
+ */
 export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   // 項目を押したら、その操作をする画面へ移り、押す場所を光らせて案内する（GuideHost）
   const goGuide = (id: OnboardingStepId) => {
     const href = guideHref(id);
     if (href) navigate(href);
   };
-  const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { goals } = useCollectionGoals(user?.id);
+  const { data: rewardPoints } = useOnboardingRewardPoints();
   /**
-   * 既定で畳んでいたのは、この一覧が /my-room にあった頃に部屋とアバターを
-   * 画面の上に出しておきたかったため。いまは /collection にあり、守るべき
-   * コンテンツが無い。一方で登録直後のユーザーには1行の進捗バーしか見えず、
-   * 次に何をすればいいのか分からない状態だった。
-   *
-   * - 既定は畳む。畳んでいる間も「次にやること」を1件だけ見せる
-   * - ユーザーが自分で開閉したら、その選択を以後優先する
-   *
-   * null = まだ決まっていない（localStorage と進捗を読んでから確定させる）
+   * 既定は畳む（「次にやること」1件だけ）。ユーザーが自分で開閉したら、その選択を以後優先する。
+   * null = まだ決まっていない
    */
   const [expandPref, setExpandPref] = useState<boolean | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Check dismissed + remembered expand state from localStorage
   useEffect(() => {
     if (user?.id) {
       const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
@@ -97,87 +64,40 @@ export function OnboardingChecklist() {
     }
   }, [user?.id]);
 
-  // Toggle expand/collapse and persist the user's preference.
+  const isExpanded = expandPref ?? false;
+
   const handleToggleExpand = () => {
-    setExpandPref((prev) => {
-      // 初回は「いま見えている状態」の反対に倒す。
-      const next = !(prev ?? isExpanded);
-      if (user?.id) {
-        localStorage.setItem(`checklist_expanded_${user.id}`, String(next));
-      }
-      return next;
-    });
+    const next = !isExpanded;
+    setExpandPref(next);
+    if (user?.id) localStorage.setItem(`checklist_expanded_${user.id}`, String(next));
   };
 
-  // Fetch user data for checklist status
   const { data: checklistData } = useQuery({
     queryKey: ['onboarding-checklist', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [
-        profileRes,
-        itemsRes,
-        avatarRes,
-        roomRes,
-        wishlistRes,
-        followsRes,
-        bookmarksRes,
-        tradeOfferRes,
-        rewardsRes,
-      ] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('avatar_url, bio, display_name, username, favorite_item_ids')
-          .eq('id', user.id)
-          .single(),
-        // 件数も使う（お気に入りの達成条件が「5つ、持っているのが5つ未満なら持っている数」なので）
+      const [profileRes, itemsRes, tradeOfferRes, rewardsRes] = await Promise.all([
+        supabase.from('profiles').select('interests, favorite_item_ids').eq('id', user.id).single(),
+        // 件数も使う（推しグッズの達成条件が「5つ、持っているのが5つ未満なら持っている数」なので）
         supabase.from('user_items').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        // プロフィール写真のアップロードも avatar_gallery に入るので、AI で作ったものだけ数える（サーバーの判定と同じ）
-        supabase
-          .from('avatar_gallery')
-          .select('id')
-          .eq('user_id', user.id)
-          .or('prompt.is.null,prompt.not.in.("プロフィール画像","アップロード画像")')
-          .limit(1),
-        supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('wishlists').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
-        supabase.from('ai_work_bookmarks').select('id').eq('user_id', user.id).limit(1),
-        supabase
-          .from('user_items')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('for_trade', true)
-          .limit(1),
+        supabase.from('user_items').select('id').eq('user_id', user.id).eq('for_trade', true).limit(1),
         supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
       const profile = profileRes.data;
-      const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
       const favCount = (profile?.favorite_item_ids as string[] | null)?.length ?? 0;
       const itemCount = itemsRes.count ?? 0;
 
       return {
-        // 登録時に display_name へユーザー名が入るので、それだけでは達成にしない（サーバーの判定と同じ）
-        hasProfile: !!(
-          profile?.avatar_url ||
-          profile?.bio ||
-          (profile?.display_name && profile.display_name !== profile.username)
-        ),
+        hasInterests: ((profile?.interests as string[] | null)?.length ?? 0) > 0,
         hasItem: itemCount > 0,
         // 5つ選ぶ。持っているグッズが5つ未満なら、持っている数だけ選べば達成（サーバーの判定と同じ）
         hasFavorites5: favCount >= Math.max(1, Math.min(5, itemCount)),
-        hasAvatar: (avatarRes.data?.length ?? 0) > 0,
-        hasAiRoom: (roomRes.data?.length ?? 0) > 0,
-        hasWishlist: (wishlistRes.data?.length ?? 0) > 0,
-        hasFollow: (followsRes.data?.length ?? 0) > 0,
-        hasBookmark: (bookmarksRes.data?.length ?? 0) > 0,
         hasTradeOffer: (tradeOfferRes.data?.length ?? 0) > 0,
-        claimedSteps,
+        claimedSteps: new Set((rewardsRes.data ?? []).map((r) => r.step_id)),
       };
     },
-    // 小さくしている間も進み具合を出すので、取得は続ける
     enabled: !!user?.id,
     // 達成したらすぐ完了の印を付けたいので、長くは持たない（画面に戻るたびに読み直す）
     staleTime: 1000 * 15,
@@ -185,164 +105,46 @@ export function OnboardingChecklist() {
   });
 
   const items: ChecklistItem[] = useMemo(() => {
-    if (!checklistData || !user?.id) return [];
-    return [
-      // 🎯 はじめの一歩
-      {
-        id: 'account',
-        labelKey: 'misc.checklist.accountLabel',
-        descriptionKey: 'misc.checklist.accountDesc',
-        icon: CheckCircle2,
-        completed: true,
-        points: ONBOARDING_STEP_POINTS['account'],
-        group: 'start',
-      },
-      {
-        id: 'profile',
-        labelKey: 'misc.checklist.profileLabel',
-        descriptionKey: 'misc.checklist.profileDesc',
-        icon: User,
-        completed: checklistData.hasProfile,
-        action: () => goGuide('profile'),
-        points: ONBOARDING_STEP_POINTS['profile'],
-        group: 'start',
-      },
-      // 📦 コレクション
-      {
-        id: 'first-item',
-        labelKey: 'misc.checklist.firstItemLabel',
-        descriptionKey: 'misc.checklist.firstItemDesc',
-        icon: Package,
-        completed: checklistData.hasItem,
-        action: () => goGuide('first-item'),
-        points: ONBOARDING_STEP_POINTS['first-item'],
-        group: 'collection',
-      },
-      {
-        id: 'favorites',
-        labelKey: 'misc.checklist.favoritesLabel',
-        descriptionKey: 'misc.checklist.favoritesDesc',
-        icon: Star,
-        completed: checklistData.hasFavorites5,
-        action: () => goGuide('favorites'),
-        points: ONBOARDING_STEP_POINTS['favorites'],
-        group: 'collection',
-      },
-      {
-        id: 'wishlist',
-        labelKey: 'misc.checklist.wishlistLabel',
-        descriptionKey: 'misc.checklist.wishlistDesc',
-        icon: Heart,
-        completed: checklistData.hasWishlist,
-        action: () => goGuide('wishlist'),
-        points: ONBOARDING_STEP_POINTS['wishlist'],
-        group: 'collection',
-      },
-      // 🎨 AIスタジオ
-      {
-        id: 'ai-room',
-        labelKey: 'misc.checklist.aiRoomLabel',
-        descriptionKey: 'misc.checklist.aiRoomDesc',
-        icon: Home,
-        completed: checklistData.hasAiRoom,
-        action: () => goGuide('ai-room'),
-        points: ONBOARDING_STEP_POINTS['ai-room'],
-        freeTrial: true,
-        group: 'ai',
-      },
-      {
-        id: 'avatar',
-        labelKey: 'misc.checklist.avatarLabel',
-        descriptionKey: 'misc.checklist.avatarDesc',
-        icon: UserCircle2,
-        completed: checklistData.hasAvatar,
-        action: () => goGuide('avatar'),
-        points: ONBOARDING_STEP_POINTS['avatar'],
-        freeTrial: true,
-        group: 'ai',
-      },
-      // 🌐 コミュニティ
-      {
-        id: 'follow',
-        labelKey: 'misc.checklist.followLabel',
-        descriptionKey: 'misc.checklist.followDesc',
-        icon: Users,
-        completed: checklistData.hasFollow,
-        action: () => goGuide('follow'),
-        points: ONBOARDING_STEP_POINTS['follow'],
-        group: 'community',
-      },
-      {
-        // 交換は「出すものを選ぶ」をやらないと一生マッチしない。
-        // 本番の user_items 254件が全件 for_trade=false だったので、
-        // ここに置いて最初の1件を出してもらう。
-        id: 'trade-offer',
-        labelKey: 'misc.checklist.tradeOfferLabel',
-        descriptionKey: 'misc.checklist.tradeOfferDesc',
-        icon: ArrowLeftRight,
-        completed: checklistData.hasTradeOffer,
-        action: () => goGuide('trade-offer'),
-        points: ONBOARDING_STEP_POINTS['trade-offer'],
-        group: 'community',
-      },
-      {
-        id: 'bookmark',
-        labelKey: 'misc.checklist.bookmarkLabel',
-        descriptionKey: 'misc.checklist.bookmarkDesc',
-        icon: Compass,
-        completed: checklistData.hasBookmark,
-        action: () => goGuide('bookmark'),
-        points: ONBOARDING_STEP_POINTS['bookmark'],
-        group: 'community',
-      },
-    ];
-  }, [checklistData, navigate, user?.id]);
+    if (!checklistData) return [];
+    const done: Record<OnboardingStepId, boolean> = {
+      interests: checklistData.hasInterests,
+      'first-item': checklistData.hasItem,
+      favorites: checklistData.hasFavorites5,
+      // 集めるもの（目標）は、いまは端末内に置いている（useCollectionGoals）
+      goal: goals.length > 0,
+      'trade-offer': checklistData.hasTradeOffer,
+    };
+    return ONBOARDING_STEPS.map((s) => ({
+      id: s.id,
+      labelKey: s.labelKey,
+      descriptionKey: s.descriptionKey,
+      icon: s.icon,
+      completed: done[s.id],
+      points: rewardPoints?.[s.id],
+    }));
+  }, [checklistData, goals.length, rewardPoints]);
 
-  const completedCount = items.filter(i => i.completed).length;
+  const completedCount = items.filter((i) => i.completed).length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-  const allCompleted = completedCount === totalCount;
-  /** 畳んでいる間に見せる「次にやること」。一覧の並び順がそのまま推奨順。 */
+  const allCompleted = totalCount > 0 && completedCount === totalCount;
+  // 以前の10項目のガイドを全部終えた人には、新しいガイドを出し直さない（終えたものが戻ってくると邪魔）
+  const finishedLegacyGuide = !!checklistData && LEGACY_FULL_GUIDE_IDS.every((id) => checklistData.claimedSteps.has(id));
+  /** 畳んでいる間に見せる「次にやること」。並び順がそのまま推奨順。 */
   const nextItem = items.find((i) => !i.completed);
-  const nextReward = nextItem?.points ?? 0;
-
-  // 序盤は開いて出す。アカウント作成だけ済んだ状態で畳むと、
-  // 進捗バー1行しか見えず次の行動が分からない。
-  // 既定は畳む（1行の「次にやること」だけ）。開いたままだとコレクションの最初の画面がガイドで埋まり、グッズが1つも見えなかった
-  const isExpanded = expandPref ?? false;
-
-  // グループ化
-  const groupedItems = useMemo(() => {
-    const groups: Record<ChecklistItem['group'], ChecklistItem[]> = {
-      start: [],
-      collection: [],
-      ai: [],
-      community: [],
-    };
-    items.forEach((item) => groups[item.group].push(item));
-    return groups;
-  }, [items]);
-
-  // 報酬の付与は OnboardingRewardWatcher（アプリ全体で常に動く）が持つ。
-  // 以前はここで付与していたため、この一覧が画面に出ていて、しかもキャッシュが新しくなるまで
-  // 達成しても報酬が出なかった（プロフィールを保存しても +20pt がもらえない、など）。
 
   // × は「消す」ではなく「小さくする」。以前は × を押すと二度と出せなかった
   const handleDismiss = () => {
-    if (user?.id) {
-      localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
-    }
+    if (user?.id) localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
     setIsDismissed(true);
   };
 
   const handleRestore = () => {
-    if (user?.id) {
-      localStorage.removeItem(`checklist_dismissed_${user.id}`);
-    }
+    if (user?.id) localStorage.removeItem(`checklist_dismissed_${user.id}`);
     setIsDismissed(false);
   };
 
-  if (!checklistData || allCompleted) return null;
+  if (!checklistData || allCompleted || finishedLegacyGuide) return null;
 
   if (isDismissed) {
     return (
@@ -353,33 +155,27 @@ export function OnboardingChecklist() {
         className="flex w-full items-center gap-2 rounded-xl border border-primary/20 bg-card px-3 py-2 text-left transition-colors hover:bg-accent"
         aria-label={t('misc.checklist.restore')}
       >
-        <span className="rounded-lg bg-brand-gradient p-1">
-          <Sparkles className="h-3.5 w-3.5 text-white" />
-        </span>
+        <IconTile tone="primary" size="xs">
+          <Sparkles />
+        </IconTile>
         <span className="min-w-0 flex-1 truncate text-xs font-bold">{t('misc.checklist.title')}</span>
         <span className="text-2xs tabular-nums text-muted-foreground">
           {completedCount}/{totalCount}
         </span>
-        {nextReward > 0 && (
+        {nextItem?.points ? (
           <span className="rounded-full bg-points-soft px-1.5 py-0.5 text-3xs font-bold tabular-nums text-points">
-            +{nextReward}pt
+            +{nextItem.points}pt
           </span>
-        )}
+        ) : null}
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </button>
     );
   }
 
   return (
-    <motion.div
-      data-tour="collection-checklist"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-    >
+    <motion.div data-tour="collection-checklist" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-sm overflow-hidden">
-        <CardContent className={isExpanded ? "p-4 space-y-3" : "p-3 space-y-2"}>
-          {/* Header (tap anywhere to expand/collapse) */}
+        <CardContent className={isExpanded ? 'p-4 space-y-3' : 'p-3 space-y-2'}>
           <div className="flex items-center justify-between">
             <button
               type="button"
@@ -388,7 +184,6 @@ export function OnboardingChecklist() {
               aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
               className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
             >
-              {/* 以前はブランドのグラデーションの面に白い印。アプリ共通の IconTile にそろえる */}
               <IconTile tone="primary" size="sm">
                 <Sparkles />
               </IconTile>
@@ -407,11 +202,7 @@ export function OnboardingChecklist() {
                 aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
                 onClick={handleToggleExpand}
               >
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
               <Button
                 variant="ghost"
@@ -426,51 +217,33 @@ export function OnboardingChecklist() {
             </div>
           </div>
 
-          {/* Progress（畳んでいるときはバーだけにして高さを抑える） */}
-          <div className="space-y-1.5">
-            <Progress value={progress} className={isExpanded ? "h-2" : "h-1.5"} />
-            {isExpanded && <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">
-                {t('misc.checklist.stepsLeft', { n: totalCount - completedCount })}
-              </span>
-              <span className="text-primary font-medium flex items-center gap-1">
-                <Gift className="w-3 h-3" />
-                {nextReward > 0
-                  ? t('misc.checklist.nextReward', { n: nextReward })
-                  : t('misc.checklist.hasReward')}
-              </span>
-            </div>}
-          </div>
+          <Progress value={progress} className={isExpanded ? 'h-2' : 'h-1.5'} />
 
-          {/* 畳んでいるときの「次にやること」。
-              以前はここが進捗バーだけで、登録直後のユーザーには
-              何をすればいいのかが一切見えていなかった。 */}
+          {/* 畳んでいるときの「次にやること」 */}
           {!isExpanded && nextItem && (
             <button
               type="button"
-              onClick={nextItem.action}
-              disabled={!nextItem.action}
-              className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left disabled:cursor-default"
+              onClick={() => goGuide(nextItem.id)}
+              className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left"
             >
               <IconTile tone="primary" size="sm">
                 <nextItem.icon />
               </IconTile>
               <div className="flex-1 min-w-0">
-                <p className="text-3xs font-bold text-primary uppercase tracking-wider">
-                  {t('misc.checklist.nextUp')}
-                </p>
+                <p className="text-3xs font-bold text-primary uppercase tracking-wider">{t('misc.checklist.nextUp')}</p>
                 <p className="text-sm font-medium truncate">{t(nextItem.labelKey)}</p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <span className="text-xs font-bold tabular-nums text-points bg-points-soft px-2 py-0.5 rounded-full">
-                  +{nextItem.points}pt
-                </span>
-                {nextItem.action && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                {nextItem.points ? (
+                  <span className="text-xs font-bold tabular-nums text-points bg-points-soft px-2 py-0.5 rounded-full">
+                    +{nextItem.points}pt
+                  </span>
+                ) : null}
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
             </button>
           )}
 
-          {/* Items grouped */}
           <AnimatePresence>
             {isExpanded && (
               <motion.div
@@ -480,87 +253,54 @@ export function OnboardingChecklist() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                {/* PC など広い画面では2列に分ける（はじめる・集める ｜ AI・みんな）。
-                    1列のままだと、画面幅いっぱいに伸びた行が10個縦に並び、
-                    項目名と右端のポイントが離れて読みにくく、開くとコレクションが画面の下へ押し出されていた。
-                    列の頭がそろうよう、広い画面では space-y をやめて各グループの下に余白を取る */}
-                <div className="space-y-3 md:columns-2 md:gap-6 md:space-y-0">
-                  {(Object.keys(groupedItems) as ChecklistItem['group'][]).map((groupKey) => {
-                    const groupItems = groupedItems[groupKey];
-                    if (groupItems.length === 0) return null;
-                    const meta = GROUP_META[groupKey];
-                    const GroupIcon = meta.icon;
-                    const groupCompleted = groupItems.filter((i) => i.completed).length;
+                {/* 流れの一言。5項目がばらばらの用事ではなく、1本の流れの順番だと分かるように */}
+                <p className="px-1 pb-2 text-2xs text-muted-foreground">{t('misc.checklist.flowHint')}</p>
+                {/* 番号付きの1列。PC でも2列に割らない（順番が読み取れなくなる）。幅は広げすぎない */}
+                <ol className="space-y-1.5 md:max-w-xl">
+                  {items.map((item, i) => {
+                    const Icon = item.icon;
                     return (
-                      <div key={groupKey} className="space-y-1.5 md:mb-3 md:break-inside-avoid">
-                        {/* Group header */}
-                        <div className="flex items-center gap-1.5 px-1">
-                          <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
-                          <span className="text-2xs font-bold text-foreground/80 uppercase tracking-wider">
-                            {t(meta.labelKey)}
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          onClick={item.completed ? undefined : () => goGuide(item.id)}
+                          disabled={item.completed}
+                          data-step={item.id}
+                          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
+                            item.completed ? 'bg-primary/5 opacity-60' : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
+                          }`}
+                        >
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-2xs font-bold tabular-nums ${
+                              item.completed ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground ring-1 ring-border'
+                            }`}
+                            aria-hidden="true"
+                          >
+                            {item.completed ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                           </span>
-                          <span className="text-3xs text-muted-foreground ml-auto">
-                            {groupCompleted}/{groupItems.length}
-                          </span>
-                        </div>
-                        {/* Group items */}
-                        <div className="space-y-1.5">
-                          {groupItems.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                              <button
-                                key={item.id}
-                                onClick={item.completed ? undefined : item.action}
-                                disabled={item.completed}
-                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
-                                  item.completed
-                                    ? 'bg-primary/5 opacity-60'
-                                    : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
-                                }`}
-                              >
-                                {item.completed ? (
-                                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                                ) : (
-                                  <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <p
-                                      className={`text-sm font-medium ${
-                                        item.completed ? 'line-through text-muted-foreground' : ''
-                                      }`}
-                                    >
-                                      {t(item.labelKey)}
-                                    </p>
-                                    {!item.completed && item.freeTrial && (
-                                      <span className="text-3xs font-bold text-points bg-points-soft px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                                        <Gift className="w-2.5 h-2.5" />
-                                        {t('misc.common.freeFirstTime')}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {t(item.descriptionKey)}
-                                  </p>
-                                </div>
-                                {item.completed ? (
-                                  <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    +{item.points}pt
-                                  </span>
-                                ) : (
-                                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
-                                    +{item.points}pt
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                          <Icon className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                              {t(item.labelKey)}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{t(item.descriptionKey)}</p>
+                          </div>
+                          {item.points ? (
+                            <span
+                              className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5 ${
+                                item.completed ? 'text-primary bg-primary/15' : 'text-primary bg-primary/10'
+                              }`}
+                            >
+                              {item.completed ? <CheckCircle2 className="w-3 h-3" /> : <Gift className="w-3 h-3" />}+{item.points}pt
+                            </span>
+                          ) : (
+                            !item.completed && <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground" />
+                          )}
+                        </button>
+                      </li>
                     );
                   })}
-                </div>
+                </ol>
               </motion.div>
             )}
           </AnimatePresence>

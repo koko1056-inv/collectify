@@ -77,6 +77,11 @@ interface UserCollectionProps {
    * FAB側と同じ体験にするための差し込み口。
    */
   onPickFromCatalog?: () => void;
+  /**
+   * コンプの進捗（CollectionExplorer）のすぐ下に差し込むもの。コレクション画面は推しの部屋の小窓を入れる。
+   * 「登録・コンプ」を上に、「眺める・愛着」をその下に置くための差し込み口。
+   */
+  belowProgress?: React.ReactNode;
 }
 
 export function UserCollection({
@@ -90,6 +95,7 @@ export function UserCollection({
   onOpenFilter,
   activeFilterCount: activeFilterCountProp,
   onPickFromCatalog,
+  belowProgress,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -440,8 +446,26 @@ export function UserCollection({
 
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      {/* 上から「推しの新着（登録のきっかけ）→ コンプ → 推しの部屋・思い出（眺める）→ 棚」の順。
+          アプリの中心は「登録する → 眺める → コンプ → 交換」なので、その入口を上に寄せる。
+          ホーム画面への追加の案内は道具なので、棚の下へ回した（以前は棚の上にあり、グッズが押し下げられていた） */}
       {isOwnCollection && <DailyHubCard />}
 
+      {isOwnCollection && <DuplicateCleanupBanner />}
+
+      <CollectionExplorer
+        items={items}
+        progress={progress}
+        facet={facet}
+        onFacetChange={setFacet}
+        onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+        userId={effectiveUserId}
+        isOwn={isOwnCollection}
+      />
+
+      {belowProgress}
+
+      {/* 「去年の今日」の思い出は眺める側のもの。コンプの下に置く */}
       {onThisDay && !onThisDayDismissed && (
         <OnThisDayCard
           memory={onThisDay}
@@ -455,21 +479,6 @@ export function UserCollection({
           }}
         />
       )}
-
-      {isOwnCollection && <DuplicateCleanupBanner />}
-
-      {/* ある程度使い始めた人にだけ、ホーム画面への追加を案内する（入れられる環境のときだけ出る） */}
-      {isOwnCollection && items.length >= 3 && <InstallAppCard variant="banner" />}
-
-      <CollectionExplorer
-        items={items}
-        progress={progress}
-        facet={facet}
-        onFacetChange={setFacet}
-        onShareSeries={isOwnCollection ? openSeriesShare : undefined}
-        userId={effectiveUserId}
-        isOwn={isOwnCollection}
-      />
 
       {/* ツールバー */}
       <div className="flex items-center gap-2 mb-4">
@@ -534,7 +543,7 @@ export function UserCollection({
 
             <div className="flex-1" />
 
-            {/* 右：選択 + 今日のグッズ（CTA） */}
+            {/* 右：選択・共有・今日のグッズ（どれも同じ大きさのアイコン） */}
             <div className="flex items-center gap-1.5 shrink-0">
               {isOwnCollection && (
                 <Button
@@ -562,13 +571,17 @@ export function UserCollection({
                 </Button>
               )}
 
+              {/* 今日のグッズ（ランダムに1つ見せる）。眺める遊びのひとつなので、ほかの道具と同じ大きさのアイコンにした。
+                  以前は色付きの文字ボタンで、ツールバーの中でいちばん目立っていた */}
               <Button
                 onClick={handleRandomModalOpen}
-                size="sm"
-                className="gap-1.5 h-9 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 shadow-none group"
+                variant="ghost"
+                size="icon"
+                className="tap-safe-y h-9 w-9 rounded-lg text-foreground hover:bg-muted/60 group"
+                title={t("chrome.collection.todaysGoods")}
+                aria-label={t("chrome.collection.todaysGoods")}
               >
                 <Dices className="h-4 w-4 shrink-0 group-hover:rotate-12 transition-transform" />
-                <span className="text-xs font-bold whitespace-nowrap">{t("chrome.collection.todaysGoods")}</span>
               </Button>
             </div>
           </>
@@ -636,6 +649,9 @@ export function UserCollection({
       {/* 推し宇宙の入口は一覧の下に置く（上にあると、最初の画面にグッズが見えなかった） */}
       {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
 
+      {/* ある程度使い始めた人にだけ、ホーム画面への追加を案内する（入れられる環境のときだけ出る） */}
+      {isOwnCollection && items.length >= 3 && <InstallAppCard variant="banner" />}
+
       {/* 選択モード時のフローティングアクションバー。
           下部ナビ中央の「みつける」ボタンが上へ張り出しているため、それより上に配置する。 */}
       {isSelectionMode && selectedItemIds.length > 0 && (
@@ -673,8 +689,9 @@ export function UserCollection({
                 navigate("/me?tab=ai&from=collection");
               }}
               // 以前は violet→fuchsia のグラデーションで AI 機能を見分けさせていたが、
-              // テーマ色と喧嘩して安っぽく見えた。主ボタンはふつうの primary の Button にそろえ、
-              // AI であることは Sparkles の印と文言で伝える。
+              // テーマ色と喧嘩して安っぽく見えた。AI であることは Sparkles の印と文言で伝える。
+              // AI は本題（登録・コンプ・交換）の脇の楽しみなので、主ボタンの塗りにはせず、マイタグと同じ枠線のボタンにそろえる
+              variant="outline"
               className="rounded-full gap-1.5"
             >
               <Sparkles className="w-4 h-4" />

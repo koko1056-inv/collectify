@@ -57,7 +57,7 @@ function itemHtml(origin: string, item: NonNullable<Awaited<ReturnType<typeof lo
   const series = item.content_name ? `${item.content_name}の` : "";
   const title = `${item.title}｜${item.content_name ?? "グッズ"} | Collectify`;
   const description =
-    `${series}グッズ「${item.title}」。持っている人・交換できる人がわかる、推しグッズ管理アプリ Collectify。` +
+    `${series}グッズ「${item.title}」。持っている人・交換できる人がわかる、推しグッズの図鑑アプリ Collectify。` +
     (item.release_date ? ` 発売日: ${item.release_date}。` : "");
   const image = item.image || `${origin}/og-image.png`;
   const jsonLd = {

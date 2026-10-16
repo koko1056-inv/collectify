@@ -206,6 +206,11 @@ export const engage = {
       close: "閉じる",
       toastTitle: "連続{n}日！ ログインボーナス +{points}pt",
       toastMax: "最大のボーナス段階です。この調子！",
+      releasesTitle: "推しの新着",
+      releasesNew: "まだ見ていない新着 {n}件",
+      releasesNone: "今週の発売・発売カレンダー",
+      streakChip: "{n}日",
+      earnLink: "ポイントのもらい方を見る",
     },
     didYouMean: {
       title: "もしかして",
@@ -544,6 +549,11 @@ export const engage = {
       close: "Close",
       toastTitle: "{n}-day streak! Login bonus +{points}pt",
       toastMax: "You're at the top bonus tier. Keep it up!",
+      releasesTitle: "New for your faves",
+      releasesNew: "{n} new you haven't seen",
+      releasesNone: "This week's releases and calendar",
+      streakChip: "{n}d",
+      earnLink: "How to earn Points",
     },
     didYouMean: {
       title: "Did you mean",

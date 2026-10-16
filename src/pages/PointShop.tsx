@@ -27,6 +27,7 @@ import {
   Home,
   ImageIcon,
   Cookie,
+  ChevronRight,
 } from "lucide-react";
 import {
   usePointPackages,
@@ -41,7 +42,6 @@ import { PointIcon } from "@/components/ui/point-icon";
 import { IconTile } from "@/components/ui/icon-tile";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useUserPoints } from "@/hooks/usePoints";
-import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -97,7 +97,6 @@ export default function PointShop() {
     }, 150);
     return () => window.clearTimeout(timer);
   }, [highlightKey, shopItems]);
-  const { data: loginTiers, isLoading: tiersLoading } = useLoginBonusTiers();
 
   // Load RevenueCat offerings once on native platforms.
   useEffect(() => {
@@ -274,6 +273,16 @@ export default function PointShop() {
             <div className="mt-4 pt-4 border-t border-border">
               <SlotUsageMeter type="collection" compact />
             </div>
+            {/* 残高のすぐ下にも「もらい方」への入口。ポイントの記録もそこで見られる */}
+            <button
+              type="button"
+              onClick={() => navigate("/point-shop/earn")}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <Gift className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("screens.pointShop.earn.open")}
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
           </CardContent>
         </Card>
 
@@ -399,69 +408,8 @@ export default function PointShop() {
           </Card>
         </section>
 
-        {/* Free Points */}
-        <Card className="bg-muted/30">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              {/* 以前は green-500 の Gift。状態色ではなく「もらえる」の意味なので success のトークンに */}
-              <IconTile tone="success" size="sm">
-                <Gift />
-              </IconTile>
-              {t("screens.pointShop.freeHeading")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label={t("screens.pointShop.freeLoginBonus")} value={t("screens.pointShop.freeLoginBonusValue")} />
-            <Row label={t("screens.pointShop.freePost")} value={t("screens.pointShop.freePostValue")} />
-            <Row label={t("screens.pointShop.freeComment")} value={t("screens.pointShop.freeCommentValue")} />
-            <Row label={t("screens.pointShop.freeReaction")} value={t("screens.pointShop.freeReactionValue")} />
-            <Row label={t("screens.pointShop.freeTrade")} value={t("screens.pointShop.freeTradeValue")} />
-            <Row label={t("screens.pointShop.freeAddContent")} value="+10pt" />
-
-            {/* 連続ログインの段階と、いま自分が何日目かを示す */}
-            <div className="pt-2 border-t border-border/60 space-y-1.5">
-              <div className="flex items-center justify-between">
-                {/* 連続（炎）は warning のトークンにそろえる（以前は orange-500 の直書き） */}
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <IconTile tone="warning" size="xs">
-                    <Flame />
-                  </IconTile>
-                  {t("screens.pointShop.freeStreak")}
-                </span>
-                {currentStreak > 0 && (
-                  <Badge variant="secondary" className="gap-1">
-                    <Flame className="w-3 h-3 text-warning" />
-                    {t("screens.pointShop.streakDays", { n: currentStreak })}
-                  </Badge>
-                )}
-              </div>
-              {tiersLoading ? (
-                <Skeleton className="h-4 w-full" />
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {(loginTiers ?? []).map((tier) => {
-                    const active = currentStreak >= tier.min_streak;
-                    return (
-                      <span
-                        key={tier.min_streak}
-                        className={
-                          active
-                            ? "text-2xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
-                            : "text-2xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-                        }
-                      >
-                        {t("screens.pointShop.streakTier", {
-                          days: tier.min_streak,
-                          points: tier.points,
-                        })}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* もらい方は専用の画面にまとめた（額はサーバーの表から読む。以前はここに固定の文言で一部だけ載っていた） */}
+        <EarnLinkCard onOpen={() => navigate("/point-shop/earn")} streak={currentStreak} />
       </div>
 
       {/* Purchase Confirmation */}
@@ -529,11 +477,29 @@ export default function PointShop() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function EarnLinkCard({ onOpen, streak }: { onOpen: () => void; streak: number }) {
+  const { t } = useLanguage();
   return (
-    <div className="flex justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
-    </div>
+    <button
+      type="button"
+      onClick={onOpen}
+      data-testid="earn-link"
+      className="flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-accent"
+    >
+      <IconTile tone="success" size="sm">
+        <Gift />
+      </IconTile>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-bold">{t("screens.pointShop.earn.open")}</span>
+        <span className="block text-xs text-muted-foreground">{t("screens.pointShop.earn.openDesc")}</span>
+      </span>
+      {streak > 0 && (
+        <Badge variant="secondary" className="gap-1">
+          <Flame className="w-3 h-3 text-warning" />
+          {t("screens.pointShop.streakDays", { n: streak })}
+        </Badge>
+      )}
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </button>
   );
 }

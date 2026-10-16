@@ -48,6 +48,9 @@ export function CreateItemPostModal({
   const { t } = useLanguage();
   const [caption, setCaption] = useState(initialTag ? `#${initialTag} ` : "");
   const [aiPickerOpen, setAiPickerOpen] = useState(false);
+  // AI で画像を作る欄は、既定では1行に畳む。投稿の本題は「自分のグッズの写真」で、
+  // 以前は写真の欄と同じ大きさの AI の欄が常に開いていて、投稿が AI 画像を作る場所に見えていた
+  const [aiOpen, setAiOpen] = useState(false);
   const weeklyTag = getWeeklyPrompt().tag;
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -243,7 +246,19 @@ export function CreateItemPostModal({
           />
         </div>
 
-        {/* AI画像生成 */}
+        {/* AI画像生成（畳んだ1行から開く） */}
+        {!aiOpen ? (
+          <button
+            type="button"
+            onClick={() => setAiOpen(true)}
+            data-testid="post-ai-open"
+            className="flex w-full items-center gap-1.5 rounded-xl border border-dashed border-border px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="flex-1">{t("social.itemPosts.aiGenerate")}</span>
+            <span className="text-3xs">{t("social.itemPosts.aiCost")}</span>
+          </button>
+        ) : (
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -311,6 +326,7 @@ export function CreateItemPostModal({
             {t("engage.posts.aiUseMine")}
           </Button>
         </div>
+        )}
 
         <div>
           <p className="text-sm font-medium mb-2">{t("social.itemPosts.commentOptional")}</p>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowDownUp, ArrowLeftRight, ChevronRight, Gift, ImageIcon, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
+import { ArrowDownUp, ArrowLeftRight, ChevronRight, Gift, Heart, ImageIcon, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -38,6 +38,7 @@ import { TradeSectionHeader } from "./TradeSectionHeader";
 import { SpotlightChip, TradeSpotlightCard } from "./TradeSpotlight";
 import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
 import { TradePostDialog } from "./TradePostDialog";
+import { WishlistViewModal } from "@/components/WishlistViewModal";
 
 /**
  * 交換相手の候補。
@@ -77,6 +78,8 @@ export function TradeMatchingSection() {
   // X の交換投稿用「譲・求」画像。?post=1 で開く（グッズの「交換」を初めてオンにしたときの案内から来る）
   const [searchParams, setSearchParams] = useSearchParams();
   const [isPostOpen, setIsPostOpen] = useState(false);
+  // 流れの札「ほしい」から開く、ほしいものの一覧（ヘッダーのかごと同じもの）
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   useEffect(() => {
     if (searchParams.get("post") !== "1") return;
     setIsPostOpen(true);
@@ -149,6 +152,19 @@ export function TradeMatchingSection() {
 
   const openChat = (partnerId: string) => setChatPartnerId(partnerId);
 
+  // 「相手をさがす」の札が数える人数（両想い・片想い・同じ作品）
+  const partnerCount = (matches ?? []).length + seriesOnly.length;
+  const scrollToPartners = () => document.getElementById("trade-partners")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  /*
+   * 並びの考え方: 交換は「交換に出す → ほしい → 相手をさがす → X で探す」の流れ。
+   *  - いちばん上は、いま自分が動く番の取引と、進行中の交換（受信箱）。待たせている相手がいるので先に出す
+   *  - その下に流れの4つの札（TradeFlowSteps）。ここを見れば、交換で何をすればいいかが一目で分かる
+   *  - 本文も同じ順: 交換に出しているもの → 交換相手の候補（両想い・ほしいものを持っている人・片想い・同じ作品）→ X
+   *  - ポイントで先に出す「注目」は、本題の流れの外なので最後に置く
+   * 以前は X の入口・ほしいものを持っている人・準備の案内・出品の入口・注目…が順不同に並び、
+   * 何から始めればいいのか読み取れなかった。
+   */
   return (
     <div className="space-y-4">
       {/* いま自分が動く番の取引（返事・発送・受け取り・完了後の反映）。受信箱を開かずにその場で進められる */}
@@ -157,36 +173,14 @@ export function TradeMatchingSection() {
       {/* 進行中の交換への入口。申し込んだあと戻ってくる場所がここになる */}
       <TradeInboxButton variant="full" />
 
-      {/* X の「譲・求」投稿の画像を作る入口。アプリの中の交換相手がまだ少ないうちは、
-          推し活の交換の中心である X で相手をさがすのがいちばん早い */}
-      <button
-        type="button"
-        data-testid="trade-post-entry"
-        onClick={() => setIsPostOpen(true)}
-        className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
-      >
-        <IconTile size="sm" tone="primary">
-          <ImageIcon />
-        </IconTile>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold">{t("discover.tradePost.entryTitle")}</p>
-          <p className="text-xs text-muted-foreground">{t("discover.tradePost.entryDesc")}</p>
-        </div>
-        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </button>
-
-      {/* 欲しいものを持っている人。そこから申請（相談）できる */}
-      <WishHoldersSection
-        onRequest={(target: HolderRequestTarget) =>
-          setSelectedMatch({
-            userId: target.userId,
-            itemId: target.itemId,
-            itemTitle: target.itemTitle,
-            itemImage: target.itemImage,
-            partnerName: target.partnerName,
-            partnerOffers: target.partnerOffers,
-          })
-        }
+      <TradeFlowSteps
+        offerCount={readiness?.offerCount ?? myOffers.length}
+        wishCount={readiness?.wishCount ?? 0}
+        partnerCount={partnerCount}
+        onOffer={() => setIsOfferPickerOpen(true)}
+        onWish={() => ((readiness?.wishCount ?? 0) > 0 ? setIsWishlistOpen(true) : navigate("/search?tab=goods"))}
+        onPartners={scrollToPartners}
+        onX={() => setIsPostOpen(true)}
       />
 
       <ReadinessBanner
@@ -196,6 +190,7 @@ export function TradeMatchingSection() {
         onPickOffers={() => setIsOfferPickerOpen(true)}
       />
 
+      {/* ① 交換に出す */}
       {/* 出品の常設入口。準備バナーは条件が揃うと消えるので、
           「交換に出すものを増やす／やめる」入口がそこだけだと無くなる。 */}
       <button
@@ -214,12 +209,6 @@ export function TradeMatchingSection() {
           </p>
         </div>
       </button>
-
-      {/* 注目を集める（ポイントで、自分の交換グッズを相手の一覧で先に出す） */}
-      <TradeSpotlightCard
-        offerCount={readiness?.offerCount ?? myOffers.length}
-        onNeedOffers={() => setIsOfferPickerOpen(true)}
-      />
 
       {/* 自分が出しているグッズ。マッチが無いうちも「出せている」ことが見える */}
       {myOffers.length > 0 && (
@@ -257,161 +246,209 @@ export function TradeMatchingSection() {
         </section>
       )}
 
-      {/* 両想い */}
-      <Card className="border-primary/30">
-        <TradeSectionHeader
-          icon={ArrowLeftRight}
-          title={t("trade.matching.mutualTitle")}
-          description={t("trade.matching.mutualDesc")}
+      {/* ③ 交換相手の候補。② の「ほしい」から見つかる相手（ほしいものを持っている人）もここに入れる */}
+      <section id="trade-partners" className="scroll-mt-20 space-y-4" aria-label={t("trade.matching.flow.sectionPartners")}>
+        <h2 className="text-sm font-bold">{t("trade.matching.flow.sectionPartners")}</h2>
+        {/* 両想い */}
+        <Card className="border-primary/30">
+          <TradeSectionHeader
+            icon={ArrowLeftRight}
+            title={t("trade.matching.mutualTitle")}
+            description={t("trade.matching.mutualDesc")}
+          />
+          <CardContent>
+            {mutual.length === 0 ? (
+              <EmptyState
+                className="py-6"
+                icon={ArrowLeftRight}
+                title={t("trade.matching.noMutual")}
+                description={t("trade.matching.noMutualDesc")}
+                // 「何もない」で終わらせず、アプリの外（X）で相手をさがす次の一手を出す
+                action={
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setIsPostOpen(true)}>
+                    <ImageIcon className="h-4 w-4" />
+                    {t("discover.tradePost.emptyMutualCta")}
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="space-y-3">
+                {mutual.map((match) => (
+                  <MutualMatchCard
+                    key={match.partner_id}
+                    match={match}
+                    spotlight={isSpotlight(match.partner_id)}
+                    onRequest={(item, myItem) =>
+                      setSelectedMatch({
+                        userId: match.partner_id,
+                        itemId: item.id,
+                        itemTitle: item.title,
+                        itemImage: item.image,
+                        partnerName: match.partner_username,
+                        // 両想いなので、相手がほしがっている自分の品を最初から選んでおく
+                        offeredItemId: myItem?.id ?? null,
+                      })
+                    }
+                    onOpenChat={() => openChat(match.partner_id)}
+                    onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 欲しいものを持っている人。そこから申請（相談）できる（両想いの次に話がまとまりやすい） */}
+        <WishHoldersSection
+          onRequest={(target: HolderRequestTarget) =>
+            setSelectedMatch({
+              userId: target.userId,
+              itemId: target.itemId,
+              itemTitle: target.itemTitle,
+              itemImage: target.itemImage,
+              partnerName: target.partnerName,
+              partnerOffers: target.partnerOffers,
+            })
+          }
         />
-        <CardContent>
-          {mutual.length === 0 ? (
-            <EmptyState
-              className="py-6"
-              icon={ArrowLeftRight}
-              title={t("trade.matching.noMutual")}
-              description={t("trade.matching.noMutualDesc")}
-              // 「何もない」で終わらせず、アプリの外（X）で相手をさがす次の一手を出す
-              action={
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setIsPostOpen(true)}>
-                  <ImageIcon className="h-4 w-4" />
-                  {t("discover.tradePost.emptyMutualCta")}
-                </Button>
-              }
-            />
-          ) : (
-            <div className="space-y-3">
-              {mutual.map((match) => (
-                <MutualMatchCard
+
+        {/* 片想い: 相手が交換に出していて、自分が欲しい */}
+        {theyHave.length > 0 && (
+          <Card>
+            <TradeSectionHeader icon={PackageOpen} title={t("trade.matching.haveYourWishlist")} />
+            <CardContent className="space-y-3">
+              {theyHave.map((match) => (
+                <OneWayCard
                   key={match.partner_id}
                   match={match}
                   spotlight={isSpotlight(match.partner_id)}
-                  onRequest={(item, myItem) =>
+                  items={match.their_items}
+                  countLabel={t("trade.matching.matchCount", {
+                    count: match.their_items.length,
+                  })}
+                  onItemClick={(item) =>
+                    // 差し出す品は、申し込み画面が「相手がほしがっている品」を先頭に並べ、あれば選んでおく
                     setSelectedMatch({
                       userId: match.partner_id,
                       itemId: item.id,
                       itemTitle: item.title,
                       itemImage: item.image,
                       partnerName: match.partner_username,
-                      // 両想いなので、相手がほしがっている自分の品を最初から選んでおく
-                      offeredItemId: myItem?.id ?? null,
                     })
                   }
                   onOpenChat={() => openChat(match.partner_id)}
                   onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
                 />
               ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* 片想い: 相手が交換に出していて、自分が欲しい */}
-      {theyHave.length > 0 && (
-        <Card>
-          <TradeSectionHeader icon={PackageOpen} title={t("trade.matching.haveYourWishlist")} />
-          <CardContent className="space-y-3">
-            {theyHave.map((match) => (
-              <OneWayCard
-                key={match.partner_id}
-                match={match}
-                spotlight={isSpotlight(match.partner_id)}
-                items={match.their_items}
-                countLabel={t("trade.matching.matchCount", {
-                  count: match.their_items.length,
-                })}
-                onItemClick={(item) =>
-                  // 差し出す品は、申し込み画面が「相手がほしがっている品」を先頭に並べ、あれば選んでおく
-                  setSelectedMatch({
-                    userId: match.partner_id,
-                    itemId: item.id,
-                    itemTitle: item.title,
-                    itemImage: item.image,
-                    partnerName: match.partner_username,
-                  })
-                }
-                onOpenChat={() => openChat(match.partner_id)}
-                onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
-              />
-            ))}
-          </CardContent>
-        </Card>
-      )}
+        {/* 片想い: 自分が交換に出していて、相手が欲しがっている */}
+        {theyWant.length > 0 && (
+          <Card data-testid="they-want-section">
+            <TradeSectionHeader
+              icon={Gift}
+              title={t("trade.matching.wantYourItems")}
+              description={t("trade.matching.wantYourItemsDesc")}
+            />
+            <CardContent className="space-y-3">
+              {theyWant.map((match) => (
+                <TheyWantCard
+                  key={match.partner_id}
+                  match={match}
+                  spotlight={isSpotlight(match.partner_id)}
+                  offers={partnerOffers?.[match.partner_id] ?? []}
+                  offersLoading={offersLoading}
+                  offersError={offersError}
+                  onRetryOffers={() => refetchOffers()}
+                  onRequest={(theirItem, myItem) =>
+                    setSelectedMatch({
+                      userId: match.partner_id,
+                      itemId: theirItem.id,
+                      itemTitle: theirItem.title,
+                      itemImage: theirItem.image,
+                      partnerName: match.partner_username,
+                      partnerOffers: theirItem.for_trade,
+                      offeredItemId: myItem.id,
+                    })
+                  }
+                  onBrowse={(myItem) =>
+                    setCollectionTarget({
+                      partnerId: match.partner_id,
+                      partnerName: match.partner_username || t("trade.match.userFallback"),
+                      myItem,
+                    })
+                  }
+                  onOpenChat={() => openChat(match.partner_id)}
+                  onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-      {/* 片想い: 自分が交換に出していて、相手が欲しがっている */}
-      {theyWant.length > 0 && (
-        <Card data-testid="they-want-section">
-          <TradeSectionHeader
-            icon={Gift}
-            title={t("trade.matching.wantYourItems")}
-            description={t("trade.matching.wantYourItemsDesc")}
-          />
-          <CardContent className="space-y-3">
-            {theyWant.map((match) => (
-              <TheyWantCard
-                key={match.partner_id}
-                match={match}
-                spotlight={isSpotlight(match.partner_id)}
-                offers={partnerOffers?.[match.partner_id] ?? []}
-                offersLoading={offersLoading}
-                offersError={offersError}
-                onRetryOffers={() => refetchOffers()}
-                onRequest={(theirItem, myItem) =>
-                  setSelectedMatch({
-                    userId: match.partner_id,
-                    itemId: theirItem.id,
-                    itemTitle: theirItem.title,
-                    itemImage: theirItem.image,
-                    partnerName: match.partner_username,
-                    partnerOffers: theirItem.for_trade,
-                    offeredItemId: myItem.id,
-                  })
-                }
-                onBrowse={(myItem) =>
-                  setCollectionTarget({
-                    partnerId: match.partner_id,
-                    partnerName: match.partner_username || t("trade.match.userFallback"),
-                    myItem,
-                  })
-                }
-                onOpenChat={() => openChat(match.partner_id)}
-                onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
-              />
-            ))}
-          </CardContent>
-        </Card>
-      )}
+        {/* 同じ作品を集めている人。完全一致が出ないうちは、ここが
+            実際に話しかけられる唯一の相手になる。 */}
+        {seriesOnly.length > 0 && (
+          <Card>
+            <TradeSectionHeader
+              icon={Layers}
+              title={t("trade.matching.sameSeriesTitle")}
+              description={t("trade.matching.sameSeriesDesc")}
+            />
+            <CardContent className="space-y-3">
+              {seriesOnly.map((partner) => (
+                <SeriesPartnerCard
+                  key={partner.partner_id}
+                  partner={partner}
+                  spotlight={isSpotlight(partner.partner_id)}
+                  onItemClick={(item) =>
+                    setSelectedMatch({
+                      userId: partner.partner_id,
+                      itemId: item.id,
+                      itemTitle: item.title,
+                      partnerName: partner.partner_username,
+                    })
+                  }
+                  onOpenChat={() => openChat(partner.partner_id)}
+                  onOpenProfile={() => navigate(`/user/${partner.partner_id}`)}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </section>
 
-      {/* 同じ作品を集めている人。完全一致が出ないうちは、ここが
-          実際に話しかけられる唯一の相手になる。 */}
-      {seriesOnly.length > 0 && (
-        <Card>
-          <TradeSectionHeader
-            icon={Layers}
-            title={t("trade.matching.sameSeriesTitle")}
-            description={t("trade.matching.sameSeriesDesc")}
-          />
-          <CardContent className="space-y-3">
-            {seriesOnly.map((partner) => (
-              <SeriesPartnerCard
-                key={partner.partner_id}
-                partner={partner}
-                spotlight={isSpotlight(partner.partner_id)}
-                onItemClick={(item) =>
-                  setSelectedMatch({
-                    userId: partner.partner_id,
-                    itemId: item.id,
-                    itemTitle: item.title,
-                    partnerName: partner.partner_username,
-                  })
-                }
-                onOpenChat={() => openChat(partner.partner_id)}
-                onOpenProfile={() => navigate(`/user/${partner.partner_id}`)}
-              />
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {/* ④ X で探す */}
+      <section className="space-y-2" aria-label={t("trade.matching.flow.sectionX")}>
+        <h2 className="text-sm font-bold">{t("trade.matching.flow.sectionX")}</h2>
+        {/* X の「譲・求」投稿の画像を作る入口。アプリの中の交換相手がまだ少ないうちは、
+            推し活の交換の中心である X で相手をさがすのがいちばん早い。
+            流れの4番目なので相手の候補の下に置く（上の4つの札からもすぐ開ける） */}
+        <button
+          type="button"
+          data-testid="trade-post-entry"
+          onClick={() => setIsPostOpen(true)}
+          className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
+        >
+          <IconTile size="sm" tone="primary">
+            <ImageIcon />
+          </IconTile>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">{t("discover.tradePost.entryTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("discover.tradePost.entryDesc")}</p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+
+      </section>
+
+      {/* 注目を集める（ポイントで、自分の交換グッズを相手の一覧で先に出す） */}
+      <TradeSpotlightCard
+        offerCount={readiness?.offerCount ?? myOffers.length}
+        onNeedOffers={() => setIsOfferPickerOpen(true)}
+      />
 
       <TradeOfferPicker open={isOfferPickerOpen} onOpenChange={setIsOfferPickerOpen} />
 
@@ -474,7 +511,77 @@ export function TradeMatchingSection() {
           partnerId={chatPartnerId}
         />
       )}
+
+      <WishlistViewModal isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </div>
+  );
+}
+
+/**
+ * 交換の流れを4つの札で見せる: ① 交換に出す ② ほしい ③ 相手をさがす ④ X で探す。
+ * どの札も押せばその操作に入れる（出すものを選ぶ・ほしいもの・候補へ移る・譲／求の画像）。
+ * 件数を添えて、どこが足りないか（出しているものが0件など）も分かるようにする。
+ * スマホは2×2、広い画面は1列に4つ。
+ */
+function TradeFlowSteps({
+  offerCount,
+  wishCount,
+  partnerCount,
+  onOffer,
+  onWish,
+  onPartners,
+  onX,
+}: {
+  offerCount: number;
+  wishCount: number;
+  partnerCount: number;
+  onOffer: () => void;
+  onWish: () => void;
+  onPartners: () => void;
+  onX: () => void;
+}) {
+  const { t } = useLanguage();
+  const steps = [
+    { key: "offer", icon: ArrowLeftRight, title: t("trade.matching.flow.offer"), sub: t("trade.matching.flow.offerSub", { n: offerCount }), onClick: onOffer, empty: offerCount === 0 },
+    { key: "wish", icon: Heart, title: t("trade.matching.flow.wish"), sub: t("trade.matching.flow.wishSub", { n: wishCount }), onClick: onWish, empty: wishCount === 0 },
+    {
+      key: "partners",
+      icon: Search,
+      title: t("trade.matching.flow.partners"),
+      sub: partnerCount > 0 ? t("trade.matching.flow.partnersSub", { n: partnerCount }) : t("trade.matching.flow.partnersNone"),
+      onClick: onPartners,
+      empty: false,
+    },
+    { key: "x", icon: ImageIcon, title: t("trade.matching.flow.x"), sub: t("trade.matching.flow.xSub"), onClick: onX, empty: false },
+  ];
+  return (
+    <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label={t("trade.matching.flow.aria")} data-testid="trade-flow">
+      {steps.map((s, i) => (
+        <li key={s.key}>
+          <button
+            type="button"
+            onClick={s.onClick}
+            data-flow-step={s.key}
+            className={cn(
+              "flex h-full w-full items-center gap-2 rounded-xl border bg-card p-2.5 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+              // まだ0件の段（出していない・ほしいものが無い）は、そこから始めればいいと分かるよう枠を primary にする
+              s.empty ? "border-primary/50 bg-primary/5" : "border-border"
+            )}
+          >
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-bold tabular-nums text-primary" aria-hidden="true">
+              {i + 1}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-1 text-xs font-bold">
+                <s.icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="truncate">{s.title}</span>
+              </span>
+              <span className={cn("block truncate text-3xs", s.empty ? "font-bold text-primary" : "text-muted-foreground")}>{s.sub}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -975,7 +1082,7 @@ function TheyWantCard({
           <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 p-2.5">
             <p className="text-xs text-muted-foreground">{t("trade.matching.theyWantLoadFailed")}</p>
             <Button size="sm" variant="outline" className="h-8 shrink-0" onClick={onRetryOffers}>
-              {t("common.retry")}
+              {t("misc.common.retry")}
             </Button>
           </div>
         ) : offers.length > 0 ? (
