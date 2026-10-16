@@ -7,6 +7,7 @@ import {
   ImageMagick,
   initializeImageMagick,
   MagickFormat,
+  MagickReadSettings,
 } from "npm:@imagemagick/magick-wasm@0.0.30";
 import { mediaType, readBodyCapped, safeFetch, SsrfError } from "../_shared/ssrf.ts";
 
@@ -72,6 +73,15 @@ const TIME_BUDGET_MS = 100_000;
  * これを超えたら、残りは手を付けずに返す。手元の計測で1枚 100〜450ms（中央値 150ms 前後）。
  */
 const CPU_BUDGET_MS = 1_000;
+
+/**
+ * これより大きい JPEG は、読むときに縮めて読む（DCT の縮小。4000px → 1000px など）。
+ * 4000×4000 の JPEG を原寸で読むと 1 枚で 100MB を超え、同時に読んでいる他の画像ごと
+ * WORKER_RESOURCE_LIMIT（546）で落ちていた（同じ組の画像がまとめて何度もやり直しになる）。
+ */
+const JPEG_HINT_EDGE = 1600;
+/** JPEG 以外（縮めて読めない形式）で、これより画素の多いものは作らない（一覧は元の画像に戻る） */
+const MAX_PIXELS = 12_000_000;
 
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -179,10 +189,46 @@ function looksLikeRasterImage(b: Uint8Array): boolean {
   );
 }
 
+/** 画像の幅・高さを、全部を読まずに先頭から取る。JPEG と PNG だけ（ほかは null） */
+function peekSize(b: Uint8Array): { type: "jpeg" | "png"; width: number; height: number } | null {
+  if (b.length >= 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) {
+    const u32 = (o: number) => ((b[o] << 24) >>> 0) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3];
+    return { type: "png", width: u32(16), height: u32(20) };
+  }
+  if (b.length >= 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) {
+        i++;
+        continue;
+      }
+      const m = b[i + 1];
+      if (m === 0xff || m === 0x01 || (m >= 0xd0 && m <= 0xd8)) {
+        i += m === 0xff ? 1 : 2;
+        continue;
+      }
+      // SOF0〜SOF15（DHT・JPG・DAC を除く）に幅と高さがある
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+        return { type: "jpeg", height: (b[i + 5] << 8) | b[i + 6], width: (b[i + 7] << 8) | b[i + 8] };
+      }
+      i += 2 + ((b[i + 2] << 8) | b[i + 3]);
+    }
+  }
+  return null;
+}
+
 /** 480px の四角に収まる WebP にする。元が小さければ拡大はしない */
 function toThumb(bytes: Uint8Array): { data: Uint8Array; width: number; height: number } {
-  // 注: JPEG の "size" ヒント（縮小デコード）は試したが、小さい画像を逆に拡大して読むので使わない
-  return ImageMagick.read(bytes, (img) => {
+  const size = peekSize(bytes);
+  if (size && size.type !== "jpeg" && size.width * size.height > MAX_PIXELS) {
+    throw new PermanentError(`too many pixels: ${size.width}x${size.height}`);
+  }
+  // 大きな JPEG だけ縮めて読む（小さい JPEG にこのヒントを付けると拡大して読むことがあったので、付けない）
+  const settings = new MagickReadSettings();
+  if (size?.type === "jpeg" && Math.max(size.width, size.height) > JPEG_HINT_EDGE) {
+    settings.setDefine(MagickFormat.Jpeg, "size", `${MAX_EDGE * 2}x${MAX_EDGE * 2}`);
+  }
+  return ImageMagick.read(bytes, settings, (img) => {
     const longest = Math.max(img.width, img.height);
     if (longest > MAX_EDGE) {
       const scale = MAX_EDGE / longest;
