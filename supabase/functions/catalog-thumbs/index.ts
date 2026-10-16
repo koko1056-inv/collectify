@@ -410,9 +410,10 @@ serve(async (req) => {
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker));
 
     if (released.length > 0) {
-      // 「途中で止まった取得」と同じ扱いにして、次の呼び出しですぐ拾い直させる。
+      // 再試行の待ち時間を過ぎた「失敗」にして、次の呼び出しがまとめて拾い直せるようにする
+      // （「途中で止まった取得」扱いにすると、落ちた画像を切り分けるため1回に1枚しか拾わず、溜まっていた）。
       // 手を付けていないので、受け取ったときに足した試行回数も戻す（戻さないと、大きな画像が返され続けて
-      // 3 回で「失敗」になってしまう）
+      // 3 回で「失敗」のままになってしまう）
       const { data: rows } = await admin
         .from("catalog_image_thumbs")
         .select("src_hash, attempts")
@@ -422,7 +423,7 @@ serve(async (req) => {
         ((rows ?? []) as Array<{ src_hash: string; attempts: number }>).map((r) =>
           admin
             .from("catalog_image_thumbs")
-            .update({ claimed_at: new Date(0).toISOString(), attempts: Math.max(0, r.attempts - 1) })
+            .update({ status: "failed", updated_at: new Date(0).toISOString(), attempts: Math.max(0, r.attempts - 1) })
             .eq("src_hash", r.src_hash)
             .eq("status", "processing")
         ),
