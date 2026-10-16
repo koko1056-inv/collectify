@@ -146,16 +146,37 @@ async function fetchSource(raw: string): Promise<Uint8Array> {
     throw new PermanentError(`HTTP ${response.status}`);
   }
   const type = mediaType(response);
-  if (type && (!type.startsWith("image/") || type.startsWith("image/svg"))) {
+  // 種類をはっきり書いていない応答（text/plain・octet-stream）は、中身の先頭で画像か確かめる。
+  // にじさんじの公式ショップは画像（URL の末尾が .png_）を text/plain で返すため、以前は全部「画像でない」で落ちていた
+  const sniff = !!type && SNIFF_TYPES.has(type);
+  if (type && !sniff && (!type.startsWith("image/") || type.startsWith("image/svg"))) {
     await response.body?.cancel().catch(() => {});
     throw new PermanentError(`not an image: ${type}`);
   }
+  let bytes: Uint8Array;
   try {
-    return await readBodyCapped(response, MAX_SOURCE_BYTES);
+    bytes = await readBodyCapped(response, MAX_SOURCE_BYTES);
   } catch (e) {
     if (e instanceof SsrfError) throw new PermanentError("too large");
     throw e;
   }
+  if (sniff && !looksLikeRasterImage(bytes)) throw new PermanentError(`not an image: ${type}`);
+  return bytes;
+}
+
+/** 種類を書いていない（ことが多い）応答。中身の先頭を見て画像なら受け取る */
+const SNIFF_TYPES = new Set(["text/plain", "application/octet-stream", "binary/octet-stream"]);
+
+/** PNG・JPEG・GIF・WebP・AVIF/HEIF の先頭のしるし（SVG は受け取らない） */
+function looksLikeRasterImage(b: Uint8Array): boolean {
+  const at = (offset: number, sig: number[]) => sig.every((v, i) => b[offset + i] === v);
+  return (
+    at(0, [0x89, 0x50, 0x4e, 0x47]) || // PNG
+    at(0, [0xff, 0xd8, 0xff]) || // JPEG
+    at(0, [0x47, 0x49, 0x46, 0x38]) || // GIF
+    (at(0, [0x52, 0x49, 0x46, 0x46]) && at(8, [0x57, 0x45, 0x42, 0x50])) || // WebP (RIFF....WEBP)
+    at(4, [0x66, 0x74, 0x79, 0x70]) // AVIF/HEIF (....ftyp)
+  );
 }
 
 /** 480px の四角に収まる WebP にする。元が小さければ拡大はしない */
