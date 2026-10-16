@@ -114,3 +114,7 @@ verify_jwt = false
 
 [functions.scrape-images]
 verify_jwt = false
+
+# カタログ画像のサムネ作り。cron が x-cron-secret で呼ぶ（JWT を持たない）。認可は関数の中で cron の秘密か管理者かを確かめる
+[functions.catalog-thumbs]
+verify_jwt = false
