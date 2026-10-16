@@ -12,12 +12,15 @@ interface ItemPostGridProps {
   onPostClick: (post: ItemPost) => void;
   /** 反応（持ってる/ほしい/尊い）の件数を出したいときに渡す */
   getReactions?: (postId: string) => PostReactionSummary;
+  /** 0件のときに出すもの（並び・絞り込みに合わせた「次の一手」）。省略時は「まだ投稿はありません」 */
+  empty?: React.ReactNode;
 }
 
-export function ItemPostGrid({ posts, onPostClick, getReactions }: ItemPostGridProps) {
+export function ItemPostGrid({ posts, onPostClick, getReactions, empty }: ItemPostGridProps) {
   const { t } = useLanguage();
 
   if (posts.length === 0) {
+    if (empty) return <>{empty}</>;
     return (
       <EmptyState
         icon={Images}

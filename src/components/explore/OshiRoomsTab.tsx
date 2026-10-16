@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Crown, DoorOpen, Heart, Home as HomeIcon, Sparkles, Users } from "lucide-react";
+import { ChevronRight, Crown, DoorOpen, Heart, Home as HomeIcon, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { OSHI_ROOM_SORTS, sceneGoodsMap, useOshiRoomList, type OshiRoomCard, type OshiRoomSort } from "@/hooks/useOshiRoomSocial";
 import { timeOfDayJst } from "@/lib/oshiRoom";
 import { getInitial } from "@/utils/initial";
+import { IconTile } from "@/components/ui/icon-tile";
+import { OshiDiscoveryPanel } from "@/components/releases/OshiDiscoveryPanel";
 import { cn } from "@/lib/utils";
 
 const SORT_ICON = { new: Sparkles, popular: Heart, oshi: Users } as const;
@@ -79,6 +81,9 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const time = timeOfDayJst();
+  // 部屋がまだ少ない（3つ未満）うちは、見て回るものが無い。自分の部屋づくりへの誘いを上に出し、
+  // 一覧の下には推しの新着・発売予定を出す（検索中は出さない: 探しているものと関係が無い）
+  const few = !list.isLoading && !list.isError && !q && rooms.length < 3 && !hasNextPage;
 
   return (
     <div className="space-y-4">
@@ -103,6 +108,24 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
         </Button>
       </div>
 
+      {few && filtered.length > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate("/oshi")}
+          data-testid="oshi-rooms-invite"
+          className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-left hover:bg-primary/10"
+        >
+          <IconTile size="sm" tone="primary">
+            <DoorOpen />
+          </IconTile>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">{t("discover.empty.roomsInviteTitle")}</span>
+            <span className="block text-xs text-muted-foreground">{t("discover.empty.roomsInviteDesc")}</span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      )}
+
       {list.isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[...Array(6)].map((_, i) => (
@@ -112,10 +135,26 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
       ) : list.isError ? (
         <QueryErrorState title={t("oshiRoom.social.explore.loadFailed")} onRetry={() => void list.refetch()} />
       ) : filtered.length === 0 ? (
+        // 0件は「最初の1人になろう」: 自分の部屋を飾る入口を出す
         sort === "oshi" ? (
-          <EmptyState icon={Users} message={t("oshiRoom.social.explore.emptyOshi")} description={t("oshiRoom.social.explore.emptyOshiDesc")} />
+          <EmptyState
+            icon={Users}
+            message={t("oshiRoom.social.explore.emptyOshi")}
+            description={t("oshiRoom.social.explore.emptyOshiDesc")}
+            action={<Button variant="outline" onClick={() => setSort("new")}>{t("discover.empty.roomsSeeAll")}</Button>}
+          />
         ) : (
-          <EmptyState icon={HomeIcon} message={t("oshiRoom.social.explore.empty")} description={t("oshiRoom.social.explore.emptyDesc")} />
+          <EmptyState
+            icon={HomeIcon}
+            message={q ? t("oshiRoom.social.explore.empty") : t("discover.empty.roomsFirstTitle")}
+            description={q ? t("oshiRoom.social.explore.emptyDesc") : t("discover.empty.roomsFirstDesc")}
+            action={
+              <Button onClick={() => navigate("/oshi")} className="gap-1.5">
+                <DoorOpen className="h-4 w-4" />
+                {t("discover.empty.roomsDecorate")}
+              </Button>
+            }
+          />
         )
       ) : (
         <>
@@ -133,6 +172,10 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
             </div>
           )}
         </>
+      )}
+
+      {few && (
+        <OshiDiscoveryPanel className="border-t border-border pt-5" title={t("discover.panel.fillTitle")} description={t("discover.panel.fillDesc")} />
       )}
 
       {/* 名前が分かってから開く（見出しが空のまま一瞬出ないように） */}

@@ -5,9 +5,11 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function NotificationList() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const {
     notifications,
     isLoading,
@@ -25,8 +27,19 @@ export function NotificationList() {
   }
 
   if (notifications.length === 0) {
+    // 「通知はありません」だけで終わらせず、何が届くのかと、待たずに見に行ける先を出す
     return (
-      <EmptyState title={t("misc.notifications.empty")} className="py-8" />
+      <EmptyState
+        title={t("misc.notifications.empty")}
+        description={t("discover.empty.notificationsDesc")}
+        className="py-8"
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button size="sm" onClick={() => navigate("/releases")}>{t("discover.empty.notificationsReleases")}</Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/explore")}>{t("discover.empty.notificationsExplore")}</Button>
+          </div>
+        }
+      />
     );
   }
 

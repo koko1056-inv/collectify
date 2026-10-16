@@ -3,12 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
-import type { OfficialItem } from "@/types";
-
-/** 「新着」とみなす期間（時間）。毎日の自動追加の取りこぼしや、数日あいた人にも見せられるよう長めに */
-const NEW_WINDOW_HOURS = 72;
-/** 一覧で見せる最大件数 */
-const NEW_LIMIT = 24;
 
 function todayJst(): string {
   return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
@@ -17,7 +11,8 @@ function todayJst(): string {
 /**
  * 「今日のチェック」に出す情報。
  *  - 連続ログイン日数・今日のボーナス・次の段階までの残り日数
- *  - 推しの作品の新着グッズ（直近72時間）
+ * 推しの作品の新着グッズは、ここでは読まない。「推しの新商品」の画面（/releases）と、
+ * その入口のバッジ（useOshiNewBadge: 最後に見た時刻からの件数）に移した。
  * ログインボーナスの付与そのものは AuthContext が行う（ここは表示のための読み取りだけ）。
  */
 export function useDailyHub() {
@@ -40,38 +35,6 @@ export function useDailyHub() {
     },
   });
 
-  const interests = useQuery({
-    queryKey: ["daily-hub-interests", uid],
-    enabled: !!uid,
-    staleTime: 1000 * 60 * 10,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("interests, favorite_contents").eq("id", uid!).maybeSingle();
-      if (error) throw error;
-      return [...new Set([...(data?.favorite_contents ?? []), ...(data?.interests ?? [])])].filter(Boolean) as string[];
-    },
-  });
-
-  const names = interests.data ?? [];
-  const fresh = useQuery({
-    queryKey: ["daily-hub-new", uid, names.join("|")],
-    enabled: names.length > 0,
-    staleTime: 1000 * 60 * 5,
-    queryFn: async () => {
-      const since = new Date(Date.now() - NEW_WINDOW_HOURS * 3600e3).toISOString();
-      const { data, error, count } = await supabase
-        .from("official_items")
-        .select("id, title, image, price, release_date, content_name, created_at", { count: "exact" })
-        .in("content_name", names)
-        .is("merged_into", null)
-        .neq("image", "/placeholder.svg")
-        .gte("created_at", since)
-        .order("created_at", { ascending: false })
-        .limit(NEW_LIMIT);
-      if (error) throw error;
-      return { items: (data ?? []) as unknown as OfficialItem[], total: count ?? (data?.length ?? 0) };
-    },
-  });
-
   const derived = useMemo(() => {
     const streak = points.data?.login_streak ?? 0;
     const claimedToday = points.data?.last_login_bonus_date === todayJst();
@@ -89,8 +52,5 @@ export function useDailyHub() {
   return {
     ...derived,
     ready: points.isSuccess,
-    newItems: fresh.data?.items ?? [],
-    newTotal: fresh.data?.total ?? 0,
-    newContents: names,
   };
 }

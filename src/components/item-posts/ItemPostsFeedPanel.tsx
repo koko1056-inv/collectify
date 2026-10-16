@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Flame, Sparkles, Users } from "lucide-react";
+import { Camera, Flame, Images, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { OshiDiscoveryPanel } from "@/components/releases/OshiDiscoveryPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -180,7 +182,45 @@ export function ItemPostsFeedPanel() {
           ))}
         </div>
       ) : (
-        <ItemPostGrid posts={posts} onPostClick={setSelectedPost} getReactions={reactions.get} />
+        <ItemPostGrid
+          posts={posts}
+          onPostClick={setSelectedPost}
+          getReactions={reactions.get}
+          empty={
+            // 「まだありません」で終わらせず、並び・絞り込みに合わせた次の一手を出す
+            mode === "following" ? (
+              <EmptyState
+                icon={Users}
+                className="py-8"
+                title={t("discover.empty.followingTitle")}
+                description={t("discover.empty.followingDesc")}
+                action={<Button variant="outline" onClick={() => navigate("/explore?tab=users")}>{t("discover.empty.findUsers")}</Button>}
+              />
+            ) : (
+              <EmptyState
+                icon={Images}
+                className="py-8"
+                title={hashtag || contentFilter ? t("discover.empty.postsFilteredTitle") : t("discover.empty.postsFirstTitle")}
+                description={t("discover.empty.postsFirstDesc")}
+                action={
+                  <Button onClick={() => startPost(hashtag)} className="gap-1.5">
+                    <Camera className="h-4 w-4" />
+                    {t("screens.itemPostsFeed.createPost")}
+                  </Button>
+                }
+              />
+            )
+          }
+        />
+      )}
+
+      {/* 投稿がまだ少ない（3件未満）うちは、人の動きの代わりに推しの新着・発売予定・人気のグッズを出す */}
+      {!isLoading && posts.length < 3 && (
+        <OshiDiscoveryPanel
+          className="border-t border-border pt-5"
+          title={t("discover.panel.fillTitle")}
+          description={t("discover.panel.fillDesc")}
+        />
       )}
 
       <ItemPostDetailModal

@@ -30,6 +30,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     switch (notification.type) {
       case 'new_item':
         return { icon: Package, tone: 'info' };
+      case 'oshi_new_items':
+        // 推しの新商品のまとめ（1日1回）。マイグレーションを当てると届く
+        return { icon: Sparkles, tone: 'info' };
       case 'comment':
         return { icon: MessageCircle, tone: 'primary' };
       case 'reply':
@@ -89,6 +92,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     // Navigate based on notification type
     if (notification.type === 'new_item' && notification.data.item_id) {
       navigate(`/item/${notification.data.item_id}`);
+    } else if (notification.type === 'oshi_new_items') {
+      // 推しの新商品のまとめ: 推しの新商品の画面の「新着」へ
+      navigate(notification.data.url || '/releases?tab=new');
     } else if (notification.type.startsWith('item_post_') && notification.data.post_id) {
       // いまの投稿へのコメント・いいね・リアクション（以前はどこにも飛ばなかった）
       navigate(`/post/${notification.data.post_id}`);
@@ -164,7 +170,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           )}
 
           {/* Special rendering for new item notifications */}
-          {notification.type === 'new_item' && data.image && (
+          {(notification.type === 'new_item' || notification.type === 'oshi_new_items') && data.image && (
             <div className="flex items-center gap-2 mb-2">
               <img
                 src={getOptimizedImageUrl(data.image, { width: 96 })}
