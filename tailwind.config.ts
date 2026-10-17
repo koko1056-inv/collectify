@@ -102,6 +102,11 @@ export default {
           "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
           "50%": { transform: "translateY(-4%) rotate(-1.5deg)" },
         },
+        // コンプのお祝いの紙吹雪: 上から回りながら落ちる
+        "pocke-confetti": {
+          "0%": { transform: "translateY(-20px) rotate(0deg)", opacity: "1" },
+          "100%": { transform: "translateY(240px) rotate(540deg)", opacity: "0" },
+        },
         // 出てくるとき: 下から跳ねて現れる
         "pocke-pop": {
           "0%": { opacity: "0", transform: "translateY(18%) scale(0.85)" },

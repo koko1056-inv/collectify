@@ -3729,6 +3729,36 @@ export type Database = {
           },
         ]
       }
+      user_completions: {
+        Row: {
+          completed_at: string
+          key: string
+          label: string
+          points: number
+          seen_at: string | null
+          total: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          key: string
+          label: string
+          points?: number
+          seen_at?: string | null
+          total: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          key?: string
+          label?: string
+          points?: number
+          seen_at?: string | null
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_items: {
         Row: {
           content_name: string | null
@@ -4250,6 +4280,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      mark_completions_seen: {
+        Args: { _keys: string[] }
+        Returns: undefined
+      }
       apply_trade_to_collection: {
         Args: { _trade_id: string }
         Returns: Json
