@@ -92,6 +92,8 @@ export const oshiRoom = {
       unlockAt: "Lv{level}で解放",
       inUse: "使用中",
       leaveConfirm: "模様替えをやめますか？ 保存していない変更は消えます",
+      unsaved: "保存していない変更があります",
+      noChanges: "動かしたら「保存する」で残せます",
     },
     lockedSheet: {
       title: "「{name}」セット",
@@ -384,6 +386,8 @@ export const oshiRoom = {
       unlockAt: "Unlocks at Lv{level}",
       inUse: "In use",
       leaveConfirm: "Stop decorating? Unsaved changes will be lost",
+      unsaved: "You have unsaved changes",
+      noChanges: "Tap Save to keep your changes",
     },
     lockedSheet: {
       title: "{name} set",

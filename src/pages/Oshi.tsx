@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowUpDown, Camera, Check, Flame, Heart, Moon, Paintbrush, Star, Sun, Sunrise, Sunset } from "lucide-react";
+import { ArrowLeft, ArrowUpDown, Camera, Check, Flame, Heart, Loader2, Moon, Paintbrush, Star, Sun, Sunrise, Sunset } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
@@ -206,9 +206,10 @@ const Oshi = () => {
     roomRef.current?.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
   };
 
+  const dirty = editing && !!draft && JSON.stringify(draft) !== JSON.stringify(baseState);
+
   const stopEditing = () => {
-    const changed = draft && JSON.stringify(draft) !== JSON.stringify(baseState);
-    if (changed && !window.confirm(t("oshiRoom.decorate.leaveConfirm"))) return;
+    if (dirty && !window.confirm(t("oshiRoom.decorate.leaveConfirm"))) return;
     setEditing(false);
     setDraft(null);
     setEditTarget(null);
@@ -263,6 +264,13 @@ const Oshi = () => {
             >
               <Heart className={cn("h-4 w-4", (likes.data?.likes ?? 0) > 0 ? "fill-primary text-primary" : "text-muted-foreground")} />
               <span className="tabular-nums">{likes.data?.likes ?? 0}</span>
+            </Button>
+          )}
+          {/* 模様替え中は、部屋のすぐ上にも保存を出す（下の道具の帯だけだと見落とされていた） */}
+          {editing && draft && (
+            <Button size="sm" className="shrink-0 gap-1.5 rounded-xl" onClick={save} disabled={saveRoom.isPending}>
+              {saveRoom.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {saveRoom.isPending ? t("oshiRoom.decorate.saving") : t("oshiRoom.decorate.save")}
             </Button>
           )}
           {tab === "room" && !editing && !loading && (
@@ -369,6 +377,7 @@ const Oshi = () => {
                     toast(t("oshiRoom.decorate.resetDone"));
                   }}
                   saving={saveRoom.isPending}
+                  dirty={dirty}
                 />
               ) : list.length === 0 ? (
                 <section className="rounded-3xl border border-dashed bg-card p-5 text-center">
