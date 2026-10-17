@@ -13,7 +13,8 @@ import { LEGACY_FULL_GUIDE_IDS, ONBOARDING_STEPS, type OnboardingStepId } from '
 import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconTile } from '@/components/ui/icon-tile';
-import { CheckCircle2, ChevronDown, ChevronUp, ChevronRight, Gift, Sparkles, Minus, type LucideIcon } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, ChevronRight, Gift, Minus, type LucideIcon } from 'lucide-react';
+import { Pocke } from '@/components/pocke/Pocke';
 import { NOTICE_PRIORITY, useNoticeTurn } from "@/components/collection/noticeSlot";
 
 interface ChecklistItem {
@@ -158,9 +159,7 @@ export function OnboardingChecklist() {
         className="flex w-full items-center gap-2 rounded-xl border border-primary/20 bg-card px-3 py-2 text-left transition-colors hover:bg-accent"
         aria-label={t('misc.checklist.restore')}
       >
-        <IconTile tone="primary" size="xs">
-          <Sparkles />
-        </IconTile>
+        <Pocke pose="peek" height={26} className="-my-1" />
         <span className="min-w-0 flex-1 truncate text-xs font-bold">{t('misc.checklist.title')}</span>
         <span className="text-2xs tabular-nums text-muted-foreground">
           {completedCount}/{totalCount}
@@ -187,9 +186,8 @@ export function OnboardingChecklist() {
               aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
               className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
             >
-              <IconTile tone="primary" size="sm">
-                <Sparkles />
-              </IconTile>
+              {/* 案内役のポッケ（頭と手だけ。枠からひょっこりのぞく） */}
+              <Pocke pose="peek" height={42} className="-my-1 shrink-0" />
               <div className="min-w-0">
                 <h3 className="font-bold text-sm">{t('misc.checklist.title')}</h3>
                 <p className="text-xs text-muted-foreground">

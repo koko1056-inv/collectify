@@ -51,6 +51,7 @@ import { activeFilterCount, applyFilter, EMPTY_FILTER, type CatalogFilterState }
 import { cn } from "@/lib/utils";
 import { CatalogStackArt, CameraScanArt, ManualFormArt } from "./AddGoodsArt";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 type View = "menu" | "pick";
 
@@ -587,6 +588,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       }));
       const result = await addManyToCollection(user.id, list);
       if (result.success) {
+        pockeCheer(result.added > 1 ? "addedMany" : "added", result.added);
         toast.success(t("collectGoals.bulk.addedToast", { n: result.added }), {
           description: result.skippedOwned > 0 ? t("collectGoals.bulk.skippedOwned", { n: result.skippedOwned }) : undefined,
         });
@@ -624,6 +626,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       });
 
       if (result.success) {
+        pockeCheer("added");
         toast.success(t("collectionScreen.official.added"), {
           description: result.pointsAwarded
             ? t("notices.adminItem.pointsEarnedDesc", { n: result.pointsAwarded })

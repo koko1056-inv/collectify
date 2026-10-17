@@ -13,8 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { claimReward } from "@/hooks/useClaimReward";
 import { cn } from "@/lib/utils";
 import { StarterGoodsStep } from "./StarterGoodsStep";
-import { OnboardingBottomBar, OnboardingPrimaryButton, OnboardingStepHeader } from "./OnboardingParts";
-import { BrandMark, GoodsFan, PenlightArt } from "./OnboardingArt";
+import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts";
+import { GoodsFan } from "./OnboardingArt";
+import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -285,20 +286,24 @@ function WelcomeStep({
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-lg px-4 pb-6 pt-8">
-          <OnboardingStepHeader
-            art={<BrandMark size={72} />}
-            title={
-              <>
-                {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
-                <span className="inline-block">{t("misc.onboarding.welcomeLine1")}</span>
-                <span className="inline-block">{t("misc.onboarding.welcomeLine2")}</span>
-              </>
-            }
-            description={t("misc.onboarding.tagline")}
-          />
+        <div className="mx-auto max-w-lg px-4 pb-6 pt-6">
+          {/* 最初にあいさつするのは案内役のポッケ。手を振って、自己紹介と「何をするアプリか」を一言で言う */}
+          <div className="flex flex-col items-center text-center">
+            <PockeBubble className="px-5 py-3.5">
+              <h2 className="text-xl font-bold leading-snug">
+                {/* 狭い画面で名前の途中で折り返さないよう語境界で改行 */}
+                <span className="inline-block">{t("pocke.welcome.hello")}</span>
+                <span className="inline-block">{t("pocke.welcome.intro")}</span>
+              </h2>
+              {/* 名前を入れると、その場で呼びかけ直す（入力への反応） */}
+              <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">
+                {name ? t("pocke.welcome.niceToMeet", { name }) : t("pocke.welcome.desc")}
+              </p>
+            </PockeBubble>
+            <Pocke key={name ? "named" : "hello"} pose={name ? "wink" : "wave"} height={190} motion="pop-bob" className="mt-3" alt={t("pocke.name")} />
+          </div>
 
-          <div className="mt-6 rounded-2xl border bg-card p-4 shadow-sm">
+          <div className="mt-4 rounded-2xl border bg-card p-4 shadow-sm">
             <label htmlFor="onboarding-name" className="text-sm font-bold">
               {t("misc.onboarding.askName")}
             </label>
@@ -312,13 +317,8 @@ function WelcomeStep({
               className="mt-2 h-12 rounded-xl text-base"
               autoFocus
             />
-            <p className="mt-2 min-h-4 text-xs text-muted-foreground" aria-live="polite">
-              {name ? (
-                <span className="font-medium text-foreground">{t("misc.onboarding.greeting", { name })}</span>
-              ) : (
-                t("misc.onboarding.setLater")
-              )}
-            </p>
+            {/* 名前への返事はポッケの吹き出しがする。ここは「あとでも決められる」だけ */}
+            <p className="mt-2 min-h-4 text-xs text-muted-foreground">{name ? null : t("misc.onboarding.setLater")}</p>
           </div>
         </div>
       </div>
@@ -343,11 +343,11 @@ function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone:
       onComplete={onDone}
       standalone
       header={
-        <OnboardingStepHeader
-          art={<PenlightArt size={64} />}
-          title={t("misc.onboarding.interestsTitle", { name: friendlyName })}
-          description={t("misc.onboarding.interestsSubtitle")}
-        />
+        // ポッケが問いかける形（Duolingo の「キャラが聞く」）
+        <PockeSays pose="think">
+          <h2 className="text-lg font-bold leading-snug">{t("misc.onboarding.interestsTitle", { name: friendlyName })}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{t("pocke.onboarding.interestsDesc")}</p>
+        </PockeSays>
       }
     />
   );
@@ -371,8 +371,16 @@ function CelebrateStep({
     <>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-lg flex-col items-center px-4 pb-6 pt-10 text-center">
-          {/* いま登録したグッズを、カードのように扇状に並べる（無ければブランドマーク） */}
-          <GoodsFan images={addedImages} />
+          {/* いま登録したグッズを、カードのように扇状に並べ、その横でポッケがジャンプして喜ぶ。
+              何も登録していなければ、ポッケが袋をぽんぽんして「ここにしまってね」 */}
+          {addedImages.length > 0 ? (
+            <div className="relative">
+              <GoodsFan images={addedImages} />
+              <Pocke pose="celebrate" height={120} motion="pop" className="absolute -bottom-3 -right-16" />
+            </div>
+          ) : (
+            <Pocke pose="pouch" height={170} motion="pop-bob" />
+          )}
 
           {addedCount > 0 && (
             <motion.p

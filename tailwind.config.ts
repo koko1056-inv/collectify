@@ -97,6 +97,17 @@ export default {
         },
       },
       keyframes: {
+        // ポッケ（ガイド役のカンガルー）がその場で小さく弾む。待っている間の「生きている」感じ
+        "pocke-bob": {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-4%) rotate(-1.5deg)" },
+        },
+        // 出てくるとき: 下から跳ねて現れる
+        "pocke-pop": {
+          "0%": { opacity: "0", transform: "translateY(18%) scale(0.85)" },
+          "60%": { opacity: "1", transform: "translateY(-4%) scale(1.03)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -136,6 +147,8 @@ export default {
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
+        "pocke-bob": "pocke-bob 2.6s ease-in-out infinite",
+        "pocke-pop": "pocke-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "scale-in": "scale-in 0.2s ease-out",
         shimmer: "shimmer 2s infinite",
         wiggle: "wiggle 0.5s ease-in-out infinite",

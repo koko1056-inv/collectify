@@ -20,6 +20,7 @@ import { pastDate, usePastItems } from "@/hooks/usePastItems";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -155,6 +156,7 @@ export default function ItemPublic() {
       });
       if (result.success) {
         toast.success(t("engage.itemPage.addedToast"));
+        pockeCheer("added");
         // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
         await Promise.all([refresh(), invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id })]);
       } else {
