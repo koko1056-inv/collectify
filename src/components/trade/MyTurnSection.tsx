@@ -24,7 +24,7 @@ const SHOWN = 3;
  * 受信箱を開かなくても、交換タブを開いたその場で次の一手が押せるようにする。
  * 何も無いときは何も出さない（受信箱へは別のボタンから行ける）。
  */
-export function MyTurnSection() {
+export function MyTurnSection({ limit = SHOWN }: { limit?: number } = {}) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { myTurn, isLoading } = useMyTrades();
@@ -46,12 +46,12 @@ export function MyTurnSection() {
           description={t("trade.myTurn.desc")}
         />
         <CardContent className="space-y-3">
-          {myTurn.slice(0, SHOWN).map((trade) => (
+          {myTurn.slice(0, limit).map((trade) => (
             <TradeCard key={trade.id} trade={trade} onOpenChat={setChatTrade} onReview={setReviewTrade} />
           ))}
-          {myTurn.length > SHOWN && (
+          {myTurn.length > limit && (
             <Button variant="outline" size="sm" className="w-full" onClick={() => setInboxOpen(true)}>
-              {t("trade.myTurn.seeAll", { n: myTurn.length - SHOWN })}
+              {t("trade.myTurn.seeAll", { n: myTurn.length - limit })}
             </Button>
           )}
         </CardContent>

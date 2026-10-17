@@ -126,6 +126,7 @@ export const profileScreen = {
       message: "メッセージを送る",
     },
     hero: {
+      editShort: "編集",
       coverTooLarge: "画像は5MB以下にしてください",
       coverType: "JPEG / PNG / WebP / GIF のみ対応しています",
       coverUpdated: "カバー画像を更新しました",
@@ -394,6 +395,7 @@ export const profileScreen = {
       message: "Send a message",
     },
     hero: {
+      editShort: "Edit",
       coverTooLarge: "Please use an image under 5MB",
       coverType: "Only JPEG, PNG, WebP and GIF are supported",
       coverUpdated: "Cover image updated",
