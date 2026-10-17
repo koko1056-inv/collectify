@@ -49,15 +49,17 @@ interface DecoratePanelProps {
   onCancel: () => void;
   onReset: () => void;
   saving: boolean;
+  /** 保存していない変更があるか（保存の帯に一言出す） */
+  dirty?: boolean;
 }
 
 /**
  * 模様替えの道具（部屋の下に出す）。
  *  - 選んだ物: 重なり順（前へ・後ろへ）、大きさ、左右反転、しまう
  *  - 家具 / 壁紙 / 床 / フレーム の棚。買っていないセットの物は鍵を付けて見せ、押すとショップの案内へ
- *  - 保存 / やめる
+ *  - 保存 / やめる（棚が長くて下の方に隠れ、押されずに終わっていたので、画面の下に貼り付けておく）
  */
-export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsOrder, owned, oshi, onLocked, onSave, onCancel, onReset, saving }: DecoratePanelProps) {
+export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsOrder, owned, oshi, onLocked, onSave, onCancel, onReset, saving, dirty }: DecoratePanelProps) {
   const { t } = useLanguage();
   const [tab, setTab] = useState("furniture");
   const layout = state.layout;
@@ -256,16 +258,21 @@ export function DecoratePanel({ state, onChange, target, onTarget, goods, goodsO
         </TabsContent>
       </Tabs>
 
-      <div className="mt-3 flex items-center gap-2 border-t pt-3">
-        <Button variant="ghost" size="sm" className="gap-1 px-2 text-2xs text-muted-foreground" onClick={onReset} disabled={saving}>
-          <RotateCcw className="h-3.5 w-3.5" />
-          {t("oshiRoom.decorate.reset")}
-        </Button>
-        <div className="ml-auto flex gap-2">
+      <Button variant="ghost" size="sm" className="mt-2 gap-1 px-2 text-2xs text-muted-foreground" onClick={onReset} disabled={saving}>
+        <RotateCcw className="h-3.5 w-3.5" />
+        {t("oshiRoom.decorate.reset")}
+      </Button>
+
+      {/* 保存の帯。スクロールしても下タブのすぐ上（PC は画面の下）に残る */}
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-30 -mx-3 -mb-3 mt-2 flex items-center gap-2 rounded-b-3xl border-t bg-card/95 px-3 py-2.5 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.15)] backdrop-blur-sm sm:bottom-2">
+        <p className={cn("min-w-0 flex-1 text-2xs leading-snug", dirty ? "font-bold text-primary" : "text-muted-foreground")} aria-live="polite">
+          {dirty ? t("oshiRoom.decorate.unsaved") : t("oshiRoom.decorate.noChanges")}
+        </p>
+        <div className="flex shrink-0 gap-2">
           <Button variant="outline" className="rounded-xl" onClick={onCancel} disabled={saving}>
             {t("oshiRoom.decorate.cancel")}
           </Button>
-          <Button className="min-w-[6.5rem] gap-1.5 rounded-xl" onClick={onSave} disabled={saving}>
+          <Button className="min-w-[6.5rem] gap-1.5 rounded-xl" onClick={onSave} disabled={saving} data-testid="oshi-room-save">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {saving ? t("oshiRoom.decorate.saving") : t("oshiRoom.decorate.save")}
           </Button>
