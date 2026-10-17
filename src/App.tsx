@@ -17,6 +17,7 @@ import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
 import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
+import { GuestPouchImporter } from "@/components/guest/GuestPouchImporter";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -91,6 +92,7 @@ if (typeof window !== "undefined") {
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
+const GuestTry = lazy(() => import("./pages/GuestTry").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Admin = lazy(() => import("./pages/Admin").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () => <div>Error loading page</div> })));
 const QuickAdd = lazy(() => import("./pages/QuickAdd").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -187,6 +189,8 @@ const App: React.FC = () => {
                       <Route path="/tokushoho" element={<Tokushoho />} />
                       <Route path="/legal" element={<Navigate to="/terms" replace />} />
                       <Route path="/login" element={<Login />} />
+                      {/* ログインなしのおためし（ポッケと、推しのグッズを袋に入れてみる） */}
+                      <Route path="/try" element={<GuestTry />} />
                       {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />
                       <Route path="/explore" element={<Explore />} />
@@ -237,6 +241,7 @@ const App: React.FC = () => {
                   <PockeCompletionHost />
                   <DailyRingHost />
                   <BadgeUnlockHost />
+                  <GuestPouchImporter />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>

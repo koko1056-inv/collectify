@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn } from "@/hooks/useOfficialItems";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
+import { useGuestPouch } from "@/hooks/useGuestPouch";
 import { cn } from "@/lib/utils";
 import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts";
 import { PockeSays, type PockePose } from "@/components/pocke/Pocke";
@@ -22,8 +23,10 @@ const PER_CONTENT = 30;
 interface StarterGoodsStepProps {
   /** 選んだ数と、そのグッズの写真（新しい順）を渡して次へ（0 のときは「あとで選ぶ」） */
   onDone: (addedCount: number, images: string[]) => void;
-  /** 写真から登録する（このウェルカム画面を抜けて登録画面へ） */
-  onPhoto: () => void;
+  /** 写真から登録する（このウェルカム画面を抜けて登録画面へ）。渡さなければ出さない */
+  onPhoto?: () => void;
+  /** ログインせずに試すとき。選んだものはおためしの袋（この端末）に入れ、登録したらコレクションへ移す */
+  guest?: boolean;
 }
 
 /**
@@ -34,14 +37,16 @@ interface StarterGoodsStepProps {
  * 持っているものをタップするだけで、数秒で自分のコレクションが立ち上がる。
  * 選んだ数が増えるにつれ「完成度が見える」までの距離を見せ、最初の価値を早く届ける。
  */
-export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
+export function StarterGoodsStep({ onDone, onPhoto, guest = false }: StarterGoodsStepProps) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
 
   const [content, setContent] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim());
-  const { added, wished, busyId, add, wish: handleWish } = useQuickAddGoods();
+  const quick = useQuickAddGoods();
+  const pouch = useGuestPouch();
+  const { added, wished, busyId, add, wish: handleWish } = guest ? pouch : quick;
   // 登録できたグッズの写真。締めの画面で、いま登録したものを並べて見せる
   const addedImages = useRef<string[]>([]);
   const handleAdd = useCallback(
@@ -252,7 +257,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
         <OnboardingPrimaryButton variant={n > 0 ? "default" : "outline"} onClick={() => onDone(n, addedImages.current)}>
           {n > 0 ? t("misc.onboarding.starter.cta", { n }) : t("misc.onboarding.starter.later")}
         </OnboardingPrimaryButton>
-        {n === 0 && (
+        {n === 0 && onPhoto && (
           <button
             type="button"
             onClick={onPhoto}

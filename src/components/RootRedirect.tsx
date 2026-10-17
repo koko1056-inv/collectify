@@ -24,7 +24,7 @@ function liffStateDest(): string | null {
  * - liff.state があれば最優先でその画面へ
  * - 認証チェック中は何も表示しない（ちらつき防止）
  * - ログイン済み → /collection（アプリの起点はコレクション）
- * - 未ログイン → ログイン画面（マーケLPは廃止した）
+ * - 未ログイン → おためし（/try。ポッケのあいさつと、ログインなしで袋に入れてみる。ログインはその右上）
  */
 export function RootRedirect() {
   const { user, loading } = useAuth();
@@ -38,8 +38,9 @@ export function RootRedirect() {
     return null;
   }
 
+  // はじめての人は、ログインの前にポッケとおためし（ログインのボタンは右上にある）
   if (!user) {
-    return <Navigate to="/login?redirect=%2Fcollection" replace />;
+    return <Navigate to="/try" replace />;
   }
 
   return <Navigate to="/collection" replace />;
