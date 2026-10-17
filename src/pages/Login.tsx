@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke } from "@/components/pocke/Pocke";
+import { readGuestPouch } from "@/utils/guestPouch";
 
 export default function Login() {
   const { t, language, setLanguage } = useLanguage();
@@ -32,6 +33,16 @@ export default function Login() {
   } = useLoginForm();
 
   const needsAgreement = !isLogin && !agreed;
+  // おためし（/try）から来たときは「新規登録」で開き、袋の中身がそのまま入ることを伝える
+  const fromTry = searchParams.get("from") === "try";
+  const [guestCount] = useState(() => readGuestPouch().owned.length);
+  const switchedForTry = useRef(false);
+  useEffect(() => {
+    if (fromTry && isLogin && !switchedForTry.current) {
+      switchedForTry.current = true;
+      toggleMode();
+    }
+  }, [fromTry, isLogin, toggleMode]);
 
   const onSubmit = (e: React.FormEvent) => {
     if (needsAgreement) {
@@ -84,6 +95,11 @@ export default function Login() {
         <Pocke pose="wave" height={120} motion="pop-bob" className="mb-1" alt={t("pocke.name")} />
         <p className="logo-text text-4xl text-brand-gradient">Collectify</p>
         <p className="mt-2 text-sm text-muted-foreground">{t("screens.login.tagline")}</p>
+        {guestCount > 0 && (
+          <p className="mt-3 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
+            {t("pocke.guest.loginBanner", { n: guestCount })}
+          </p>
+        )}
       </div>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
@@ -190,6 +206,11 @@ export default function Login() {
                 ? t("screens.login.toSignup")
                 : t("screens.login.toLogin")}
             </Button>
+            {guestCount === 0 && (
+              <Link to="/try" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+                {t("pocke.guest.tryLink")}
+              </Link>
+            )}
           </CardFooter>
         </form>
       </Card>
