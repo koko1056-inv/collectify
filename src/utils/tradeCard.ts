@@ -11,7 +11,7 @@
  * 共有カード（shareCard.ts）と同じく fetch で Bitmap にしてから描き、取れない写真だけを空きにする。
  * 取りに行く順は「カタログのサムネ（Storage の CDN）→ proxy-image → 元の URL」。
  */
-import { drawLogo, drawQr, FONT, loadBitmap, roundRect, wrapText } from "./shareCard";
+import { drawLogo, drawQr, preloadLogoMark, FONT, loadBitmap, roundRect, wrapText } from "./shareCard";
 import { getCatalogThumbUrl, getOptimizedImageUrl, toProxyUrl } from "./optimized-image";
 import { DEFAULT_SHARE_PALETTE } from "@/lib/cosmetics";
 
@@ -308,6 +308,7 @@ function drawSection(
 }
 
 export async function renderTradeCard(input: TradeCardInput): Promise<Blob> {
+  await preloadLogoMark();
   const { width: W, height: H } = TRADE_CARD_FORMATS[input.format];
   const canvas = document.createElement("canvas");
   canvas.width = W;

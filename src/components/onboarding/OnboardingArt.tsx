@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
  *
  * 以前は lucide の汎用アイコン（Sparkles・Heart・Check）を薄い四角に入れていたが、
  * どのアプリにもある見た目で、Collectify らしさが無かった。
- * ここでは、アプリアイコンの「C の三日月と四芒星」を形の元にして、ステップごとに絵を描く。
+ * ここでは、以前のアプリアイコンの「C の三日月と四芒星」を形の元にして、ステップごとに絵を描く
+ * （アプリアイコンはいまは「袋からのぞくポッケ」。BrandMark はそのアイコンを出す）。
  *   - ようこそ: ブランドマーク（C が描かれて、星がきらめく）
  *   - 推し選び: ペンライト（推し活の道具）
  *   - 準備完了: いま登録したグッズの写真を、カードのように扇状に並べる
@@ -62,71 +63,22 @@ function Twinkle({
 }
 
 /**
- * ブランドマーク。アプリアイコンと同じ「右が開いた C」と、その開きに浮かぶ四芒星。
- * C は一筆で描かれ、描き終わりに星が回りながら現れる。
+ * ブランドマーク。アプリアイコンと同じ「袋からのぞくポッケ」。少し弾んで現れる。
  */
 export function BrandMark({ size = 72, className }: { size?: number; className?: string }) {
-  const id = useId().replace(/:/g, "");
-  // C: 中心 (29,33)・半径 19。右上(-45°)から左回りに右下(45°)まで。星は C の両端に触れないよう開きの中に置く
-  const arc = "M42.4 19.6 A19 19 0 1 0 42.4 46.4";
-  // 左上だけに細い光を入れて、エナメルのピンバッジのような艶を出す
-  const glint = "M17.5 24 A15.5 15.5 0 0 1 27 17.6";
   return (
-    <svg
+    <motion.img
+      src="/icon-192.png"
+      alt=""
+      aria-hidden="true"
       width={size}
       height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      className={cn("overflow-visible", className)}
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={`${id}-c`} x1="10" y1="52" x2="44" y2="14" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={PRIMARY} />
-          <stop offset="1" stopColor={PRIMARY} stopOpacity="0.7" />
-        </linearGradient>
-        <radialGradient id={`${id}-halo`} cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor={PRIMARY} stopOpacity="0.16" />
-          <stop offset="1" stopColor={PRIMARY} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      <circle cx="32" cy="32" r="32" fill={`url(#${id}-halo)`} />
-
-      <motion.path
-        d={arc}
-        stroke={`url(#${id}-c)`}
-        strokeWidth="7.5"
-        strokeLinecap="round"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 0.8, ease: [0.65, 0, 0.35, 1] }}
-      />
-      <motion.path
-        d={glint}
-        stroke="white"
-        strokeOpacity="0.4"
-        strokeWidth="2"
-        strokeLinecap="round"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.6, ease: "easeOut" }}
-      />
-
-      <motion.g
-        style={{ transformOrigin: "50.5px 31px", transformBox: "view-box" }}
-        initial={{ scale: 0, rotate: -90 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 320, damping: 14, delay: 0.7 }}
-      >
-        <path d={sparklePath(50.5, 31, 8.5)} fill={PRIMARY} />
-        <circle cx="50.5" cy="31" r="1.5" fill="white" fillOpacity="0.85" />
-      </motion.g>
-
-      <Twinkle cx={58} cy={10} r={3} delay={1.2} opacity={0.45} />
-      <Twinkle cx={5} cy={54} r={2.4} delay={1.8} opacity={0.35} />
-      <Twinkle cx={59} cy={47} r={2} delay={2.3} opacity={0.3} />
-    </svg>
+      className={cn("shrink-0 shadow-md", className)}
+      style={{ borderRadius: size * 0.24 }}
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 260, damping: 16 }}
+    />
   );
 }
 
