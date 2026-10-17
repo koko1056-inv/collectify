@@ -9,7 +9,7 @@
  *  - 画像・アイコン: 控えを先に出しつつ裏で更新
  *  - /api/・他のオリジン・GET 以外: 一切さわらない
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL_CACHE = `collectify-shell-${VERSION}`;
 const ASSET_CACHE = `collectify-assets-${VERSION}`;
 const IMAGE_CACHE = `collectify-images-${VERSION}`;

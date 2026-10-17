@@ -221,7 +221,18 @@ export async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: num
   }
 }
 
-/** ロゴ: 角丸のバッジ + ワードマーク */
+/** ロゴのマーク（アプリのアイコン＝袋からのぞくポッケ）。一度読んだら使い回す */
+let logoMark: ImageBitmap | null = null;
+let logoMarkLoading: Promise<void> | null = null;
+/** カードを描く前に呼んでおく。読めなかったときは、drawLogo が今までの「C」のバッジで描く */
+export function preloadLogoMark(): Promise<void> {
+  logoMarkLoading ??= loadBitmap("/icon-192.png").then((b) => {
+    logoMark = b;
+  });
+  return logoMarkLoading;
+}
+
+/** ロゴ: 角丸のバッジ（ポッケのアイコン） + ワードマーク */
 export function drawLogo(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -230,14 +241,23 @@ export function drawLogo(
   colors: { badge: string; letter: string } = { badge: ROSE, letter: "#fff" }
 ) {
   const s = 56 * scale;
-  roundRect(ctx, x, baseline - s + 8 * scale, s, s, 16 * scale);
-  ctx.fillStyle = colors.badge;
-  ctx.fill();
-  ctx.fillStyle = colors.letter;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `900 ${Math.round(38 * scale)}px ${FONT}`;
-  ctx.fillText("C", x + s / 2, baseline - s / 2 + 8 * scale + 2);
+  const top = baseline - s + 8 * scale;
+  if (logoMark) {
+    ctx.save();
+    roundRect(ctx, x, top, s, s, 16 * scale);
+    ctx.clip();
+    ctx.drawImage(logoMark, x, top, s, s);
+    ctx.restore();
+  } else {
+    roundRect(ctx, x, top, s, s, 16 * scale);
+    ctx.fillStyle = colors.badge;
+    ctx.fill();
+    ctx.fillStyle = colors.letter;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `900 ${Math.round(38 * scale)}px ${FONT}`;
+    ctx.fillText("C", x + s / 2, baseline - s / 2 + 8 * scale + 2);
+  }
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = colors.badge;
@@ -364,6 +384,7 @@ function drawCornerMotif(
 }
 
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
+  await preloadLogoMark();
   if (input.variant === "universe") {
     // 宇宙の絵は専用の描画。循環参照を避けるため、使うときに読み込む
     const { renderUniverseCard } = await import("./universeCard");
@@ -555,6 +576,7 @@ async function renderWide(
   input: ShareCardInput,
   P: ShareCardPalette
 ): Promise<Blob> {
+  await preloadLogoMark();
   const W = canvas.width;
   const H = canvas.height;
   const isSeries = input.variant === "series";

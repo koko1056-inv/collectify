@@ -10,6 +10,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Pocke } from "@/components/pocke/Pocke";
 
 export default function Login() {
   const { t, language, setLanguage } = useLanguage();
@@ -78,8 +79,9 @@ export default function Login() {
         <Globe className="h-3.5 w-3.5" aria-hidden="true" />
         {language === "ja" ? "English" : "日本語"}
       </button>
-      {/* 何のアプリかが分かるように、ロゴと1行の説明を置く */}
-      <div className="text-center">
+      {/* 何のアプリかが分かるように、ロゴと1行の説明を置く。上で案内役のポッケが手を振る */}
+      <div className="flex flex-col items-center text-center">
+        <Pocke pose="wave" height={120} motion="pop-bob" className="mb-1" alt={t("pocke.name")} />
         <p className="logo-text text-4xl text-brand-gradient">Collectify</p>
         <p className="mt-2 text-sm text-muted-foreground">{t("screens.login.tagline")}</p>
       </div>

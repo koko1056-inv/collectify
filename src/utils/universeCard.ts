@@ -4,6 +4,7 @@
  */
 import {
   drawLogo,
+  preloadLogoMark,
   drawQr,
   FONT,
   loadBitmap,
@@ -19,6 +20,7 @@ const MAX_THUMBS = 120;
 const MAX_SCALE = 5;
 
 export async function renderUniverseCard(input: ShareCardInput): Promise<Blob> {
+  await preloadLogoMark();
   const uni = input.universe;
   if (!uni) throw new Error("universe missing");
   const format = input.format ?? "portrait";
