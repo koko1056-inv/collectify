@@ -83,6 +83,12 @@ export const pocke = {
         },
       },
     },
+    complete: {
+      title: "コンプおめでとう！",
+      desc: "{label} 全{n}種、ぜんぶそろったね！ 袋がパンパンだ！",
+      share: "コンプをシェアする",
+      close: "とじる",
+    },
     cheer: {
       added1: "袋に入った！ ナイス！",
       added2: "いいグッズ！ 大事にしまっておくね",
@@ -182,6 +188,12 @@ export const pocke = {
           2: "Let's keep collecting together!",
         },
       },
+    },
+    complete: {
+      title: "You completed it!",
+      desc: "All {n} of {label} — the whole set! My pouch is stuffed!",
+      share: "Share your complete set",
+      close: "Close",
     },
     cheer: {
       added1: "In the pouch! Nice!",

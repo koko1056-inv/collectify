@@ -14,6 +14,7 @@ import { PageTourHost } from "@/components/onboarding/PageTourHost";
 import { GuideHost } from "@/components/onboarding/GuideHost";
 import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewardWatcher";
 import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
+import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -230,6 +231,8 @@ const App: React.FC = () => {
                   <OnboardingRewardWatcher />
                   {/* グッズを入れたときに画面のすみで跳ねるポッケ（どの画面から登録しても出す） */}
                   <PockeCheerHost />
+                  {/* 作品・シリーズがそろった瞬間のお祝い */}
+                  <PockeCompletionHost />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>
