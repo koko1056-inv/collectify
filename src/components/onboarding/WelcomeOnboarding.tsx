@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { StarterGoodsStep } from "./StarterGoodsStep";
 import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts";
 import { GoodsFan } from "./OnboardingArt";
+import { OnboardingAiTry } from "./OnboardingAiTry";
 import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
 
 interface WelcomeOnboardingProps {
@@ -398,6 +399,9 @@ function CelebrateStep({
           <p className="mt-1 max-w-xs text-sm text-muted-foreground">
             {t("misc.onboarding.readyDesc", { name: friendlyName })}
           </p>
+
+          {/* AI を1回ためす（いま登録したグッズを飾った1枚。押さなければ何も起きない） */}
+          {addedCount > 0 && <OnboardingAiTry />}
 
           {/* ようこそボーナス（付与額と「生涯1回」の判定はサーバー側） */}
           <motion.div
