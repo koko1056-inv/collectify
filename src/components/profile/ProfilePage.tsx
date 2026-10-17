@@ -107,16 +107,17 @@ export function ProfilePage() {
             onShare={() => setShareOpen(true)}
             onEdit={() => setEditOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
+            compact
           />
 
-          {/* 自分のコレクションの要約（登録・コンプ・集めるもの・推しの部屋）。
-              マイページでもまず「本題がいまどこまで進んでいるか」を見せる */}
-          <div className="px-4 mt-4">
-            <MyCollectionSummary userId={user.id} />
+          {/* 上から「薄いプロフィール → 小さな札（コンプ・推しの部屋・推し活費）→ 推しグッズ → 推しの作品 → 楽しむ（1行）→ 投稿などのタブ」。
+              以前は大きなプロフィール・要約の枠・2×2 の「楽しむ」が並び、投稿などのタブは上から約1420px（2画面目のさらに下）だった */}
+          <div className="px-4 mt-3">
+            <MyCollectionSummary userId={user.id} compact />
           </div>
 
           {/* 推しコンテンツ（はじめてガイドの「推しの作品を選ぶ」がここを指す） */}
-          <div className="px-4 mt-6" data-tour="me-interests">
+          <div className="px-4 mt-4" data-tour="me-interests">
             <ProfileInterests
               currentInterests={profile.interests || []}
               onUpdate={afterProfileChange}
@@ -125,16 +126,16 @@ export function ProfilePage() {
 
           {/* 推しグッズ（最大5つ・順位つき。推しフォトで育てる）。
               以前は「お気に入り TOP5」と「相棒グッズ」の2つの欄が並んでいた */}
-          <ProfileOshiGoods profileId={user.id} isOwnProfile />
+          <ProfileOshiGoods profileId={user.id} isOwnProfile compact />
 
           {/* 楽しむ: AI推しルーム・AIアバター・ポイント。本題の脇の遊びはここにまとめる。
               以前はここに AI のショーケース（マイステージ）が大きく出ていた。ショーケースは「AI作品」タブの先頭へ移した */}
-          <div className="px-4 mt-6">
-            <EnjoySection />
+          <div className="px-4 mt-3">
+            <EnjoySection compact />
           </div>
 
           {/* タブナビ */}
-          <div className="px-4 mt-6">
+          <div className="px-4 mt-4">
             <div data-tour="me-tabs">
             <ProfileTabs<Tab> tabs={TABS} active={activeTab} onChange={setActiveTab} />
             </div>

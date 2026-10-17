@@ -100,6 +100,21 @@ export const trade = {
       desc: "返事・発送・受け取り・コレクションへの反映が待っています。",
       seeAll: "ほかの{n}件も見る",
     },
+    pageTabs: {
+      find: "相手をさがす",
+      active: "進行中",
+    },
+    summary: {
+      offering: "交換に出している",
+      wishing: "ほしい",
+      count: "{n}件",
+      offerAria: "交換に出すグッズを選ぶ（いま{n}件）",
+      wishAria: "ほしいもの（{n}件）",
+    },
+    active: {
+      empty: "いまあなたの番の交換はありません",
+      emptyDesc: "申し込みや返事が届くと、ここに出ます。進行中・終わった交換は下から見られます。",
+    },
     errors: {
       not_signed_in: "ログインしてからお試しください",
       item_not_found: "相手のグッズが見つかりませんでした",
@@ -599,6 +614,21 @@ export const trade = {
       title: "Your turn ({n})",
       desc: "Replies, shipping, receipts and collection updates are waiting for you.",
       seeAll: "See {n} more",
+    },
+    pageTabs: {
+      find: "Find partners",
+      active: "In progress",
+    },
+    summary: {
+      offering: "Offering",
+      wishing: "Wanted",
+      count: "{n}",
+      offerAria: "Choose goods to offer ({n} now)",
+      wishAria: "Your wishlist ({n})",
+    },
+    active: {
+      empty: "Nothing is waiting on you",
+      emptyDesc: "Requests and replies show up here. See ongoing and finished trades below.",
     },
     errors: {
       not_signed_in: "Please sign in and try again",

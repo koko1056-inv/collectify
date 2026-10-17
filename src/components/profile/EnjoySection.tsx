@@ -12,7 +12,7 @@ import { IconTile } from "@/components/ui/icon-tile";
  * アプリの中心（登録する → 眺める → コンプ → 交換）を前に出すため、AI はここと「AI作品」タブ・ポイントショップから入る形にまとめる。
  * 機能は消していない（行き先はこれまでと同じ）。
  */
-export function EnjoySection() {
+export function EnjoySection({ compact = false }: { compact?: boolean } = {}) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const rows: { key: string; icon: LucideIcon | null; title: string; desc: string; to: string }[] = [
@@ -21,6 +21,28 @@ export function EnjoySection() {
     { key: "shop", icon: null, title: t("profileScreen.enjoy.shop"), desc: t("profileScreen.enjoy.shopDesc"), to: "/point-shop" },
     { key: "earn", icon: Gift, title: t("profileScreen.enjoy.earn"), desc: t("profileScreen.enjoy.earnDesc"), to: "/point-shop/earn" },
   ];
+  if (compact) {
+    // 1行の小さな札（マイページ）。以前は見出しと 2×2 の札で約130px
+    return (
+      <section aria-label={t("profileScreen.enjoy.title")} data-testid="me-enjoy">
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {rows.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => navigate(r.to)}
+              data-enjoy={r.key}
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent"
+            >
+              {r.icon ? <r.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> : <PointIcon size={16} />}
+              <span className="whitespace-nowrap">{r.title}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-2" aria-label={t("profileScreen.enjoy.title")} data-testid="me-enjoy">
       <div className="flex items-baseline justify-between gap-2 px-1">

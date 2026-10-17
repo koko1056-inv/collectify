@@ -20,6 +20,8 @@ interface ProfileOshiGoodsProps {
   isOwnProfile: boolean;
   /** 他の人のプロフィールで「お部屋を見る」の見出しに使う名前 */
   ownerName?: string;
+  /** 小さな並び（マイページ）。枠・自慢の札を出さず、写真を小さくする */
+  compact?: boolean;
 }
 
 /**
@@ -34,7 +36,7 @@ interface ProfileOshiGoodsProps {
  * - 他の人: 空なら何も出さない。見られるかどうかは get_profile_oshi_goods（プロフィールと同じ公開範囲）。
  *   「お部屋を見る」で、その人の推しの部屋を読み取りだけで開ける（本人は「育てる」から自分の部屋へ）
  */
-export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: ProfileOshiGoodsProps) {
+export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "", compact = false }: ProfileOshiGoodsProps) {
   const { t } = useLanguage();
   const { data: items = [], isLoading } = useProfileOshiGoods(profileId);
   const [editOpen, setEditOpen] = useState(false);
@@ -82,9 +84,9 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
   }
 
   return (
-    <section className="mt-6 px-4">
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between gap-2">
+    <section className={cn("px-4", compact ? "mt-4" : "mt-6")}>
+      <div className={cn(!compact && "rounded-2xl border border-border bg-card p-4 shadow-sm")}>
+        <div className={cn("flex items-center justify-between gap-2", compact ? "mb-1.5" : "mb-3")}>
           <div className="flex min-w-0 items-center gap-1.5">
             {/* 推しグッズの星は primary（金色の points はポイントと評価の星のためにとっておく） */}
             <Star className="h-4 w-4 shrink-0 fill-primary text-primary" />
@@ -124,7 +126,7 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
 
         {/* 自慢の札: いちばん育てた推しグッズのレベル・称号と、推しグッズのなかよしLvの合計。
             育てた成果を、他の人がプロフィールを開いたときにひと目で分かるようにする（まだ全部 Lv1 なら出さない） */}
-        {bond.best >= 2 && bestItem && (
+        {!compact && bond.best >= 2 && bestItem && (
           <div className="mb-3 flex items-center gap-2 rounded-xl bg-muted/50 px-2 py-1.5" aria-label={t("profileScreen.oshiGoods.bondAria", { level: bond.best, title: t(`engage.oshi.levelTitle.${bond.best}`), name: bestItem.title, total: bond.total })}>
             <span className={cn("shrink-0 rounded-full p-[2px]", frameClass(bond.best))}>
               <span className="flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-2xs font-black leading-tight">
@@ -149,7 +151,7 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
               type="button"
               onClick={() => setDetail(item)}
               aria-label={t("profileScreen.oshiGoods.openItem", { rank: item.rank, name: item.title })}
-              className="group w-[6.25rem] shrink-0 text-left focus-visible:outline-none"
+              className={cn("group shrink-0 text-left focus-visible:outline-none", compact ? "w-[4.75rem]" : "w-[6.25rem]")}
             >
               {/* 枠はレベルが高いほど華やか（推しの部屋では、同じ段階でフレームのまわりが光る） */}
               <span
@@ -173,10 +175,12 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
                   Lv.{item.level}
                 </span>
               </span>
-              <span className="mt-3 block text-2xs font-medium leading-tight line-clamp-2">{item.title}</span>
-              <span className="mt-0.5 block truncate text-3xs font-medium text-primary">
-                {t(`engage.oshi.levelTitle.${item.level}`)}
-              </span>
+              <span className={cn("mt-3 block text-2xs font-medium leading-tight", compact ? "truncate" : "line-clamp-2")}>{item.title}</span>
+              {!compact && (
+                <span className="mt-0.5 block truncate text-3xs font-medium text-primary">
+                  {t(`engage.oshi.levelTitle.${item.level}`)}
+                </span>
+              )}
             </button>
           ))}
 
@@ -185,7 +189,10 @@ export function ProfileOshiGoods({ profileId, isOwnProfile, ownerName = "" }: Pr
             <button
               type="button"
               onClick={() => setEditOpen(true)}
-              className="flex aspect-square w-[6.25rem] shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5"
+              className={cn(
+                "flex aspect-square shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5",
+                compact ? "w-[4.75rem]" : "w-[6.25rem]"
+              )}
             >
               <Plus className="h-5 w-5" />
               <span className="text-3xs">{t("profileScreen.common.add")}</span>

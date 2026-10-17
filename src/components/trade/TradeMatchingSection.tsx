@@ -29,8 +29,6 @@ import { cn } from "@/lib/utils";
 
 import { TradeOfferPicker } from "./TradeOfferPicker";
 import { TradeRequestModal } from "./TradeRequestModal";
-import { TradeInboxButton } from "./TradeInboxButton";
-import { MyTurnSection } from "./MyTurnSection";
 import { WishHoldersSection, type HolderRequestTarget } from "./WishHoldersSection";
 import { InlineFollowButton } from "./InlineFollowButton";
 import { PartnerCollectionPicker } from "./PartnerCollectionPicker";
@@ -152,14 +150,11 @@ export function TradeMatchingSection() {
 
   const openChat = (partnerId: string) => setChatPartnerId(partnerId);
 
-  // 「相手をさがす」の札が数える人数（両想い・片想い・同じ作品）
-  const partnerCount = (matches ?? []).length + seriesOnly.length;
-  const scrollToPartners = () => document.getElementById("trade-partners")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   /*
    * 並びの考え方: 交換は「交換に出す → ほしい → 相手をさがす → X で探す」の流れ。
-   *  - いちばん上は、いま自分が動く番の取引と、進行中の交換（受信箱）。待たせている相手がいるので先に出す
-   *  - その下に流れの4つの札（TradeFlowSteps）。ここを見れば、交換で何をすればいいかが一目で分かる
+   *  - いま自分が動く番の取引と受信箱は、画面の上のタブ「進行中」にある（Trade.tsx）。ここは相手をさがす側
+   *  - いちばん上に、交換に出しているもの・ほしいものの2つの札（押せば選び直せる）
    *  - 本文も同じ順: 交換に出しているもの → 交換相手の候補（両想い・ほしいものを持っている人・片想い・同じ作品）→ X
    *  - ポイントで先に出す「注目」は、本題の流れの外なので最後に置く
    * 以前は X の入口・ほしいものを持っている人・準備の案内・出品の入口・注目…が順不同に並び、
@@ -167,84 +162,65 @@ export function TradeMatchingSection() {
    */
   return (
     <div className="space-y-4">
-      {/* いま自分が動く番の取引（返事・発送・受け取り・完了後の反映）。受信箱を開かずにその場で進められる */}
-      <MyTurnSection />
+      {/* 交換に出しているもの・ほしいもの。押せばそれぞれ選び直せる。
+          以前は「4つの手順の札・交換に出すボタン・出しているグッズの帯」が並び（約330px）、同じ件数が3か所に出ていた。
+          あなたの番の取引と受信箱は「進行中」のタブへ移した */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          data-tour="trade-offer-cta"
+          onClick={() => setIsOfferPickerOpen(true)}
+          aria-label={t("trade.summary.offerAria", { n: readiness?.offerCount ?? myOffers.length })}
+          className={cn(
+            "flex min-h-[3.75rem] items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+            (readiness?.offerCount ?? myOffers.length) === 0 ? "border-primary/50 bg-primary/5" : "border-border"
+          )}
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-2xs text-muted-foreground">{t("trade.summary.offering")}</span>
+            <span className="block text-base font-bold tabular-nums">
+              {t("trade.summary.count", { n: readiness?.offerCount ?? myOffers.length })}
+            </span>
+          </span>
+          {myOffers.length > 0 && (
+            <span className="flex shrink-0 -space-x-3" aria-hidden="true">
+              {myOffers.slice(0, 3).map((o) => (
+                <img
+                  key={o.id}
+                  src={getOptimizedImageUrl(o.image, { width: 96 })}
+                  onError={fallbackToOriginal(o.image)}
+                  alt=""
+                  loading="lazy"
+                  className="h-9 w-9 rounded-lg border-2 border-card bg-muted object-cover"
+                />
+              ))}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => ((readiness?.wishCount ?? 0) > 0 ? setIsWishlistOpen(true) : navigate("/search?tab=goods"))}
+          aria-label={t("trade.summary.wishAria", { n: readiness?.wishCount ?? 0 })}
+          className={cn(
+            "flex min-h-[3.75rem] items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+            (readiness?.wishCount ?? 0) === 0 ? "border-primary/50 bg-primary/5" : "border-border"
+          )}
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-2xs text-muted-foreground">{t("trade.summary.wishing")}</span>
+            <span className="block text-base font-bold tabular-nums">{t("trade.summary.count", { n: readiness?.wishCount ?? 0 })}</span>
+          </span>
+          <Heart className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+        </button>
+      </div>
 
-      {/* 進行中の交換への入口。申し込んだあと戻ってくる場所がここになる */}
-      <TradeInboxButton variant="full" />
-
-      <TradeFlowSteps
-        offerCount={readiness?.offerCount ?? myOffers.length}
-        wishCount={readiness?.wishCount ?? 0}
-        partnerCount={partnerCount}
-        onOffer={() => setIsOfferPickerOpen(true)}
-        onWish={() => ((readiness?.wishCount ?? 0) > 0 ? setIsWishlistOpen(true) : navigate("/search?tab=goods"))}
-        onPartners={scrollToPartners}
-        onX={() => setIsPostOpen(true)}
-      />
-
+      {/* 出しているもの・ほしいものが無いとき、足りないほうを名指しで案内する */}
       <ReadinessBanner
         wishCount={readiness?.wishCount ?? 0}
         offerCount={readiness?.offerCount ?? 0}
         surplusCount={readiness?.surplusCount ?? 0}
         onPickOffers={() => setIsOfferPickerOpen(true)}
       />
-
-      {/* ① 交換に出す */}
-      {/* 出品の常設入口。準備バナーは条件が揃うと消えるので、
-          「交換に出すものを増やす／やめる」入口がそこだけだと無くなる。 */}
-      <button
-        type="button"
-        data-tour="trade-offer-cta"
-        onClick={() => setIsOfferPickerOpen(true)}
-        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-muted/50"
-      >
-        <IconTile size="sm" tone="primary">
-          <ArrowLeftRight />
-        </IconTile>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">{t("trade.picker.openTitle")}</p>
-          <p className="text-xs text-muted-foreground">
-            {t("trade.picker.openDesc", { n: readiness?.offerCount ?? 0 })}
-          </p>
-        </div>
-      </button>
-
-      {/* 自分が出しているグッズ。マッチが無いうちも「出せている」ことが見える */}
-      {myOffers.length > 0 && (
-        <section className="space-y-2" aria-label={t("trade.picker.mineTitle", { n: myOffers.length })}>
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-sm font-bold">{t("trade.picker.mineTitle", { n: myOffers.length })}</h3>
-            <button
-              type="button"
-              onClick={() => setIsOfferPickerOpen(true)}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              {t("trade.picker.mineEdit")}
-            </button>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {myOffers.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => setIsOfferPickerOpen(true)}
-                className="relative w-20 shrink-0 text-left"
-                aria-label={o.title}
-              >
-                <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted/30">
-                  <img src={getOptimizedImageUrl(o.image, { width: 160 })} onError={fallbackToOriginal(o.image)} alt="" loading="lazy" className="h-full w-full object-contain" />
-                </div>
-                {o.quantity >= 2 && (
-                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-3xs font-bold text-background">×{o.quantity}</span>
-                )}
-                <p className="mt-1 line-clamp-2 text-3xs leading-tight">{o.title}</p>
-              </button>
-            ))}
-          </div>
-          <p className="text-2xs text-muted-foreground">{t("trade.picker.mineHint")}</p>
-        </section>
-      )}
 
       {/* ③ 交換相手の候補。② の「ほしい」から見つかる相手（ほしいものを持っている人）もここに入れる */}
       <section id="trade-partners" className="scroll-mt-20 space-y-4" aria-label={t("trade.matching.flow.sectionPartners")}>
@@ -514,74 +490,6 @@ export function TradeMatchingSection() {
 
       <WishlistViewModal isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </div>
-  );
-}
-
-/**
- * 交換の流れを4つの札で見せる: ① 交換に出す ② ほしい ③ 相手をさがす ④ X で探す。
- * どの札も押せばその操作に入れる（出すものを選ぶ・ほしいもの・候補へ移る・譲／求の画像）。
- * 件数を添えて、どこが足りないか（出しているものが0件など）も分かるようにする。
- * スマホは2×2、広い画面は1列に4つ。
- */
-function TradeFlowSteps({
-  offerCount,
-  wishCount,
-  partnerCount,
-  onOffer,
-  onWish,
-  onPartners,
-  onX,
-}: {
-  offerCount: number;
-  wishCount: number;
-  partnerCount: number;
-  onOffer: () => void;
-  onWish: () => void;
-  onPartners: () => void;
-  onX: () => void;
-}) {
-  const { t } = useLanguage();
-  const steps = [
-    { key: "offer", icon: ArrowLeftRight, title: t("trade.matching.flow.offer"), sub: t("trade.matching.flow.offerSub", { n: offerCount }), onClick: onOffer, empty: offerCount === 0 },
-    { key: "wish", icon: Heart, title: t("trade.matching.flow.wish"), sub: t("trade.matching.flow.wishSub", { n: wishCount }), onClick: onWish, empty: wishCount === 0 },
-    {
-      key: "partners",
-      icon: Search,
-      title: t("trade.matching.flow.partners"),
-      sub: partnerCount > 0 ? t("trade.matching.flow.partnersSub", { n: partnerCount }) : t("trade.matching.flow.partnersNone"),
-      onClick: onPartners,
-      empty: false,
-    },
-    { key: "x", icon: ImageIcon, title: t("trade.matching.flow.x"), sub: t("trade.matching.flow.xSub"), onClick: onX, empty: false },
-  ];
-  return (
-    <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label={t("trade.matching.flow.aria")} data-testid="trade-flow">
-      {steps.map((s, i) => (
-        <li key={s.key}>
-          <button
-            type="button"
-            onClick={s.onClick}
-            data-flow-step={s.key}
-            className={cn(
-              "flex h-full w-full items-center gap-2 rounded-xl border bg-card p-2.5 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
-              // まだ0件の段（出していない・ほしいものが無い）は、そこから始めればいいと分かるよう枠を primary にする
-              s.empty ? "border-primary/50 bg-primary/5" : "border-border"
-            )}
-          >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-bold tabular-nums text-primary" aria-hidden="true">
-              {i + 1}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1 text-xs font-bold">
-                <s.icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
-                <span className="truncate">{s.title}</span>
-              </span>
-              <span className={cn("block truncate text-3xs", s.empty ? "font-bold text-primary" : "text-muted-foreground")}>{s.sub}</span>
-            </span>
-          </button>
-        </li>
-      ))}
-    </ol>
   );
 }
 

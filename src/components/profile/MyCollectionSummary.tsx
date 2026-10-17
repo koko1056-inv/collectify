@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  - 推しの部屋: 飾っている推しグッズの数となかよし Lv の合計。押すと /oshi
  *  - 推し活費: 今月の額（買った値段を入れたグッズ）。押すと /spending（自分だけに見える）
  */
-export function MyCollectionSummary({ userId }: { userId: string }) {
+export function MyCollectionSummary({ userId, compact = false }: { userId: string; compact?: boolean }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { data: progress, isLoading: progressLoading } = useCollectionProgress(userId);
@@ -70,6 +70,50 @@ export function MyCollectionSummary({ userId }: { userId: string }) {
     { key: "complete", icon: Trophy, label: t("profileScreen.summary.complete"), value: completeCount, loading: progressLoading },
     { key: "goals", icon: Target, label: t("profileScreen.summary.goals"), value: goals.length, loading: false },
   ];
+
+  if (compact) {
+    // 小さな札3つ（マイページ）。登録の件数は上のプロフィールに出ているので、コンプ・推しの部屋・推し活費だけ。
+    // 以前は見出しつきの枠に札3つと2行の入口が並び、約265pxを使っていた
+    const tiles = [
+      {
+        key: "complete",
+        testId: "summary-complete",
+        title: t("profileScreen.summary.complete"),
+        sub: progressLoading ? "…" : `${completeCount.toLocaleString()} · ${t("profileScreen.summary.goals")} ${goals.length}`,
+        to: "/collection",
+      },
+      {
+        key: "room",
+        testId: "summary-oshi-room",
+        title: t("profileScreen.summary.oshiRoom"),
+        sub: oshiList.length > 0 ? `Lv ${bond}` : t("oshiRoom.social.mini.emptyCta"),
+        to: "/oshi",
+      },
+      {
+        key: "spending",
+        testId: "summary-spending",
+        title: t("records.spending.entryTitle"),
+        sub: monthSpend?.any ? formatYen(monthSpend.total) : "—",
+        to: "/spending",
+      },
+    ];
+    return (
+      <section className="grid grid-cols-3 gap-2" data-testid="my-collection-summary" aria-label={t("profileScreen.summary.title")}>
+        {tiles.map((tile) => (
+          <button
+            key={tile.key}
+            type="button"
+            onClick={() => navigate(tile.to)}
+            data-testid={tile.testId}
+            className="min-w-0 rounded-xl border border-border bg-card px-2.5 py-2 text-left transition-colors hover:bg-muted/50"
+          >
+            <span className="block truncate text-xs font-bold">{tile.title}</span>
+            <span className="block truncate text-2xs text-muted-foreground tabular-nums">{tile.sub}</span>
+          </button>
+        ))}
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-border bg-card p-4" data-testid="my-collection-summary" aria-label={t("profileScreen.summary.title")}>
