@@ -37,6 +37,7 @@ import { SpotlightChip, TradeSpotlightCard } from "./TradeSpotlight";
 import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
 import { TradePostDialog } from "./TradePostDialog";
 import { WishlistViewModal } from "@/components/WishlistViewModal";
+import { PockeSays } from "@/components/pocke/Pocke";
 
 /**
  * 交換相手の候補。
@@ -525,27 +526,27 @@ function ReadinessBanner({
           ? t("trade.matching.setupWish")
           : t("trade.matching.setupOffer");
 
+  // ポッケが「次はこれ」と話しかける形（ダブりがあるときは袋のポッケ、ほかは指さし）
   return (
-    <div
-      data-tour="trade-readiness"
-      className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3"
-    >
-      <p className="text-sm">{message}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {wishCount === 0 && (
-          <Button size="sm" variant="outline" onClick={() => navigate("/search?tab=goods")}>
-            {t("trade.matching.setupWishCta")}
-          </Button>
-        )}
-        {offerCount === 0 && (
-          // 以前は /collection へ飛ばしていた。だがコレクション画面には
-          // 交換に出す操作が無く（グッズ詳細モーダルの奥だけ）、
-          // 言われた通りに押しても何もできない行き止まりだった。
-          <Button size="sm" variant="outline" onClick={onPickOffers}>
-            {t("trade.matching.setupOfferCta")}
-          </Button>
-        )}
-      </div>
+    <div data-tour="trade-readiness">
+      <PockeSays pose={offerCount === 0 && surplusCount > 0 ? "pouch" : "point"} height={80}>
+        <p className="text-sm">{message}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {wishCount === 0 && (
+            <Button size="sm" variant="outline" onClick={() => navigate("/search?tab=goods")}>
+              {t("trade.matching.setupWishCta")}
+            </Button>
+          )}
+          {offerCount === 0 && (
+            // 以前は /collection へ飛ばしていた。だがコレクション画面には
+            // 交換に出す操作が無く（グッズ詳細モーダルの奥だけ）、
+            // 言われた通りに押しても何もできない行き止まりだった。
+            <Button size="sm" variant="outline" onClick={onPickOffers}>
+              {t("trade.matching.setupOfferCta")}
+            </Button>
+          )}
+        </div>
+      </PockeSays>
     </div>
   );
 }

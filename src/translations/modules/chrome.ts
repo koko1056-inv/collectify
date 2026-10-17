@@ -230,9 +230,9 @@ export const chrome = {
 
     collection: {
       tagline: "推しグッズの図鑑。登録して、眺めて、コンプして、交換しよう",
-      emptyTitle: "最初のグッズを追加しよう！",
-      emptyDescLine1: "あなたの大切なコレクションを",
-      emptyDescLine2: "記録してみましょう",
+      emptyTitle: "まだ袋がからっぽだよ！",
+      emptyDescLine1: "最初の推しグッズを1つ入れてみよう。",
+      emptyDescLine2: "ぼくが大事にしまっておくね",
       emptyHint: "ヒント: 写真を撮るだけで自動登録できます",
       addGoods: "グッズを追加",
       addByPhoto: "写真で追加",

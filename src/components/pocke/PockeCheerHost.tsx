@@ -2,23 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke, PockeBubble } from "./Pocke";
 import type { PockePose } from "./pockeAssets";
-import { POCKE_CHEER_EVENT, type PockeCheerDetail } from "./pockeCheer";
+import { POCKE_CHEER_EVENT, type PockeCheerDetail, type PockeCheerKind } from "./pockeCheer";
 
 /** 出している時間 */
 const SHOW_MS = 2400;
 
 /** 毎回同じ言葉だと飽きるので、いくつかから選ぶ（直前と同じものは避ける） */
-const LINES: Record<"added" | "arrived", { pose: PockePose; key: string }[]> = {
+const LINES: Record<Exclude<PockeCheerKind, "addedMany">, { pose: PockePose; key: string }[]> = {
   added: [
     { pose: "wink", key: "pocke.cheer.added1" },
     { pose: "pouch", key: "pocke.cheer.added2" },
     { pose: "love", key: "pocke.cheer.added3" },
   ],
   arrived: [{ pose: "celebrate", key: "pocke.cheer.arrived" }],
+  streak: [
+    { pose: "cheer", key: "pocke.cheer.streak1" },
+    { pose: "wave", key: "pocke.cheer.streak2" },
+  ],
+  purchased: [{ pose: "love", key: "pocke.cheer.purchased" }],
+  tradeSent: [{ pose: "cheer", key: "pocke.cheer.tradeSent" }],
+  tradeAccepted: [{ pose: "wink", key: "pocke.cheer.tradeAccepted" }],
+  tradeDone: [{ pose: "celebrate", key: "pocke.cheer.tradeDone" }],
 };
 
 /**
- * グッズを入れたときに画面のすみで跳ねるポッケ。pockeCheer() のイベントを受けて出す。
+ * うれしいことがあったときに画面のすみで跳ねるポッケ（グッズを入れた・交換が進んだ・毎日来てくれた など）。pockeCheer() のイベントを受けて出す。
  * 文字の知らせ（トースト）は今までどおり出るので、ここは飾り（読み上げない）。押しても何もしない（操作の邪魔をしない）。
  */
 export function PockeCheerHost() {
@@ -34,11 +42,11 @@ export function PockeCheerHost() {
       if (kind === "addedMany") {
         next = { pose: "celebrate", text: t("pocke.cheer.addedMany", { n: n ?? 0 }) };
       } else {
-        const list = LINES[kind === "arrived" ? "arrived" : "added"];
+        const list = LINES[kind] ?? LINES.added;
         let i = Math.floor(Math.random() * list.length);
         if (list.length > 1 && i === last.current) i = (i + 1) % list.length;
         last.current = i;
-        next = { pose: list[i].pose, text: t(list[i].key) };
+        next = { pose: list[i].pose, text: t(list[i].key, { n: n ?? 0 }) };
       }
       setShown({ id: Date.now(), ...next });
       window.clearTimeout(timer.current);

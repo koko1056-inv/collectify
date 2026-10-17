@@ -43,6 +43,7 @@ import { AddressFreeShippingGuide } from "./AddressFreeShippingGuide";
 import { TradeProgress } from "./TradeProgress";
 import { ReportUserDialog } from "./ReportUserDialog";
 import { isStalled, viewpointOf, type TradeRequest } from "./types";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface TradeCardProps {
   trade: TradeRequest;
@@ -88,6 +89,9 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
         return;
       }
       if (successKey) toast.success(t(successKey));
+      // 交換が進んだときはポッケも喜ぶ（受けた・受け取った）
+      if (key === "accept") pockeCheer("tradeAccepted");
+      if (key === "receive") pockeCheer("tradeDone");
       await invalidateTrades(queryClient, user?.id);
     } finally {
       setBusy(null);

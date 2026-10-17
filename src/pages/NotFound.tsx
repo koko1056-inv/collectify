@@ -25,6 +25,7 @@ export default function NotFound() {
       <Navbar />
       <main className="container mx-auto px-4 pb-nav pt-6">
         <EmptyState
+          pose="surprised"
           icon={Compass}
           title={t("screens.notFound.title")}
           description={t("screens.notFound.desc")}

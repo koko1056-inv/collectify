@@ -1,12 +1,21 @@
 /**
- * ポッケの「やったね」。グッズをコレクションに入れたとき、画面のすみでポッケが跳ねて一言いう（Duolingo の正解の手ごたえ）。
+ * ポッケの「やったね」。グッズを入れた・交換が進んだ・毎日来てくれた・買えた、などのときに
+ * 画面のすみでポッケが跳ねて一言いう（Duolingo の正解の手ごたえ）。
  * どの画面から登録しても同じように出したいので、出す側はイベントを投げるだけにして、表示は PockeCheerHost（App に1つ）が持つ。
  */
-export type PockeCheerKind = "added" | "addedMany" | "arrived";
+export type PockeCheerKind =
+  | "added" // グッズをコレクションに入れた
+  | "addedMany" // まとめて入れた（n）
+  | "arrived" // 予約していたグッズが届いた
+  | "streak" // 毎日のログイン（n 日連続）
+  | "purchased" // ポイントショップで買った
+  | "tradeSent" // 交換を申し込んだ
+  | "tradeAccepted" // 交換の申し込みを受けた
+  | "tradeDone"; // 交換のグッズを受け取った
 
 export interface PockeCheerDetail {
   kind: PockeCheerKind;
-  /** まとめて入れた数（addedMany） */
+  /** 数（addedMany: 入れた数 / streak: 連続日数） */
   n?: number;
 }
 
