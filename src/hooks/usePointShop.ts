@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 export interface PointPackage {
   id: string;
@@ -186,6 +187,7 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       queryClient.invalidateQueries({ queryKey: ["userUnlocks"] });
       
+      pockeCheer("purchased");
       toast.success(t("notices.shop.purchasedTitle"), {
         description: t("notices.shop.purchasedDesc", { name: data.item.name }),
       });

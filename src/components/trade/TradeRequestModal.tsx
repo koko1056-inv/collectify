@@ -26,6 +26,7 @@ import { invalidateTrades, useMyTrades } from "@/hooks/trade/useMyTrades";
 import { createTradeRequest, tradeErrorKey } from "@/services/trade/tradeStateMachine";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { cn } from "@/lib/utils";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -207,6 +208,7 @@ export function TradeRequestModal({
         return;
       }
 
+      pockeCheer("tradeSent");
       toast.success(t("trade.request.sentTitle"), {
         description: t("trade.request.sentDesc"),
       });

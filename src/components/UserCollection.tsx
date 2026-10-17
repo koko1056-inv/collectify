@@ -9,7 +9,6 @@ import { Button } from "./ui/button";
 import {
   Dices,
   Plus,
-  Package,
   Camera,
   ArrowUpDown,
   Clock,
@@ -49,7 +48,6 @@ import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
-import { IconTile } from "./ui/icon-tile";
 import { EmptyState } from "./ui/empty-state";
 import {
   DropdownMenu,
@@ -57,6 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { Pocke } from "@/components/pocke/Pocke";
 
 type SortOption = "newest" | "oldest" | "title" | "content" | "timeline";
 
@@ -374,10 +373,8 @@ export function UserCollection({
       <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
         <Card className="max-w-sm w-full border-dashed border-2">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
-            {/* メインアイコン。以前はグラデの面の後ろで光がぼんやり明滅していた。共通の IconTile にする */}
-            <IconTile tone="primary" size="lg">
-              <Package />
-            </IconTile>
+            {/* ポッケが「最初の1つを入れよう」と応援する（袋はまだからっぽ） */}
+            <Pocke pose="cheer" height={120} motion="pop-bob" className="mx-auto" />
             
             {/* テキスト */}
             <div className="space-y-2">

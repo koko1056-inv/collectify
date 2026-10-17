@@ -9,7 +9,7 @@
  *  - 画像・アイコン: 控えを先に出しつつ裏で更新
  *  - /api/・他のオリジン・GET 以外: 一切さわらない
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL_CACHE = `collectify-shell-${VERSION}`;
 const ASSET_CACHE = `collectify-assets-${VERSION}`;
 const IMAGE_CACHE = `collectify-images-${VERSION}`;
@@ -25,7 +25,7 @@ self.addEventListener("install", (event) => {
       .open(SHELL_CACHE)
       .then((cache) =>
         Promise.all([
-          cache.addAll([OFFLINE_URL, "/icon-192.png", "/favicon.ico"]),
+          cache.addAll([OFFLINE_URL, "/icon-192.png", "/favicon.ico", "/pocke/sad.webp"]),
           // 画面の骨組み。取れなくてもインストール自体は失敗させない
           cache.add("/").catch(() => undefined),
         ])
@@ -95,7 +95,8 @@ async function staleWhileRevalidate(request, cacheName, max) {
       return res;
     })
     .catch(() => undefined);
-  return hit || (await update) || Response.error();
+  // 電波が無いとき: 起動時に控えた物（オフライン画面のアイコン・ポッケ）も探す
+  return hit || (await update) || (await caches.match(request)) || Response.error();
 }
 
 // 初回の訪問は、サービスワーカーが入る前に読み込みが終わっているため、

@@ -5,6 +5,7 @@ import { Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 /** AuthContext が、その日のログインボーナスを受け取れたときに投げるイベント名 */
 export const DAILY_BONUS_EVENT = "collectify:daily-bonus-claimed";
@@ -32,6 +33,7 @@ export function DailyBonusListener() {
         const current = [...sorted].reverse().find((x) => x.min_streak <= streak);
         const next = sorted.find((x) => x.min_streak > streak);
         const points = current?.points ?? 10;
+        pockeCheer("streak", streak);
         toast(t("engage.dailyHub.toastTitle", { n: streak, points }), {
           // 連続（炎）は warning のトークン（以前は orange-500 の直書き）
           icon: <Flame className="h-4 w-4 text-warning" />,

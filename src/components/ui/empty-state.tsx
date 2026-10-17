@@ -2,9 +2,11 @@ import * as React from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconTile } from "@/components/ui/icon-tile";
+import { Pocke } from "@/components/pocke/Pocke";
+import type { PockePose } from "@/components/pocke/pockeAssets";
 
 interface EmptyStateProps {
-  /** Optional icon shown in a soft rounded container above the title. */
+  /** 何についての空かを示すアイコン。ポッケの足もとに小さく添える（ポッケを出さないときは今までどおり大きく出す） */
   icon?: LucideIcon;
   /** Primary message (alias: message). */
   title?: string;
@@ -15,14 +17,18 @@ interface EmptyStateProps {
   /** Optional call-to-action rendered below the description. */
   action?: React.ReactNode;
   className?: string;
+  /** ポッケの表情。既定は「考え中」（まだ何もないね、の顔） */
+  pose?: PockePose;
+  /** false でポッケを出さない（狭い枠の中など） */
+  pocke?: boolean;
 }
 
 /**
- * Reusable empty / no-results state.
+ * まだ何もない・見つからないときの表示。
  *
- * Centered column with generous vertical padding, a muted icon in a soft
- * rounded container, a foreground title, muted description, and an optional
- * action. Uses theme tokens only so it adapts to light/dark themes.
+ * 案内役のポッケが出て、何についての空かはポッケの足もとの小さなアイコンで示す
+ * （Duolingo の空の画面でフクロウが出るのと同じ。素っ気ないアイコンだけより、次の一手を押してもらいやすい）。
+ * 色はテーマのトークンだけを使うので、ライト・ダークどちらでもそのまま使える。
  */
 export function EmptyState({
   icon: Icon,
@@ -31,6 +37,8 @@ export function EmptyState({
   description,
   action,
   className,
+  pose = "think",
+  pocke = true,
 }: EmptyStateProps) {
   const heading = title ?? message;
 
@@ -41,10 +49,21 @@ export function EmptyState({
         className
       )}
     >
-      {Icon && (
-        <IconTile size="lg" className="mb-4">
-          <Icon />
-        </IconTile>
+      {pocke ? (
+        <div className="relative mb-3">
+          <Pocke pose={pose} height={96} motion="pop" loading="lazy" />
+          {Icon && (
+            <IconTile size="sm" tone="primary" className="absolute -bottom-1 -right-3 bg-card shadow-sm ring-4 ring-background">
+              <Icon />
+            </IconTile>
+          )}
+        </div>
+      ) : (
+        Icon && (
+          <IconTile size="lg" className="mb-4">
+            <Icon />
+          </IconTile>
+        )
       )}
       {heading && (
         <p className="text-foreground font-medium mb-1">{heading}</p>
