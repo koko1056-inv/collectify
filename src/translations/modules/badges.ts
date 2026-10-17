@@ -1,0 +1,86 @@
+/**
+ * 翻訳モジュール: badges（実績バッジ）
+ * 対象: src/components/badges
+ *
+ * ja と en は同じキー構造にすること。en が欠けたキーは日本語にフォールバックする
+ */
+export const badges = {
+  ja: {
+    title: "実績バッジ",
+    count: "{n}/{total}",
+    seeAll: "すべて見る",
+    sheetSay: "バッジは4段階。ブロンズ → シルバー → ゴールド → レインボーだよ",
+    tier: {
+      0: "まだ",
+      1: "ブロンズ",
+      2: "シルバー",
+      3: "ゴールド",
+      4: "レインボー",
+    },
+    next: "あと{n}で{tier}",
+    maxed: "いちばん上まで来たよ！",
+    newTitle: "新しいバッジ！",
+    newBody: "「{name}」が{tier}になったよ",
+    newClose: "やったね！",
+    empty: "まだバッジはないよ。グッズを登録すると、さいしょのバッジがもらえるよ",
+    names: {
+      collector: "コレクター",
+      complete: "コンプリート",
+      streak: "毎日の推し活",
+      trader: "交換の達人",
+      storyteller: "語り部",
+      photographer: "推しフォトグラファー",
+      caretaker: "なかよし",
+      zukan: "図鑑博士",
+    },
+    desc: {
+      collector: "グッズを{n}種類集める",
+      complete: "作品・シリーズを{n}つコンプ",
+      streak: "ポッケリングを{n}日連続",
+      trader: "交換を{n}回成立させる",
+      storyteller: "{n}回投稿する",
+      photographer: "推しフォトを{n}枚撮る",
+      caretaker: "推しグッズをLv{n}に育てる",
+      zukan: "{n}シリーズの図鑑を作る",
+    },
+  },
+  en: {
+    title: "Badges",
+    count: "{n}/{total}",
+    seeAll: "See all",
+    sheetSay: "Badges have 4 levels: bronze → silver → gold → rainbow",
+    tier: {
+      0: "Locked",
+      1: "Bronze",
+      2: "Silver",
+      3: "Gold",
+      4: "Rainbow",
+    },
+    next: "{n} more for {tier}",
+    maxed: "You've reached the top!",
+    newTitle: "New badge!",
+    newBody: "“{name}” reached {tier}",
+    newClose: "Yay!",
+    empty: "No badges yet. Add your first goods to earn one",
+    names: {
+      collector: "Collector",
+      complete: "Completionist",
+      streak: "Daily devotion",
+      trader: "Trade master",
+      storyteller: "Storyteller",
+      photographer: "Oshi photographer",
+      caretaker: "Best buddies",
+      zukan: "Dex scholar",
+    },
+    desc: {
+      collector: "Collect {n} different goods",
+      complete: "Complete {n} titles or series",
+      streak: "Keep your Pocke ring for {n} days",
+      trader: "Complete {n} trades",
+      storyteller: "Post {n} times",
+      photographer: "Take {n} oshi photos",
+      caretaker: "Raise an oshi item to Lv{n}",
+      zukan: "Build a dex for {n} series",
+    },
+  },
+};

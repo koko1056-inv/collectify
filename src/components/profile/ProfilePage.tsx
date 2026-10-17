@@ -23,6 +23,7 @@ import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "./ProfileTabs";
 import { MyCollectionSummary } from "./MyCollectionSummary";
+import { ProfileBadges } from "@/components/badges/ProfileBadges";
 import { EnjoySection } from "./EnjoySection";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useMePockeTips } from "@/components/pocke/usePockeTips";
@@ -117,6 +118,11 @@ export function ProfilePage() {
               以前は大きなプロフィール・要約の枠・2×2 の「楽しむ」が並び、投稿などのタブは上から約1420px（2画面目のさらに下）だった */}
           <div className="px-4 mt-3">
             <MyCollectionSummary userId={user.id} compact />
+          </div>
+
+          {/* 実績バッジ（8種類 × 4段）。押すと次の段まであといくつかの一覧 */}
+          <div className="px-4 mt-3">
+            <ProfileBadges userId={user.id} isOwn />
           </div>
 
           {/* 推しコンテンツ（はじめてガイドの「推しの作品を選ぶ」がここを指す） */}

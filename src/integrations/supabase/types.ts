@@ -4284,6 +4284,10 @@ export type Database = {
         Args: { _keys: string[] }
         Returns: undefined
       }
+      get_badge_stats: {
+        Args: { _user_id?: string }
+        Returns: Json
+      }
       get_daily_ring: {
         Args: Record<PropertyKey, never>
         Returns: Json
