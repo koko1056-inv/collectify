@@ -262,8 +262,33 @@ export function useUploadOshiPhoto() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ file, itemId, caption }: { file: File; itemId: string | null; caption?: string }) => {
+    mutationFn: async ({
+      file,
+      imageUrl,
+      isAi = false,
+      itemId,
+      caption,
+    }: {
+      file?: File | null;
+      /** すでに自分のフォルダにある画像（AI で作ったもの）。file の代わりに渡す */
+      imageUrl?: string | null;
+      isAi?: boolean;
+      itemId: string | null;
+      caption?: string;
+    }) => {
       if (!user) throw new Error("login_required");
+      if (imageUrl) {
+        const { error } = await supabase.from("oshi_photos").insert({
+          user_id: user.id,
+          user_item_id: itemId,
+          image_url: imageUrl,
+          caption: caption?.trim() || null,
+          is_ai: isAi,
+        });
+        if (error) throw error;
+        return;
+      }
+      if (!file) throw new Error("no_image");
       // 圧縮して、撮影場所などの情報（EXIF）も取り除いてから保存する
       const compressed = await compressImageFile(file, ITEM_IMAGE_OPTIONS);
       const ext = compressed.name.split(".").pop() || "jpg";

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Camera, Check, Sparkles } from "lucide-react";
+import { Camera, Check, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { MISSION_SHOOT_HREF, useDailyMission } from "@/hooks/useDailyMission";
+import { MISSION_AI_HREF, MISSION_SHOOT_HREF, useDailyMission } from "@/hooks/useDailyMission";
 import { cn } from "@/lib/utils";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import { shortenName } from "@/components/pocke/usePockeTips";
@@ -10,9 +10,18 @@ import { shortenName } from "@/components/pocke/usePockeTips";
 /**
  * 今日のミッション。推しグッズ（無ければコレクションのグッズ）と、日替わりの写真のお題。
  * 「撮る」で推しフォトの撮影へ。撮ったら、その写真と「達成！」に変わる。
- * onShoot を渡すと、行き先へ移らずにその場で撮る（推しの部屋の写真タブ）
+ * 撮れない日は「AIで作る」でも達成できる（1日2回まで無料）。
+ * onShoot を渡すと、行き先へ移らずにその場で撮る・作る（推しの部屋の写真タブ）
  */
-export function DailyMissionCard({ onShoot, onNavigate, className }: { onShoot?: (itemId: string) => void; onNavigate?: () => void; className?: string }) {
+export function DailyMissionCard({
+  onShoot,
+  onNavigate,
+  className,
+}: {
+  onShoot?: (itemId: string, opts?: { ai?: boolean }) => void;
+  onNavigate?: () => void;
+  className?: string;
+}) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { data: mission } = useDailyMission();
@@ -23,11 +32,12 @@ export function DailyMissionCard({ onShoot, onNavigate, className }: { onShoot?:
   const name = shortenName(mission.item.title);
   const image = mission.completed && mission.photo_url ? mission.photo_url : mission.item.image;
 
-  const shoot = () => {
-    if (onShoot) return onShoot(mission.item!.id);
+  const shoot = (ai = false) => {
+    if (onShoot) return onShoot(mission.item!.id, { ai });
     onNavigate?.();
-    navigate(MISSION_SHOOT_HREF);
+    navigate(ai ? MISSION_AI_HREF : MISSION_SHOOT_HREF);
   };
+  const canAi = !mission.completed && mission.ai_tries_left > 0;
 
   return (
     <section
@@ -58,15 +68,26 @@ export function DailyMissionCard({ onShoot, onNavigate, className }: { onShoot?:
           <p className="mt-0.5 text-xs text-muted-foreground">
             {mission.completed ? t("pocke.mission.doneSub") : hint}
           </p>
-          <p className={cn("mt-1 text-2xs font-bold", mission.completed ? "text-success" : "text-points")}>
+          <p className={cn("mt-1 flex flex-wrap items-center gap-1.5 text-2xs font-bold", mission.completed ? "text-success" : "text-points")}>
             {mission.completed ? t("pocke.mission.done", { n: mission.bonus }) : t("pocke.mission.reward", { n: mission.bonus })}
+            {mission.completed && mission.photo_is_ai && (
+              <span className="rounded-full bg-muted px-1.5 py-px font-medium text-muted-foreground">{t("pocke.mission.aiBadge")}</span>
+            )}
           </p>
         </div>
         {!mission.completed && (
-          <Button size="sm" className="shrink-0 gap-1 rounded-full" onClick={shoot}>
-            <Camera className="h-4 w-4" aria-hidden />
-            {t("pocke.mission.shoot")}
-          </Button>
+          <div className="flex shrink-0 flex-col items-stretch gap-1.5">
+            <Button size="sm" className="gap-1 rounded-full" onClick={() => shoot(false)}>
+              <Camera className="h-4 w-4" aria-hidden />
+              {t("pocke.mission.shoot")}
+            </Button>
+            {canAi && (
+              <Button size="sm" variant="outline" className="gap-1 rounded-full" onClick={() => shoot(true)}>
+                <Wand2 className="h-4 w-4" aria-hidden />
+                {t("pocke.mission.ai")}
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </section>
