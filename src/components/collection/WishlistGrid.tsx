@@ -13,6 +13,7 @@ import { QueryErrorState } from "@/components/ui/query-error-state";
 import { PriceSearchModal } from "@/components/wishlist/PriceSearchModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface WishlistGridProps {
   userId: string;
@@ -90,6 +91,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       toast.success(t("collectionScreen.common.success"), {
         description: t("collectionScreen.wishlist.addedToCollection"),
       });
+      pockeCheer("added");
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast.error(t("collectionScreen.common.error"), {

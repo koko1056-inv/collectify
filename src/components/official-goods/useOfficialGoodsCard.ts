@@ -10,6 +10,7 @@ import { addToCollection, incrementItemQuantity } from "@/utils/collection-actio
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -189,6 +190,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       toast.success(t("collectionScreen.official.added"), {
         description: result.pointsAwarded ? `+${result.pointsAwarded}${t("collectionScreen.official.pointsEarnedSuffix")}` : undefined,
       });
+      pockeCheer("added");
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast.error(t("collectionScreen.common.error"), {

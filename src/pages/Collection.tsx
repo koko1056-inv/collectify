@@ -13,6 +13,8 @@ import { PreorderArrivalBanner } from "@/components/preorders/PreorderArrivalBan
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NoticeSlotProvider } from "@/components/collection/NoticeSlot";
 import { useCollectionCount } from "@/hooks/useCollectionLimit";
+import { PockeTip } from "@/components/pocke/PockeTip";
+import { PockeWelcomeBack } from "@/components/pocke/PockeWelcomeBack";
 
 
 export default function Collection() {
@@ -76,10 +78,13 @@ export default function Collection() {
               onPersonalTagChange={handlePersonalTagChange}
             />
 
-            {/* お知らせ枠。大事な順に1つだけ出る（予約の到着 → 枠の残り → 重複 → はじめてガイド → 思い出） */}
+            {/* お知らせ枠。大事な順に1つだけ出る（予約の到着 → 枠の残り → 重複 → はじめてガイド → 思い出 → ポッケのおすすめ） */}
             {user && <PreorderArrivalBanner />}
             {user && <SlotUsageMeter type="collection" minPercent={80} />}
             {user && <OnboardingChecklist />}
+            {user && <PockeTip />}
+            {/* ひさしぶりに開いたときのポッケのあいさつ（下から出るシート） */}
+            {user && <PockeWelcomeBack />}
 
             <UserCollection
               layout="shelf"

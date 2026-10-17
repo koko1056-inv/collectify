@@ -26,6 +26,7 @@ import { addOfficialItemToWishlist, fetchWishedOfficialIds, wishedOfficialIdsKey
 import { addToCollection } from "@/utils/collection-actions";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import type { FacetKind } from "@/utils/itemFacets";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 /** 横に並べる的の数。多すぎると「小さな的」ではなく一覧になってしまう */
 const MAX_CARDS = 12;
@@ -356,6 +357,7 @@ function AlmostCard({ target, label, pinned, onPin }: { target: CollectionTarget
       const result = await addToCollection({ userId: user.id, title: m.title, image: m.image ?? "", officialItemId: m.id });
       if (result.success) {
         toast.success(t("collectionScreen.official.added"), { description: m.title });
+        pockeCheer("added");
         await invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: m.id });
       } else if (result.isAtLimit) {
         toast.error(t("collectionScreen.addFlow.limitTitle"), {

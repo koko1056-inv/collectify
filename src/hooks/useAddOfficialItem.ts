@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { addToCollection, copyOfficialItemTags, incrementItemQuantity } from "@/utils/collection-actions";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 export interface OfficialItemSummary {
   id: string;
@@ -119,6 +120,7 @@ export function useAddOfficialItem({ onAdded }: { onAdded?: () => Promise<unknow
         queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" }),
       ]);
 
+      pockeCheer("added");
       toast.success(t("itemDetails.buttons.addedToCollection"), {
         description: result.pointsAwarded
           ? t("itemDetails.buttons.pointsEarned", { count: result.pointsAwarded })

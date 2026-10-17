@@ -6,6 +6,7 @@ import { addToCollection, copyOfficialItemTags, incrementItemQuantity } from "@/
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { todayJst } from "@/utils/companion";
 import { isDue, type PreorderLike } from "@/utils/preorders";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 /**
  * 「予約中」のグッズ（preorders テーブル。本人だけが読み書きする）。
@@ -193,6 +194,7 @@ export function usePreorders() {
         invalidateCollectionChanged(queryClient, { userId, officialItemId: p.officialItemId }),
         queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" }),
       ]);
+      pockeCheer("arrived");
       return { ok: true, quantity };
     },
     [userId, queryClient]

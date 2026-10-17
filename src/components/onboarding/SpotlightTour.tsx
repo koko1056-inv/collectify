@@ -4,6 +4,7 @@ import { ArrowRight, Check, Hand, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { Pocke, type PockePose } from "@/components/pocke/Pocke";
 
 /**
  * 画面の「実物」を指して説明するスポットライト型ガイド。
@@ -44,6 +45,19 @@ export interface TourStep {
   waitMs?: number;
   /** 穴の内側の余白(px)。既定8。 */
   padding?: number;
+  /**
+   * 説明するポッケの表情。省略すると、最初は手を振る・押してほしいときは指さし・最後はウインク・ほかは指さし。
+   */
+  pose?: PockePose;
+}
+
+/** ステップに合ったポッケの表情（指定が無いとき） */
+function defaultPose(step: TourStep, index: number, total: number): PockePose {
+  if (step.pose) return step.pose;
+  if (step.advance === "click") return "point";
+  if (index === 0 && total > 1) return "wave";
+  if (index === total - 1 && total > 1) return "wink";
+  return "point";
 }
 
 /**
@@ -72,7 +86,7 @@ interface Rect {
 // 画面外にある対象を scrollIntoView で画面内へ送れなくなり（実測で確認）、
 // 下の方のボタンを指すステップが何も無い場所を暗くしたまま止まる。
 // 代わりに穴と説明カードをスクロールに追従させてある。
-const CARD_WIDTH = 320;
+const CARD_WIDTH = 340;
 const GUTTER = 16;
 /** 下タブ（中央ボタンが張り出す）に隠れない余白。説明カードを画面下に固定するとき使う */
 const BOTTOM_NAV_CLEARANCE = 104;
@@ -392,21 +406,27 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       {/* 説明カード */}
       <div className="fixed z-[9995]" style={cardStyle}>
         <div ref={cardRef} className="rounded-2xl bg-card text-card-foreground shadow-2xl border border-border p-4 space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
-          <div className="flex items-start justify-between gap-2">
-            <h2 className="text-sm font-bold leading-snug">{t(step.titleKey)}</h2>
-            <button
-              type="button"
-              onClick={() => close("skipped")}
-              aria-label={t("tour.skip")}
-              className="shrink-0 -mr-1 -mt-1 rounded-lg p-1 text-muted-foreground hover:bg-muted transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          {/* 説明するのはポッケ。ステップが変わるたびに跳ねて出てくる */}
+          <div className="flex items-start gap-3">
+            <Pocke key={index} pose={defaultPose(step, index, steps.length)} height={68} motion="pop" className="-mb-1 -ml-1" />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <h2 className="text-sm font-bold leading-snug">{t(step.titleKey)}</h2>
+                <button
+                  type="button"
+                  onClick={() => close("skipped")}
+                  aria-label={t("tour.skip")}
+                  className="shrink-0 -mr-1 -mt-1 rounded-lg p-1 text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {t(step.wideBodyKey && isWideScreen() ? step.wideBodyKey : step.bodyKey)}
-          </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {t(step.wideBodyKey && isWideScreen() ? step.wideBodyKey : step.bodyKey)}
+              </p>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             {/* 進捗。何歩で終わるかが見えないと離脱する。 */}

@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { claimReward } from "@/hooks/useClaimReward";
 import { notifyNewTag } from "@/utils/notify-new-tag";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface FormDataType {
   title: string;
@@ -304,6 +305,7 @@ export function useItemSubmit({
         });
         resetForm();
       } else if (collectionResult.success) {
+        pockeCheer("added");
         toast.success(t("notices.adminItem.addedToCollectionTitle"), {
           description: totalPointsAwarded
             ? t("notices.adminItem.pointsEarnedDesc", { n: totalPointsAwarded })

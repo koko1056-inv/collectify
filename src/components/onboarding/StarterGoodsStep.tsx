@@ -10,7 +10,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn } from "@/hooks/useOfficialItems";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
 import { cn } from "@/lib/utils";
-import { OnboardingBottomBar, OnboardingPrimaryButton, OnboardingStepHeader } from "./OnboardingParts";
+import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts";
+import { PockeSays, type PockePose } from "@/components/pocke/Pocke";
 import type { OfficialItem } from "@/types";
 
 /** ここまで選ぶと「完成度が見える」と案内する数 */
@@ -102,6 +103,17 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
   const isLoading = searching ? search.isLoading : starter.isLoading || (!activeContent && contents.length === 0);
 
   const n = added.size;
+  // 選んだ数へのポッケの返事。1つ目・あと1つ・そろった・それ以降で表情を変える
+  const reaction: { pose: PockePose; line: string } =
+    n === 0
+      ? { pose: "point", line: t("misc.onboarding.starter.title") }
+      : n === 1
+        ? { pose: "wink", line: t("pocke.onboarding.starter1") }
+        : n < GOAL
+          ? { pose: "cheer", line: t("pocke.onboarding.starterAlmost", { n: GOAL - n }) }
+          : n === GOAL
+            ? { pose: "celebrate", line: t("pocke.onboarding.starterGoal") }
+            : { pose: "love", line: t("pocke.onboarding.starterMany", { n }) };
   const progressText =
     n === 0
       ? t("misc.onboarding.starter.progressNone")
@@ -113,10 +125,14 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
     // 切り替えの動きは親（WelcomeOnboarding の StepFrame）が持つ
     <div className="flex h-full min-h-0 flex-col">
       <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col px-4 pt-6">
-        <OnboardingStepHeader
-          title={t("misc.onboarding.starter.title")}
-          description={t("misc.onboarding.starter.subtitle")}
-        />
+        {/* ポッケが話しかけ、タップするたびに表情とセリフで返す（Duolingo の「正解！」の手ごたえ）。
+            一覧の場所を取らないよう、ポッケは小さめ */}
+        <PockeSays pose={reaction.pose} height={84} reactKey={n}>
+          <p className="text-base font-bold leading-snug" aria-live="polite">
+            {reaction.line}
+          </p>
+          {n === 0 && <p className="mt-0.5 text-xs text-muted-foreground">{t("pocke.onboarding.starterDesc")}</p>}
+        </PockeSays>
 
         <div className="relative mt-4">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />

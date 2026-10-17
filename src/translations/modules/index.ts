@@ -25,6 +25,7 @@ import { discover } from './discover';
 import { collectGoals } from './collectGoals';
 import { preorders } from './preorders';
 import { records } from './records';
+import { pocke } from './pocke';
 
 export const moduleTranslations = {
   ja: {
@@ -53,6 +54,7 @@ export const moduleTranslations = {
     collectGoals: collectGoals.ja,
     preorders: preorders.ja,
     records: records.ja,
+    pocke: pocke.ja,
   },
   en: {
     admin: admin.en,
@@ -80,5 +82,6 @@ export const moduleTranslations = {
     collectGoals: collectGoals.en,
     preorders: preorders.en,
     records: records.en,
+    pocke: pocke.en,
   },
 };
