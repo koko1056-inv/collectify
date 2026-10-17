@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CollectionGrid } from "./CollectionGrid";
 import { DragEndEvent } from "@dnd-kit/core";
 import { CollectionWishlist } from "./CollectionWishlist";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -29,6 +28,8 @@ interface CollectionViewToggleProps {
   onSelectItem?: (itemId: string) => void;
   /** 渡すと、通常表示のグリッドを見出しつきの区切りに分けて並べる（お迎えの月ごとなど） */
   groups?: { key: string; label: string; count: string; items: unknown[] }[];
+  /** 持ってる（とマイタグ）のときだけ、タブと一覧のあいだに出すもの（作品の札・並び替えなど） */
+  beforeGrid?: ReactNode;
 }
 
 export function CollectionViewToggle({
@@ -42,6 +43,7 @@ export function CollectionViewToggle({
   selectedItems = [],
   onSelectItem,
   groups,
+  beforeGrid,
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
   const { t } = useLanguage();
@@ -114,31 +116,34 @@ export function CollectionViewToggle({
 
   return (
     <div className="w-full scroll-mt-20" ref={rootRef}>
-      {/* タブ列：通常表示 / 欲しい物リスト / マイタグ... */}
-      <div className="relative mb-4">
-        <ScrollArea className="w-full">
-          <div className="flex items-center gap-1 px-1 pb-0.5">
-            {tabs.map((tab) => {
-              const isActive = activeView === tab.value;
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => handleSelectTab(tab.value)}
-                  className={cn(
-                    "relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap rounded-full",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-          <ScrollBar orientation="horizontal" className="h-1" />
-        </ScrollArea>
+      {/* タブ列：持ってる / ほしい / 予約中 / 手放した / マイタグ...（下線のタブ。以前は塗りの丸ボタンで、画面の中でいちばん目立っていた） */}
+      <div
+        role="tablist"
+        className="-mx-3 mb-3 flex gap-5 overflow-x-auto border-b px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-1"
+      >
+        {tabs.map((tab) => {
+          const isActive = activeView === tab.value;
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => handleSelectTab(tab.value)}
+              className={cn(
+                "-mb-px shrink-0 whitespace-nowrap border-b-2 py-2.5 text-sm transition-colors",
+                isActive
+                  ? "border-primary font-bold text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
+
+      {!showPreorders && !showPast && !showWishlist && beforeGrid && <div className="mb-3 space-y-2">{beforeGrid}</div>}
 
       {showPreorders ? (
         <PreorderList />

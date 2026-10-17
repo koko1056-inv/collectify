@@ -8,6 +8,7 @@ import { useExpandCollectionSlots } from "@/hooks/useSpendPoints";
 import { SpendPointsDialog } from "./SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { NOTICE_PRIORITY, useNoticeTurn } from "@/components/collection/noticeSlot";
 
 interface SlotUsageMeterProps {
   type?: "collection" | "room";
@@ -44,8 +45,15 @@ export function SlotUsageMeter({
   const isCollection = type === "collection";
   const count = isCollection ? collectionCount : roomCount;
 
+  // コレクション画面のお知らせ枠では、ほかのお知らせより大事なときだけ出す（枠の外ではいつもどおり）
+  const ready = limits !== undefined && count !== undefined;
+  const readyPercent = ready
+    ? ((count ?? 0) / (isCollection ? limits?.collection_slots || 100 : limits?.room_slots || 1)) * 100
+    : 0;
+  const myTurn = useNoticeTurn("slots", NOTICE_PRIORITY.slots, ready && Math.min(100, readyPercent) >= minPercent);
+
   // 数が確定するまでは何も出さない（0 / 100 と一瞬見えてしまうのを避ける）
-  if (limits === undefined || count === undefined) return null;
+  if (limits === undefined || count === undefined || !myTurn) return null;
 
   const currentCount = count ?? 0;
   const maxSlots = isCollection

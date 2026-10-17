@@ -24,6 +24,11 @@ interface FilterSheetProps {
   tags: Tag[];
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
+  /**
+   * 渡すと、検索欄の代わりにこれ（画面のタイトルなど）を左に置き、右に「検索」と「絞り込み」のボタンを並べる。
+   * 検索欄は「検索」を押したとき（入力があるときも）だけ下に開く
+   */
+  header?: React.ReactNode;
 }
 
 /**
@@ -41,11 +46,13 @@ export function FilterSheet({
   tags,
   selectedPersonalTag,
   onPersonalTagChange,
+  header,
 }: FilterSheetProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [contentSearch, setContentSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -95,33 +102,74 @@ export function FilterSheet({
 
   return (
     <div className="space-y-3 w-full">
-      {/* 検索行 */}
-      <div className="flex gap-2 items-center">
-        <div className="flex-1 min-w-0">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange}
-            selectedTags={selectedTags}
-            onTagsChange={onTagsChange}
-            tags={tags}
-            selectedContent={selectedContent}
-          />
-        </div>
-        <Button
-          variant={hasActive ? "default" : "outline"}
-          size="icon"
-          onClick={() => setSheetOpen(true)}
-          className="relative shrink-0 h-10 w-10 rounded-xl"
-          aria-label={t("chrome.filter.open")}
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          {hasActive && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-3xs font-bold ring-2 ring-background">
-              {activeCount}
-            </span>
+      {header ? (
+        <>
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">{header}</div>
+            <Button
+              variant={searchOpen || searchQuery ? "secondary" : "outline"}
+              size="icon"
+              onClick={() => setSearchOpen((v) => !v)}
+              className="shrink-0 h-10 w-10 rounded-xl"
+              aria-label={t("collectionScreen.header.search")}
+              aria-expanded={searchOpen || !!searchQuery}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={hasActive ? "default" : "outline"}
+              size="icon"
+              onClick={() => setSheetOpen(true)}
+              className="relative shrink-0 h-10 w-10 rounded-xl"
+              aria-label={t("chrome.filter.open")}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {hasActive && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-3xs font-bold ring-2 ring-background">
+                  {activeCount}
+                </span>
+              )}
+            </Button>
+          </div>
+          {(searchOpen || searchQuery) && (
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={onSearchChange}
+              selectedTags={selectedTags}
+              onTagsChange={onTagsChange}
+              tags={tags}
+              selectedContent={selectedContent}
+            />
           )}
-        </Button>
-      </div>
+        </>
+      ) : (
+        <div className="flex gap-2 items-center">
+          <div className="flex-1 min-w-0">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={onSearchChange}
+              selectedTags={selectedTags}
+              onTagsChange={onTagsChange}
+              tags={tags}
+              selectedContent={selectedContent}
+            />
+          </div>
+          <Button
+            variant={hasActive ? "default" : "outline"}
+            size="icon"
+            onClick={() => setSheetOpen(true)}
+            className="relative shrink-0 h-10 w-10 rounded-xl"
+            aria-label={t("chrome.filter.open")}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            {hasActive && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-3xs font-bold ring-2 ring-background">
+                {activeCount}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* 有効フィルターチップ */}
       {hasActive && (

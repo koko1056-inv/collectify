@@ -14,6 +14,7 @@ import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconTile } from '@/components/ui/icon-tile';
 import { CheckCircle2, ChevronDown, ChevronUp, ChevronRight, Gift, Sparkles, Minus, type LucideIcon } from 'lucide-react';
+import { NOTICE_PRIORITY, useNoticeTurn } from "@/components/collection/noticeSlot";
 
 interface ChecklistItem {
   id: OnboardingStepId;
@@ -144,7 +145,9 @@ export function OnboardingChecklist() {
     setIsDismissed(false);
   };
 
-  if (!checklistData || allCompleted || finishedLegacyGuide) return null;
+  // コレクション画面のお知らせ枠では、予約の到着などもっと急ぐお知らせがあるときは控える
+  const myTurn = useNoticeTurn("onboarding", NOTICE_PRIORITY.onboarding, !!checklistData && !allCompleted && !finishedLegacyGuide);
+  if (!checklistData || allCompleted || finishedLegacyGuide || !myTurn) return null;
 
   if (isDismissed) {
     return (

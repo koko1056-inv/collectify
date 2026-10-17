@@ -86,6 +86,17 @@ export const chrome = {
       popularUsers: "人気ユーザー",
       noUsers: "ユーザーが見つかりません",
       followers: "{n} フォロワー",
+      home: {
+        posts: "新着の投稿",
+        rooms: "みんなの推しの部屋",
+        ai: "AI作品",
+        users: "人気のユーザー",
+        goods: "グッズを探す",
+        seeAll: "すべて",
+        back: "みんなへ戻る",
+        search: "検索",
+        noPosts: "まだ投稿はありません。最初の1枚を投稿してみませんか？",
+      },
     },
 
     avatarDetail: {
@@ -532,6 +543,17 @@ export const chrome = {
       popularUsers: "Popular users",
       noUsers: "No users found",
       followers: "{n} followers",
+      home: {
+        posts: "New posts",
+        rooms: "Everyone's oshi rooms",
+        ai: "AI creations",
+        users: "Popular users",
+        goods: "Find goods",
+        seeAll: "See all",
+        back: "Back to Everyone",
+        search: "Search",
+        noPosts: "No posts yet. Be the first to share one!",
+      },
     },
 
     avatarDetail: {

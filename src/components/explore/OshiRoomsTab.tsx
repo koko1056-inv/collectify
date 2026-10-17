@@ -198,7 +198,7 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
  * 1部屋のカード。部屋は小さな見本（動かない・触れない）で描き、下に持ち主・いいね・なかよしLvの合計。
  * 画面の外のカードは描くのを後回しにする（content-visibility）。一覧が長くなっても重くならないように
  */
-const OshiRoomCardView = memo(function OshiRoomCardView({ room, time, onOpen }: { room: OshiRoomCard; time: ReturnType<typeof timeOfDayJst>; onOpen: () => void }) {
+export const OshiRoomCardView = memo(function OshiRoomCardView({ room, time, onOpen }: { room: OshiRoomCard; time: ReturnType<typeof timeOfDayJst>; onOpen: () => void }) {
   const { t } = useLanguage();
   const name = room.displayName || room.username;
   const goods = useMemo(() => sceneGoodsMap(room.goods), [room.goods]);

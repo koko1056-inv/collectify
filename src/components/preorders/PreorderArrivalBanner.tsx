@@ -2,20 +2,20 @@ import { useSearchParams } from "react-router-dom";
 import { PackageCheck } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePreorders } from "@/hooks/usePreorders";
-import { PreorderRow } from "./PreorderList";
-
-/** 一覧に並べる数。多いときは「予約中をすべて見る」へ */
-const MAX_ROWS = 3;
+import { NOTICE_PRIORITY, useNoticeTurn } from "@/components/collection/noticeSlot";
 
 /**
- * コレクション画面の上の「発売日を過ぎた予約」。発売日を過ぎたものだけ、その場で「届いた」を押せる。
- * 発売日を過ぎた予約が無いときは何も出さない（いつも出すと、画面の上が埋まる）。
+ * コレクション画面のお知らせ枠に出す「発売日を過ぎた予約」の1行。
+ * 「確認する」で予約中の一覧を開き、そこで「届いた」を押す。
+ * 以前は枠の中に予約を3件まで並べていて（1件ごとに約50px）、最初の画面のグッズを押し下げていた。
+ * 発売日を過ぎた予約が無いときは何も出さない。
  */
 export function PreorderArrivalBanner() {
   const { t } = useLanguage();
   const { due } = usePreorders();
   const [, setParams] = useSearchParams();
-  if (due.length === 0) return null;
+  const myTurn = useNoticeTurn("preorders", NOTICE_PRIORITY.preorders, due.length > 0);
+  if (!myTurn) return null;
 
   const showAll = () =>
     setParams(
@@ -29,29 +29,19 @@ export function PreorderArrivalBanner() {
 
   return (
     <section
-      className="space-y-2 rounded-2xl border border-primary/30 bg-primary/5 p-3"
+      className="flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 py-1.5 pl-3 pr-1.5"
       aria-label={t("preorders.banner.title", { count: due.length })}
       data-testid="preorder-arrival-banner"
     >
-      <div className="flex items-start gap-2 px-0.5">
-        <PackageCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <div className="min-w-0">
-          <p className="text-sm font-bold">{t("preorders.banner.title", { count: due.length })}</p>
-          <p className="text-2xs text-muted-foreground">{t("preorders.banner.desc")}</p>
-        </div>
-      </div>
-      <ul className="space-y-1.5">
-        {due.slice(0, MAX_ROWS).map((p) => (
-          <li key={p.id}>
-            <PreorderRow preorder={p} due compact />
-          </li>
-        ))}
-      </ul>
-      {due.length > MAX_ROWS && (
-        <button type="button" onClick={showAll} className="w-full py-1 text-center text-xs font-medium text-primary">
-          {t("preorders.banner.all")}
-        </button>
-      )}
+      <PackageCheck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+      <p className="min-w-0 flex-1 truncate text-sm">{t("preorders.banner.title", { count: due.length })}</p>
+      <button
+        type="button"
+        onClick={showAll}
+        className="shrink-0 rounded-lg px-2.5 py-2 text-sm font-bold text-primary hover:bg-primary/10"
+      >
+        {t("preorders.banner.check")}
+      </button>
     </section>
   );
 }

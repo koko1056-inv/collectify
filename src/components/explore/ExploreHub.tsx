@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -17,11 +16,10 @@ import {
   User,
   Package,
   Wand2,
-  Images,
   PackageSearch,
   X,
   Camera,
-  DoorOpen,
+  ChevronLeft,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ItemPostsFeedPanel } from "@/components/item-posts/ItemPostsFeedPanel";
@@ -30,6 +28,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ExploreAvatarCard } from "./ExploreAvatarCard";
 import { OshiRoomsTab } from "./OshiRoomsTab";
+import { ExploreHome } from "./ExploreHome";
 import {
   usePublicAvatars,
   useMyAvatarLikes,
@@ -49,7 +48,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 // AI ルームとアバターは「AI作品」の中のチップで、コレクションの多い人は「ユーザー」の中で見る。
 // 「お部屋」（みんなの推しの部屋）は、見に行っていいねする交流の入口なので、AI作品のチップではなく独立したタブにした
 // （5つ目。横のスクロールにはせず、1行に収める）
-type ExploreTab = "posts" | "oshi-rooms" | "items" | "users" | "ai";
+type ExploreTab = "home" | "posts" | "oshi-rooms" | "items" | "users" | "ai";
 type AiView = "rooms" | "avatars";
 const EXPLORE_TABS: ExploreTab[] = ["posts", "oshi-rooms", "items", "users", "ai"];
 
@@ -59,7 +58,8 @@ function resolveTab(raw: string | null): { tab: ExploreTab; view: AiView } {
   if (raw === "avatars") return { tab: "ai", view: "avatars" };
   if (raw === "collections") return { tab: "users", view: "rooms" };
   if (raw && (EXPLORE_TABS as string[]).includes(raw)) return { tab: raw as ExploreTab, view: "rooms" };
-  return { tab: "posts", view: "rooms" };
+  // ?tab が無いときは最初の画面（お題・新着・推しの部屋・AI作品・ユーザー・グッズを少しずつ）
+  return { tab: "home", view: "rooms" };
 }
 
 export function ExploreHub() {
@@ -67,7 +67,8 @@ export function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
   // 既定は「投稿」。ここが交流の入口で、他のタブは見つけたいものが決まっているときに使う。
   const initial = resolveTab(searchParams.get("tab"));
-  const [activeTab, setActiveTab] = useState<ExploreTab>(initial.tab);
+  // タブは URL（?tab=）がそのまま正。「すべて」で開き、戻るボタン・「みんなへ戻る」で最初の画面に戻れる
+  const activeTab: ExploreTab = initial.tab;
   const aiView: AiView = searchParams.get("view") === "avatars" ? "avatars" : initial.view;
   const setAiView = (v: AiView) => {
     const next = new URLSearchParams(searchParams);
@@ -91,11 +92,23 @@ export function ExploreHub() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  const handleTabChange = (v: string) => {
-    setActiveTab(v as ExploreTab);
-    const next = new URLSearchParams({ tab: v });
+  const handleTabChange = (v: string, extra?: Record<string, string>) => {
+    const next = new URLSearchParams(v === "home" ? {} : { tab: v });
     if (searchQuery.trim()) next.set("q", searchQuery.trim());
+    for (const [k, val] of Object.entries(extra ?? {})) next.set(k, val);
     setSearchParams(next);
+    window.scrollTo({ top: 0 });
+  };
+  const [searchOpen, setSearchOpen] = useState(false);
+  const showSearch = searchOpen || !!searchInput;
+  // 最初の画面で検索したときは、グッズの検索結果を出す（いちばん多い探し方）
+  const contentTab: ExploreTab = activeTab === "home" && searchQuery.trim() ? "items" : activeTab;
+  const tabTitle: Record<Exclude<ExploreTab, "home">, string> = {
+    posts: t("engage.explore.tabPosts"),
+    "oshi-rooms": t("oshiRoom.social.explore.tab"),
+    items: t("engage.explore.tabItems"),
+    users: t("chrome.explore.tabUsers"),
+    ai: t("chrome.explore.tabAi"),
   };
 
   return (
@@ -103,74 +116,68 @@ export function ExploreHub() {
       <Navbar />
 
       <main className="pb-nav">
-        {/* ヘッダー */}
-        <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  {t("chrome.explore.title")}
-                </h1>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {t("chrome.explore.subtitle")}
-                </p>
-              </div>
-            </div>
-
-            {/* 検索バー */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={t("chrome.explore.searchPlaceholder")}
-                className="pl-10 pr-9"
-                enterKeyHint="search"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => setSearchInput("")}
-                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-                  aria-label={t("engage.collection.clearSearch")}
+        {/* ヘッダー。最初の画面は「みんな」と検索だけ。一覧（?tab=）を開いたときは「みんなへ戻る」と一覧の名前。
+            以前は見出し・説明文・検索欄・5つのタブが常に並び、約190pxを使っていた */}
+        <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
+          <div className="container mx-auto flex items-center gap-2 px-4 py-3">
+            {activeTab === "home" ? (
+              <h1 className="flex-1 text-xl font-bold">{t("chrome.explore.title")}</h1>
+            ) : (
+              <div className="flex min-w-0 flex-1 items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="-ml-2 h-10 w-10 shrink-0 rounded-xl"
+                  onClick={() => handleTabChange("home")}
+                  aria-label={t("chrome.explore.home.back")}
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="truncate text-xl font-bold">{tabTitle[activeTab]}</h1>
+              </div>
+            )}
+            <Button
+              variant={showSearch ? "secondary" : "outline"}
+              size="icon"
+              className="h-10 w-10 shrink-0 rounded-xl"
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label={t("chrome.explore.home.search")}
+              aria-expanded={showSearch}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
 
-          {/* タブ。5つを1行に収めるため、スマホでは印を字の上に置く（横に並べると「ユーザー」「AI作品」が重なった） */}
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4">
-            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full grid grid-cols-5 p-0 h-auto">
-              <TabsTrigger value="posts" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
-                <Images className="w-4 h-4" />
-                {t("engage.explore.tabPosts")}
-              </TabsTrigger>
-              <TabsTrigger value="oshi-rooms" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
-                <DoorOpen className="w-4 h-4" />
-                {t("oshiRoom.social.explore.tab")}
-              </TabsTrigger>
-              <TabsTrigger value="items" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
-                <PackageSearch className="w-4 h-4" />
-                {t("engage.explore.tabItems")}
-              </TabsTrigger>
-              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
-                <User className="w-4 h-4" />
-                {t("chrome.explore.tabUsers")}
-              </TabsTrigger>
-              <TabsTrigger value="ai" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2.5 pt-1 text-muted-foreground data-[state=active]:text-foreground flex-col gap-0.5 text-xs sm:flex-row sm:gap-1 sm:pb-3 sm:text-sm px-0.5 min-w-0 [&_svg]:shrink-0">
-                <Wand2 className="w-4 h-4" />
-                {t("chrome.explore.tabAi")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {showSearch && (
+            <div className="container mx-auto px-4 pb-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder={t("chrome.explore.searchPlaceholder")}
+                  className="pl-10 pr-9"
+                  enterKeyHint="search"
+                  autoFocus={searchOpen && !searchInput}
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchInput("")}
+                    className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+                    aria-label={t("engage.collection.clearSearch")}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* コンテンツ */}
-        <div data-tour="explore-feed" className="container mx-auto px-4 py-6">
-          {searchQuery.trim() && activeTab !== "items" && (
+        <div data-tour="explore-feed" className="container mx-auto px-4 py-5">
+          {searchQuery.trim() && contentTab !== "items" && (
             <button
               type="button"
               onClick={() => handleTabChange("items")}
@@ -183,9 +190,10 @@ export function ExploreHub() {
               <span className="shrink-0 text-xs text-primary">{t("engage.explore.searchGoodsHint")}</span>
             </button>
           )}
-          {activeTab === "posts" && <div className="mx-auto max-w-4xl"><ItemPostsFeedPanel /></div>}
-          {activeTab === "oshi-rooms" && <OshiRoomsTab searchQuery={searchQuery} />}
-          {activeTab === "items" && (
+          {contentTab === "home" && <ExploreHome onOpenTab={handleTabChange} />}
+          {contentTab === "posts" && <div className="mx-auto max-w-4xl"><ItemPostsFeedPanel /></div>}
+          {contentTab === "oshi-rooms" && <OshiRoomsTab searchQuery={searchQuery} />}
+          {contentTab === "items" && (
             <div className="space-y-4">
               {/* 作品ごとのカタログ（/search）と写真検索への入口。以前はここから辿れなかった */}
               <div className="flex flex-wrap gap-2">
@@ -201,8 +209,8 @@ export function ExploreHub() {
               <ItemSearchTab query={searchQuery} onPickSuggestion={(text) => setSearchInput(text)} />
             </div>
           )}
-          {activeTab === "users" && <UsersTab searchQuery={searchQuery} />}
-          {activeTab === "ai" && (
+          {contentTab === "users" && <UsersTab searchQuery={searchQuery} />}
+          {contentTab === "ai" && (
             <div className="space-y-4">
               <div className="flex gap-2" role="group" aria-label={t("chrome.explore.tabAi")}>
                 {(["rooms", "avatars"] as const).map((v) => (
