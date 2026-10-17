@@ -81,6 +81,8 @@ const Oshi = () => {
   const [editorOpen, setEditorOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoItem, setPhotoItem] = useState<string | null>(null);
+  // 今日のミッションの「AIで作る」から開いたとき、撮影画面ですぐ作り始める
+  const [photoAi, setPhotoAi] = useState(false);
   const [selected, setSelected] = useState<string | null>(() => searchParams.get("item"));
   const [detail, setDetail] = useState<Companion | null>(null);
   const [fx, setFx] = useState<RoomFxEvent[]>([]);
@@ -189,15 +191,18 @@ const Oshi = () => {
     if (!missionParam || !mission) return;
     if (mission.item && !mission.completed) {
       setPhotoItem(mission.item.id);
+      setPhotoAi(searchParams.get("ai") === "1");
       setPhotoOpen(true);
     }
     const next = new URLSearchParams(searchParams);
     next.delete("mission");
+    next.delete("ai");
     setSearchParams(next, { replace: true });
   }, [missionParam, mission, searchParams, setSearchParams]);
 
   const openPhoto = (c?: Companion) => {
     setPhotoItem(c?.user_item_id ?? null);
+    setPhotoAi(false);
     setPhotoOpen(true);
   };
 
@@ -470,7 +475,14 @@ const Oshi = () => {
 
           <TabsContent value="photo" className="mx-auto mt-0 max-w-lg">
             {/* 今日のミッション（推しグッズと、日替わりの写真のお題） */}
-            <DailyMissionCard className="mb-3" onShoot={(id) => { setPhotoItem(id); setPhotoOpen(true); }} />
+            <DailyMissionCard
+              className="mb-3"
+              onShoot={(id, opts) => {
+                setPhotoItem(id);
+                setPhotoAi(!!opts?.ai);
+                setPhotoOpen(true);
+              }}
+            />
             {/* 今日の1枚 */}
             <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
               <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">
@@ -514,7 +526,13 @@ const Oshi = () => {
         />
       )}
       <RoomLikersSheet open={likersOpen} onOpenChange={setLikersOpen} />
-      <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} onSaved={onPhotoSaved} />
+      <TodayPhotoDialog
+        open={photoOpen}
+        onOpenChange={setPhotoOpen}
+        initialItemId={photoItem}
+        autoAi={photoAi}
+        onSaved={onPhotoSaved}
+      />
       <LockedSetSheet
         set={locked?.set ?? null}
         itemKey={locked?.key}

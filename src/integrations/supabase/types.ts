@@ -113,6 +113,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
+          is_ai: boolean
           taken_on: string
           user_id: string
           user_item_id: string | null
@@ -122,6 +123,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
+          is_ai?: boolean
           taken_on?: string
           user_id: string
           user_item_id?: string | null
@@ -131,6 +133,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
+          is_ai?: boolean
           taken_on?: string
           user_id?: string
           user_item_id?: string | null
