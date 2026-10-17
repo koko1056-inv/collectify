@@ -9,6 +9,7 @@ import { useMyTrades } from "@/hooks/trade/useMyTrades";
 import { useProfile } from "@/hooks/useProfile";
 import { todayJst } from "@/utils/companion";
 import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
+import { MISSION_SHOOT_HREF, useDailyMission } from "@/hooks/useDailyMission";
 import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
 import type { PockePose } from "./pockeAssets";
 
@@ -34,6 +35,7 @@ const cap = (n: number) => (n > 99 ? "99+" : n);
 export function useCollectionPockeTips(): PockeTipItem[] {
   const { t } = useLanguage();
   const { data: ring } = useDailyRing();
+  const { data: mission } = useDailyMission();
   const releases = useOshiNewBadge();
   const companions = useCompanions();
   const photos = useOshiPhotos();
@@ -43,6 +45,17 @@ export function useCollectionPockeTips(): PockeTipItem[] {
   const tips: PockeTipItem[] = [];
   if (releases.unseen > 0) {
     tips.push({ kind: "releases", pose: "surprised", text: t("pocke.tip.releases", { n: cap(releases.unseen) }), href: "/releases?tab=new" });
+  }
+  if (mission?.item && !mission.completed) {
+    tips.push({
+      kind: "mission",
+      pose: "point",
+      text: t("pocke.mission.tip", {
+        name: shortenName(mission.item.title),
+        action: t(`pocke.mission.prompts.${mission.prompt_id}.action`),
+      }),
+      href: MISSION_SHOOT_HREF,
+    });
   }
   if (ring && ringDoneCount(ring) < 3) {
     tips.push({ kind: "ring", pose: "point", text: t("pocke.tip.ring", { n: 3 - ringDoneCount(ring) }), onSelect: openDailyRing });

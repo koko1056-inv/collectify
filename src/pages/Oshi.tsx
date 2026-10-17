@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IconTile } from "@/components/ui/icon-tile";
 import { PhotoCalendar } from "@/components/oshi/PhotoCalendar";
 import { TodayPhotoDialog } from "@/components/oshi/TodayPhotoDialog";
+import { DailyMissionCard } from "@/components/daily/DailyMissionCard";
+import { useDailyMission } from "@/hooks/useDailyMission";
 import { RoomScene, type EditTarget, type SceneGoods } from "@/components/oshi/room/RoomScene";
 import { GoodsCarePanel } from "@/components/oshi/room/GoodsCarePanel";
 import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
@@ -179,6 +181,20 @@ const Oshi = () => {
     },
     [addFx, owned, t]
   );
+
+  // ?mission=1: 今日のミッションの「撮る」から来たとき、そのグッズを選んで撮る画面を開く
+  const { data: mission } = useDailyMission();
+  const missionParam = searchParams.get("mission") === "1";
+  useEffect(() => {
+    if (!missionParam || !mission) return;
+    if (mission.item && !mission.completed) {
+      setPhotoItem(mission.item.id);
+      setPhotoOpen(true);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete("mission");
+    setSearchParams(next, { replace: true });
+  }, [missionParam, mission, searchParams, setSearchParams]);
 
   const openPhoto = (c?: Companion) => {
     setPhotoItem(c?.user_item_id ?? null);
@@ -453,6 +469,8 @@ const Oshi = () => {
           </TabsContent>
 
           <TabsContent value="photo" className="mx-auto mt-0 max-w-lg">
+            {/* 今日のミッション（推しグッズと、日替わりの写真のお題） */}
+            <DailyMissionCard className="mb-3" onShoot={(id) => { setPhotoItem(id); setPhotoOpen(true); }} />
             {/* 今日の1枚 */}
             <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
               <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">

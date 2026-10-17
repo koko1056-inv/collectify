@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCompanions, useOshiPhotos, useUploadOshiPhoto } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
+import { DAILY_MISSION_KEY, useDailyMission } from "@/hooks/useDailyMission";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface TodayPhotoDialogProps {
   open: boolean;
@@ -23,6 +26,10 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
   const { data: companions = [] } = useCompanions();
   const { streak, todayDone } = useOshiPhotos();
   const upload = useUploadOshiPhoto();
+  const queryClient = useQueryClient();
+  // 今日のミッションのグッズ（推しグッズでないこともあるので、選べるように並べる）
+  const { data: mission } = useDailyMission();
+  const missionItem = mission?.item && !mission.completed ? mission.item : null;
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -62,6 +69,11 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
     if (!file) return;
     try {
       await upload.mutateAsync({ file, itemId, caption });
+      // ミッションのグッズで撮ったら達成（サーバーが撮った写真で決める）。ポッケが喜ぶ
+      if (missionItem && itemId === missionItem.id) {
+        pockeCheer("missionDone", mission?.bonus ?? 0);
+      }
+      void queryClient.invalidateQueries({ queryKey: [DAILY_MISSION_KEY] });
       toast.success(
         todayDone ? t("engage.oshi.savedFirst") : streak > 0 ? t("engage.oshi.saved", { n: streak + 1 }) : t("engage.oshi.savedFirst"),
         { description: todayDone ? undefined : t("engage.oshi.savedPoints") }
@@ -148,13 +160,29 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
         </div>
         </div>
 
-        {companions.length > 0 && (
+        {/* ミッションのグッズを選んでいるときは、お題を見せる */}
+        {missionItem && itemId === missionItem.id && mission && (
+          <p className="flex items-start gap-1.5 rounded-xl bg-points/10 px-3 py-2 text-xs font-bold text-points">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>
+              {t("pocke.mission.banner", { name: missionItem.title, action: t(`pocke.mission.prompts.${mission.prompt_id}.action`) })}
+              <span className="ml-1 font-normal">{t("pocke.mission.reward", { n: mission.bonus })}</span>
+            </span>
+          </p>
+        )}
+
+        {(companions.length > 0 || missionItem) && (
           <div>
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t("engage.oshi.withWho")}</p>
             <div className="flex flex-wrap gap-1.5" role="group">
               <Chip active={itemId === null} onClick={() => setItemId(null)}>
                 {t("engage.oshi.withNone")}
               </Chip>
+              {missionItem && !companions.some((c) => c.user_item_id === missionItem.id) && (
+                <Chip active={itemId === missionItem.id} onClick={() => setItemId(missionItem.id)}>
+                  <span className="inline-block max-w-[9rem] truncate align-middle">{missionItem.title}</span>
+                </Chip>
+              )}
               {companions.map((c) => (
                 <Chip key={c.user_item_id} active={itemId === c.user_item_id} onClick={() => setItemId(c.user_item_id)}>
                   <span className="inline-block max-w-[9rem] truncate align-middle">{c.title}</span>
