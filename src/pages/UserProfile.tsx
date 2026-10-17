@@ -16,6 +16,7 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
 import { ProfileShowcase } from "@/components/profile/ProfileShowcase";
 import { ProfileOshiGoods } from "@/components/profile/ProfileOshiGoods";
+import { ProfileBadges } from "@/components/badges/ProfileBadges";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
@@ -187,6 +188,13 @@ export default function UserProfile() {
               以前は上部の「推し」の丸アイコンの列・ここの「相棒グッズ」・コレクションタブの「お気に入り TOP5」の3か所に分かれていた */}
           {userId && (
             <ProfileOshiGoods profileId={userId} isOwnProfile={isOwnProfile} ownerName={profile.display_name || profile.username || ""} />
+          )}
+
+          {/* 実績バッジ（コレクションを見てよい相手のときだけ出る） */}
+          {userId && (
+            <div className="px-4 mt-3">
+              <ProfileBadges userId={userId} isOwn={isOwnProfile} />
+            </div>
           )}
 
           {/* ショーケース: お気に入りルーム / アバター */}

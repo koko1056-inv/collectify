@@ -16,6 +16,7 @@ import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewar
 import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
+import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -235,6 +236,7 @@ const App: React.FC = () => {
                   {/* 作品・シリーズがそろった瞬間のお祝い */}
                   <PockeCompletionHost />
                   <DailyRingHost />
+                  <BadgeUnlockHost />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>
