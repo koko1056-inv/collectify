@@ -50,6 +50,8 @@ interface ProfileHeroProps {
    * 数字とボタンを1行にまとめる。下の投稿などのタブを上に寄せるため（以前は約1420pxから）
    */
   compact?: boolean;
+  /** カバーの左上に置くもの（本人のマイページでは、案内役のポッケ） */
+  cornerSlot?: React.ReactNode;
 }
 
 export function ProfileHero({
@@ -64,6 +66,7 @@ export function ProfileHero({
   onEdit,
   onOpenSettings,
   compact = false,
+  cornerSlot,
 }: ProfileHeroProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -189,6 +192,8 @@ export function ProfileHero({
           ) : (
             <DefaultCover imageUrl={coverSrc} />
           )}
+
+          {cornerSlot && <div className={cn("absolute left-3 z-10", compact ? "top-2" : "top-3")}>{cornerSlot}</div>}
 
           {/* 44px は Apple の指針の下限。ログアウトが隣にあるので、
                 当たり判定を広げるのではなく実サイズを上げ、隙間も確保する */}

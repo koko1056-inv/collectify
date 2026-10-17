@@ -9,6 +9,8 @@ import { TradeInboxButton } from "@/components/trade/TradeInboxButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyTrades } from "@/hooks/trade/useMyTrades";
 import { cn } from "@/lib/utils";
+import { PockeCorner } from "@/components/pocke/PockeCorner";
+import { useTradePockeTips } from "@/components/pocke/usePockeTips";
 
 type TradeView = "find" | "active";
 
@@ -51,7 +53,10 @@ export default function Trade() {
       <Navbar />
       <main className="mx-auto w-full max-w-3xl px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pt-6 sm:pb-10">
         <header className="space-y-3 pb-4" data-tour="trade-header">
-          <h1 className="text-xl font-bold">{t("chrome.nav.trade")}</h1>
+          <div className="flex items-center gap-2">
+            <TradePocke />
+            <h1 className="text-xl font-bold">{t("chrome.nav.trade")}</h1>
+          </div>
           <div role="tablist" aria-label={t("chrome.nav.trade")} className="grid grid-cols-2 rounded-xl bg-muted p-1">
             {tabs.map((tab) => (
               <button
@@ -93,4 +98,10 @@ export default function Trade() {
       <Footer />
     </div>
   );
+}
+
+/** 交換画面のポッケ（自分の番・交換に出すもの・ほしいもの） */
+function TradePocke() {
+  const tips = useTradePockeTips();
+  return <PockeCorner screen="trade" tips={tips} />;
 }

@@ -31,6 +31,58 @@ export const pocke = {
       photoCta: "撮りに行く",
       later: "あとで",
     },
+    corner: {
+      aria: "ポッケと話す",
+      ariaNews: "ポッケと話す（お知らせ{n}件）",
+      honorific: "{name}さん",
+      greet: {
+        morning: "おはよう、{name}！",
+        day: "こんにちは、{name}！",
+        evening: "こんばんは、{name}！",
+        night: "夜ふかしだね、{name}",
+      },
+      greetNoName: {
+        morning: "おはよう！",
+        day: "こんにちは！",
+        evening: "こんばんは！",
+        night: "夜ふかしだね",
+      },
+      trade: {
+        myTurn: "きみの番の交換が{n}件あるよ！ 返事を待ってるみたい",
+        offer: "ダブってるグッズを交換に出すと、相手が見つかりやすくなるよ",
+        wish: "ほしいグッズを入れてくれたら、持ってる人を探してくるね",
+      },
+      explore: {
+        prompt: "今週のお題は「#{tag}」！ 投稿してみる？",
+      },
+      me: {
+        avatar: "アイコンを設定すると、みんなに覚えてもらいやすいよ",
+        interests: "推しの作品を選ぶと、新商品が出たら教えてあげられるよ",
+        oshi: "推しグッズをあと{n}つ選べるよ。推しの部屋に飾ろう！",
+      },
+      idle: {
+        collection: {
+          0: "今日はどのグッズを眺める？",
+          1: "グッズをタップすると、思い出も残せるよ",
+          2: "袋の中、にぎやかになってきたね！",
+        },
+        trade: {
+          0: "交換は、チャットで相談してから決められるよ",
+          1: "両想いの相手がいたら、ここに出てくるよ",
+          2: "いい交換が見つかるといいね！",
+        },
+        explore: {
+          0: "みんなの推しの部屋、のぞいてみる？",
+          1: "気になる投稿には「持ってる！」で反応できるよ",
+          2: "同じ推しの人、見つかるかも！",
+        },
+        me: {
+          0: "ここはきみのページ。推しグッズを飾って自慢しよう！",
+          1: "プロフィールはみんなから見えるよ",
+          2: "今日もいっしょに集めようね！",
+        },
+      },
+    },
     cheer: {
       added1: "袋に入った！ ナイス！",
       added2: "いいグッズ！ 大事にしまっておくね",
@@ -78,6 +130,58 @@ export const pocke = {
       photo: "No fave photo yet today. Take one?",
       photoCta: "Take a photo",
       later: "Later",
+    },
+    corner: {
+      aria: "Talk to Pocke",
+      ariaNews: "Talk to Pocke ({n} new)",
+      honorific: "{name}",
+      greet: {
+        morning: "Good morning, {name}!",
+        day: "Hi, {name}!",
+        evening: "Good evening, {name}!",
+        night: "Up late, {name}?",
+      },
+      greetNoName: {
+        morning: "Good morning!",
+        day: "Hi there!",
+        evening: "Good evening!",
+        night: "Up late?",
+      },
+      trade: {
+        myTurn: "{n} trades are waiting on you!",
+        offer: "Offer a duplicate to find trade partners faster",
+        wish: "Add goods you want and I'll find who has them",
+      },
+      explore: {
+        prompt: "This week's theme is \"#{tag}\"! Want to post?",
+      },
+      me: {
+        avatar: "Set an icon so everyone remembers you",
+        interests: "Pick your fave works and I'll tell you about new releases",
+        oshi: "You can pick {n} more fave goods to show off in your room!",
+      },
+      idle: {
+        collection: {
+          0: "Which goods will you admire today?",
+          1: "Tap any goods to keep a memory with it",
+          2: "My pouch is getting lively!",
+        },
+        trade: {
+          0: "You can chat before agreeing to a trade",
+          1: "Mutual matches will show up here",
+          2: "Hope you find a great trade!",
+        },
+        explore: {
+          0: "Want to peek at everyone's fave rooms?",
+          1: "React to posts with \"I have it!\"",
+          2: "You might find someone with the same fave!",
+        },
+        me: {
+          0: "This is your page. Show off your fave goods!",
+          1: "Your profile is visible to everyone",
+          2: "Let's keep collecting together!",
+        },
+      },
     },
     cheer: {
       added1: "In the pouch! Nice!",

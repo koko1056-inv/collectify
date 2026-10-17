@@ -24,6 +24,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "./ProfileTabs";
 import { MyCollectionSummary } from "./MyCollectionSummary";
 import { EnjoySection } from "./EnjoySection";
+import { PockeCorner } from "@/components/pocke/PockeCorner";
+import { useMePockeTips } from "@/components/pocke/usePockeTips";
 
 // 自分のコレクションは下タブ①が持つので、マイページには置かない（以前は3か所に同じ一覧が出ていた）。
 // 以前の「マイルーム」の AI スタジオは「AI作品」タブに入れた。
@@ -108,6 +110,7 @@ export function ProfilePage() {
             onEdit={() => setEditOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
             compact
+            cornerSlot={<MePocke onEditProfile={() => setEditOpen(true)} />}
           />
 
           {/* 上から「薄いプロフィール → 小さな札（コンプ・推しの部屋・推し活費）→ 推しグッズ → 推しの作品 → 楽しむ（1行）→ 投稿などのタブ」。
@@ -192,4 +195,10 @@ export function ProfilePage() {
       <Footer />
     </div>
   );
+}
+
+/** マイページのポッケ（アイコン・推しの作品・推しグッズ） */
+function MePocke({ onEditProfile }: { onEditProfile: () => void }) {
+  const tips = useMePockeTips(onEditProfile);
+  return <PockeCorner screen="me" tips={tips} />;
 }
