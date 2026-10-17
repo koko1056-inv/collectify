@@ -24,8 +24,11 @@ export const MISSION_SHOOT_HREF = "/oshi?tab=photo&mission=1";
 export const MISSION_AI_HREF = "/oshi?tab=photo&mission=1&ai=1";
 
 /** ミッションのお題どおりの1枚を AI で作る。作った画像は自分の推しフォトのフォルダに置かれ、その URL が返る（保存は別） */
-export async function generateMissionImage(): Promise<{ imageUrl: string; itemId: string; triesLeft: number }> {
-  const { data, error } = await supabase.functions.invoke("generate-mission-image", { body: {} });
+export async function generateMissionImage(
+  mode: "mission" | "onboarding" = "mission"
+): Promise<{ imageUrl: string; itemId: string; triesLeft: number }> {
+  // onboarding: ウェルカムのお祝いで AI をためす1回（いま登録したグッズを飾った1枚。1人1回だけ無料）
+  const { data, error } = await supabase.functions.invoke("generate-mission-image", { body: { mode } });
   if (error) {
     // 関数が返したエラーの種類（mission_ai_limit など）を取り出す
     let code = "generation_failed";

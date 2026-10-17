@@ -9,6 +9,9 @@ import { callAi, currentAiProvider } from "../_shared/ai.ts";
 // （無料の生成を、ほかの用途に使えないように）。1日2回まで無料で、回数は DB が数える。失敗したら回数を戻す。
 // 作った画像は、その人の推しフォトのフォルダ（kuji_images/<uid>/oshi/）に置いて URL を返す。
 // 保存（推しフォトにする）は、見て気に入ったらクライアントが行う。そこでミッション達成になる。
+//
+// mode: "onboarding" のときは、ウェルカムのお祝いの画面で AI をためす1回（1人1回だけ無料）。
+// グッズはいま登録したもの（いちばん新しい、写真のあるグッズ）をサーバーが選び、ショーケースに飾った1枚にする。
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +36,10 @@ const SCENES: Record<string, string> = {
   shadow: "with dramatic light casting a playful, interesting shadow",
 };
 
+/** オンボーディングの1枚。宝物として飾られている場面 */
+const SHOWCASE_SCENE =
+  "displayed proudly as a treasured collection piece on a cute shelf in a cozy, softly lit fan's room, with fairy lights and a few small decorations";
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -55,24 +62,35 @@ serve(async (req) => {
   const user = userRes.user;
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-  // 今日のミッションを受け取り、回数を1つ使う
-  const { data: claim, error: claimErr } = await userClient.rpc("claim_mission_ai");
+  let mode = "mission";
+  try {
+    const body = await req.json();
+    if (body?.mode === "onboarding") mode = "onboarding";
+  } catch {
+    /* 本文なし = ミッション */
+  }
+  const onboarding = mode === "onboarding";
+
+  // 今日のミッション（またはオンボーディングの1回）を受け取り、回数を1つ使う
+  const { data: claim, error: claimErr } = await userClient.rpc(onboarding ? "claim_onboarding_ai" : "claim_mission_ai");
   if (claimErr) {
-    const code = ["mission_ai_limit", "mission_done", "no_mission"].find((c) => claimErr.message?.includes(c));
+    const code = ["mission_ai_limit", "mission_done", "no_mission", "onboarding_ai_used", "no_item"].find((c) =>
+      claimErr.message?.includes(c)
+    );
     return json({ error: code ?? "claim_failed" }, code ? 409 : 500);
   }
-  const mission = claim as { item_id: string; title: string; image: string | null; prompt_id: string; tries_left: number };
+  const mission = claim as { item_id: string; title: string; image: string | null; prompt_id?: string; tries_left?: number };
 
   const release = async () => {
     try {
-      await admin.rpc("release_mission_ai", { _uid: user.id });
+      await admin.rpc(onboarding ? "release_onboarding_ai" : "release_mission_ai", { _uid: user.id });
     } catch (e) {
       console.error("release failed:", e);
     }
   };
 
   try {
-    const scene = SCENES[mission.prompt_id] ?? SCENES.sky;
+    const scene = onboarding ? SHOWCASE_SCENE : SCENES[mission.prompt_id ?? "sky"] ?? SCENES.sky;
     const prompt = [
       `Create a photo-like, charming square (1:1) image of this fan merchandise item ("${mission.title}"), ${scene}.`,
       "Keep the item exactly as it looks in the reference image (same design, colors, characters and printed artwork). Do not change or redraw its artwork.",
@@ -112,7 +130,7 @@ serve(async (req) => {
     }
     const { data: pub } = admin.storage.from("kuji_images").getPublicUrl(path);
 
-    return json({ imageUrl: pub.publicUrl, itemId: mission.item_id, triesLeft: mission.tries_left });
+    return json({ imageUrl: pub.publicUrl, itemId: mission.item_id, triesLeft: mission.tries_left ?? 0 });
   } catch (error) {
     console.error("generate-mission-image error:", error);
     await release();
