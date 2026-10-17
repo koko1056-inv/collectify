@@ -23,6 +23,7 @@ const LINES: Record<Exclude<PockeCheerKind, "addedMany">, { pose: PockePose; key
   tradeSent: [{ pose: "cheer", key: "pocke.cheer.tradeSent" }],
   tradeAccepted: [{ pose: "wink", key: "pocke.cheer.tradeAccepted" }],
   tradeDone: [{ pose: "celebrate", key: "pocke.cheer.tradeDone" }],
+  freezeUsed: [{ pose: "sleepy", key: "pocke.cheer.freezeUsed" }],
 };
 
 /**

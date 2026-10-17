@@ -8,6 +8,7 @@ import { nextCare } from "@/hooks/useOshiRoomSocial";
 import { useMyTrades } from "@/hooks/trade/useMyTrades";
 import { useProfile } from "@/hooks/useProfile";
 import { todayJst } from "@/utils/companion";
+import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
 import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
 import type { PockePose } from "./pockeAssets";
 
@@ -29,9 +30,10 @@ const NAME_MAX = 16;
 export const shortenName = (name: string) => (name.length > NAME_MAX ? `${name.slice(0, NAME_MAX)}…` : name);
 const cap = (n: number) => (n > 99 ? "99+" : n);
 
-/** コレクション: 推しの新着 → 推しのお世話 → 今日の推しフォト */
+/** コレクション: 推しの新着 → 今日のリング → 推しのお世話 → 今日の推しフォト */
 export function useCollectionPockeTips(): PockeTipItem[] {
   const { t } = useLanguage();
+  const { data: ring } = useDailyRing();
   const releases = useOshiNewBadge();
   const companions = useCompanions();
   const photos = useOshiPhotos();
@@ -41,6 +43,9 @@ export function useCollectionPockeTips(): PockeTipItem[] {
   const tips: PockeTipItem[] = [];
   if (releases.unseen > 0) {
     tips.push({ kind: "releases", pose: "surprised", text: t("pocke.tip.releases", { n: cap(releases.unseen) }), href: "/releases?tab=new" });
+  }
+  if (ring && ringDoneCount(ring) < 3) {
+    tips.push({ kind: "ring", pose: "point", text: t("pocke.tip.ring", { n: 3 - ringDoneCount(ring) }), onSelect: openDailyRing });
   }
   if (care) {
     tips.push({

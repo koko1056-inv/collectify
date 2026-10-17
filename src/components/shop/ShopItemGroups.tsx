@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Check, Package, Sparkles, Tag as TagIcon } from "lucide-react";
+import { Check, Moon, Package, Sparkles, Tag as TagIcon } from "lucide-react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -251,7 +251,14 @@ function ItemPreview({ item, large }: { item: PointShopItem; large?: boolean }) 
       </span>
     );
   }
-  const Icon = item.item_type === "custom_tags" ? TagIcon : item.item_type === "collection_slots" ? Package : Sparkles;
+  const Icon =
+    item.item_type === "custom_tags"
+      ? TagIcon
+      : item.item_type === "collection_slots"
+        ? Package
+        : item.item_type === "streak_freeze"
+          ? Moon
+          : Sparkles;
   return (
     <IconTile tone="primary" size="md">
       <Icon />
