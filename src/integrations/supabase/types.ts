@@ -4288,6 +4288,10 @@ export type Database = {
         Args: { _user_id?: string }
         Returns: Json
       }
+      get_daily_mission: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_daily_ring: {
         Args: Record<PropertyKey, never>
         Returns: Json

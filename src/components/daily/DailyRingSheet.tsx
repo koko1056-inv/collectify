@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Pocke, PockeBubble } from "@/components/pocke/Pocke";
 import type { PockePose } from "@/components/pocke/pockeAssets";
 import { PockeRing, RING_GOALS } from "./PockeRing";
+import { DailyMissionCard } from "./DailyMissionCard";
 
 const GOALS: { key: "collect" | "care" | "social"; icon: LucideIcon; href: string }[] = [
   { key: "collect", icon: Package, href: "/quick-add" },
@@ -98,6 +99,9 @@ export function DailyRingSheet({
             );
           })}
         </ul>
+
+        {/* 今日のミッション（育てるの一歩にもなる） */}
+        <DailyMissionCard className="mt-3" onNavigate={() => onOpenChange(false)} />
 
         <p className={cn("mt-3 text-center text-sm font-semibold", ring.completed ? "text-points" : "text-muted-foreground")}>
           {ring.completed ? t("pocke.ring.completed", { n: ring.bonus }) : t("pocke.ring.bonus", { n: ring.bonus })}
