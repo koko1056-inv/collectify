@@ -43,6 +43,8 @@ import { useMatches } from "@/features/matching/useMatches";
 import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PockeCorner } from "@/components/pocke/PockeCorner";
+import { useExplorePockeTips } from "@/components/pocke/usePockeTips";
 
 // 以前は6タブで横にスクロールし、選んだタブが画面の外に出ていた。4つにまとめる。
 // AI ルームとアバターは「AI作品」の中のチップで、コレクションの多い人は「ユーザー」の中で見る。
@@ -64,6 +66,7 @@ function resolveTab(raw: string | null): { tab: ExploreTab; view: AiView } {
 
 export function ExploreHub() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   // 既定は「投稿」。ここが交流の入口で、他のタブは見つけたいものが決まっているときに使う。
   const initial = resolveTab(searchParams.get("tab"));
@@ -121,7 +124,10 @@ export function ExploreHub() {
         <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
           <div className="container mx-auto flex items-center gap-2 px-4 py-3">
             {activeTab === "home" ? (
-              <h1 className="flex-1 text-xl font-bold">{t("chrome.explore.title")}</h1>
+              <div className="flex flex-1 items-center gap-2">
+                {user && <ExplorePocke />}
+                <h1 className="text-xl font-bold">{t("chrome.explore.title")}</h1>
+              </div>
             ) : (
               <div className="flex min-w-0 flex-1 items-center gap-1">
                 <Button
@@ -667,4 +673,10 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
       />
     </div>
   );
+}
+
+/** みんな画面のポッケ（今週のお題） */
+function ExplorePocke() {
+  const tips = useExplorePockeTips();
+  return <PockeCorner screen="explore" tips={tips} />;
 }

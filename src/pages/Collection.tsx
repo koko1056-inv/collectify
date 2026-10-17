@@ -13,8 +13,9 @@ import { PreorderArrivalBanner } from "@/components/preorders/PreorderArrivalBan
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NoticeSlotProvider } from "@/components/collection/NoticeSlot";
 import { useCollectionCount } from "@/hooks/useCollectionLimit";
-import { PockeTip } from "@/components/pocke/PockeTip";
 import { PockeWelcomeBack } from "@/components/pocke/PockeWelcomeBack";
+import { PockeCorner } from "@/components/pocke/PockeCorner";
+import { useCollectionPockeTips } from "@/components/pocke/usePockeTips";
 
 
 export default function Collection() {
@@ -58,14 +59,18 @@ export default function Collection() {
           <div className="max-w-5xl mx-auto space-y-3 animate-fade-in">
             <FilterSheet
               header={
-                <h1 className="flex items-baseline gap-2 px-1">
-                  <span className="text-xl font-bold">{t("collectionScreen.header.title")}</span>
-                  {user && itemCount !== undefined && itemCount > 0 && (
-                    <span className="text-sm font-normal tabular-nums text-muted-foreground">
-                      {t("collectionScreen.header.count", { n: itemCount })}
-                    </span>
-                  )}
-                </h1>
+                <div className="flex items-center gap-2 px-1">
+                  {/* 見出しの横にいつもポッケがいる。伝えたいことがあると弾んで、押すとおすすめを言う */}
+                  {user && <CollectionPocke />}
+                  <h1 className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold">{t("collectionScreen.header.title")}</span>
+                    {user && itemCount !== undefined && itemCount > 0 && (
+                      <span className="text-sm font-normal tabular-nums text-muted-foreground">
+                        {t("collectionScreen.header.count", { n: itemCount })}
+                      </span>
+                    )}
+                  </h1>
+                </div>
               }
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -78,11 +83,11 @@ export default function Collection() {
               onPersonalTagChange={handlePersonalTagChange}
             />
 
-            {/* お知らせ枠。大事な順に1つだけ出る（予約の到着 → 枠の残り → 重複 → はじめてガイド → 思い出 → ポッケのおすすめ） */}
+            {/* お知らせ枠。大事な順に1つだけ出る（予約の到着 → 枠の残り → 重複 → はじめてガイド → 思い出）。
+                ポッケのおすすめは見出しの横のポッケが言う */}
             {user && <PreorderArrivalBanner />}
             {user && <SlotUsageMeter type="collection" minPercent={80} />}
             {user && <OnboardingChecklist />}
-            {user && <PockeTip />}
             {/* ひさしぶりに開いたときのポッケのあいさつ（下から出るシート） */}
             {user && <PockeWelcomeBack />}
 
@@ -115,4 +120,10 @@ export default function Collection() {
       <Footer />
     </div>
   );
+}
+
+/** コレクション画面のポッケ（推しの新着・お世話・推しフォトをすすめる） */
+function CollectionPocke() {
+  const tips = useCollectionPockeTips();
+  return <PockeCorner screen="collection" tips={tips} />;
 }

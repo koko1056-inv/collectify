@@ -27,5 +27,4 @@ export const NOTICE_PRIORITY = {
   duplicates: 3,
   onboarding: 4,
   onThisDay: 5,
-  pocke: 6,
 } as const;
