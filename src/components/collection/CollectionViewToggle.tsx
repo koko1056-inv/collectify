@@ -12,6 +12,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePreorders } from "@/hooks/usePreorders";
 import { PreorderList } from "@/components/preorders/PreorderList";
 import { PastItemsList } from "./PastItemsList";
+import type { CollectionDisplay } from "./views/collectionDisplay";
+import { ZukanView } from "./views/ZukanView";
+import { BinderView } from "./views/BinderView";
+import { ShelfView } from "./views/ShelfView";
 
 type ViewType = "grid" | "wishlist" | "preorders" | "past";
 
@@ -30,6 +34,10 @@ interface CollectionViewToggleProps {
   groups?: { key: string; label: string; count: string; items: unknown[] }[];
   /** 持ってる（とマイタグ）のときだけ、タブと一覧のあいだに出すもの（作品の札・並び替えなど） */
   beforeGrid?: ReactNode;
+  /** 「持ってる」の並べ方（グリッド・図鑑・バインダー・飾り棚）。選択中はいつもグリッド */
+  display?: CollectionDisplay;
+  /** 図鑑を読み直すための目印（持っているグッズの件数と最新の id） */
+  collectionVersion?: string;
 }
 
 export function CollectionViewToggle({
@@ -44,6 +52,8 @@ export function CollectionViewToggle({
   onSelectItem,
   groups,
   beforeGrid,
+  display = "grid",
+  collectionVersion = "",
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
   const { t } = useLanguage();
@@ -109,6 +119,9 @@ export function CollectionViewToggle({
   const showWishlist = activeView === "wishlist";
   const showPreorders = isOwn && activeView === "preorders";
   const showPast = isOwn && activeView === "past";
+  // 選んでまとめて操作するときは、いつものグリッドに戻す（図鑑や棚では選べない）。マイタグの中は図鑑にしない
+  const altDisplay: CollectionDisplay =
+    isSelectionMode || (display === "zukan" && !!selectedPersonalTag) ? "grid" : display;
 
   const emptyTitle = selectedPersonalTag
     ? `${t("collectionScreen.viewToggle.taggedEmptyPrefix")}${selectedPersonalTag}${t("collectionScreen.viewToggle.taggedEmptySuffix")}`
@@ -151,8 +164,15 @@ export function CollectionViewToggle({
         <PastItemsList />
       ) : showWishlist ? (
         <CollectionWishlist userId={userId} />
+      ) : altDisplay === "zukan" ? (
+        // 図鑑は絞り込みに関係なく、持っているグッズ全体のシリーズで作る
+        <ZukanView userId={userId} isOwn={isOwn} version={collectionVersion} />
       ) : items.length === 0 ? (
         <EmptyState icon={Package} title={emptyTitle} />
+      ) : altDisplay === "binder" ? (
+        <BinderView items={items} isOwn={isOwn} />
+      ) : altDisplay === "shelf" ? (
+        <ShelfView items={items} isOwn={isOwn} />
       ) : groups ? (
         <div className="space-y-6">
           {groups.map((group) => (
