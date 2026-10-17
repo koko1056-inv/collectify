@@ -4284,6 +4284,27 @@ export type Database = {
         Args: { _keys: string[] }
         Returns: undefined
       }
+      get_zukan_index: {
+        Args: { _user_id?: string }
+        Returns: {
+          key: string
+          label: string
+          owned: number
+          total: number
+          cover: string | null
+        }[]
+      }
+      get_zukan_series: {
+        Args: { _key: string; _user_id?: string }
+        Returns: {
+          official_item_id: string
+          title: string
+          image: string | null
+          release_date: string | null
+          user_item_id: string | null
+          user_image: string | null
+        }[]
+      }
       apply_trade_to_collection: {
         Args: { _trade_id: string }
         Returns: Json

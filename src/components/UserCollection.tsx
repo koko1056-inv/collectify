@@ -42,6 +42,8 @@ import { CompletionTargets } from "./collection/CompletionTargets";
 import { NOTICE_PRIORITY, useNoticeTurn } from "./collection/noticeSlot";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { UniverseEntryCard } from "./universe/UniverseEntryCard";
+import { CollectionDisplayMenu } from "./collection/views/CollectionDisplayMenu";
+import { useCollectionDisplay } from "./collection/views/collectionDisplay";
 import { UniverseView } from "./universe/UniverseView";
 import { InstallAppCard } from "./pwa/InstallAppCard";
 import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
@@ -132,6 +134,7 @@ export function UserCollection({
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isUniverseOpen, setIsUniverseOpen] = useState(false);
+  const [display, setDisplay] = useCollectionDisplay();
   const [isTargetsOpen, setIsTargetsOpen] = useState(false);
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
@@ -265,6 +268,8 @@ export function UserCollection({
   const { data: progress = [] } = useCollectionProgress(effectiveUserId);
 
   // 自分の棚だけ。お迎え日から自動で出す思い出（入力は不要）
+  // 図鑑を読み直す目印（登録・削除で件数か最新が変わる）
+  const collectionVersion = `${items.length}:${items[0]?.id ?? ""}`;
   const onThisDay = useMemo(() => (isOwnCollection ? findOnThisDay(items) : null), [isOwnCollection, items]);
   // 「N年前の今日」はお知らせ枠でいちばん後回し（ほかのお知らせがあるときは出さない）
   const showOnThisDay = useNoticeTurn("onThisDay", NOTICE_PRIORITY.onThisDay, !!onThisDay && !onThisDayDismissed);
@@ -535,8 +540,13 @@ export function UserCollection({
 
             <div className="flex-1" />
 
-            {/* 右：選択・共有・今日のグッズ（どれも同じ大きさのアイコン） */}
+            {/* 右：並べ方・選択・共有・今日のグッズ（どれも同じ大きさのアイコン） */}
             <div className="flex items-center gap-1.5 shrink-0">
+              <CollectionDisplayMenu
+                display={display}
+                onChange={setDisplay}
+                onOpenUniverse={isOwnCollection ? () => setIsUniverseOpen(true) : undefined}
+              />
               {isOwnCollection && (
                 <Button
                   onClick={handleToggleSelectionMode}
@@ -745,6 +755,8 @@ export function UserCollection({
           isSelectionMode={isSelectionMode}
           selectedItems={selectedItemIds}
           onSelectItem={handleSelectItem}
+          display={display}
+          collectionVersion={collectionVersion}
         />
 
         {/* コンプまであと少し（以前は画面の上に大きく出ていた。「コンプ」の入口から開く） */}
@@ -841,6 +853,8 @@ export function UserCollection({
           isSelectionMode={isSelectionMode}
           selectedItems={selectedItemIds}
           onSelectItem={handleSelectItem}
+          display={display}
+          collectionVersion={collectionVersion}
         />
       )}
 
