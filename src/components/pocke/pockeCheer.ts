@@ -11,7 +11,8 @@ export type PockeCheerKind =
   | "purchased" // ポイントショップで買った
   | "tradeSent" // 交換を申し込んだ
   | "tradeAccepted" // 交換の申し込みを受けた
-  | "tradeDone"; // 交換のグッズを受け取った
+  | "tradeDone" // 交換のグッズを受け取った
+  | "freezeUsed"; // お休みの日を使って連続を守った（n）
 
 export interface PockeCheerDetail {
   kind: PockeCheerKind;

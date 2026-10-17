@@ -174,6 +174,9 @@ export function usePurchaseShopItem() {
         if (error.message?.includes("Already owned")) {
           throw new Error(t("cosmetics.alreadyOwned"));
         }
+        if (error.message?.includes("Freeze limit")) {
+          throw new Error(t("pocke.ring.freezeLimit"));
+        }
         throw error;
       }
 
@@ -186,6 +189,8 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["userPurchases"] });
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       queryClient.invalidateQueries({ queryKey: ["userUnlocks"] });
+      // お休みの日を買ったら、今日のリングの数も読み直す
+      queryClient.invalidateQueries({ queryKey: ["daily-ring"] });
       
       pockeCheer("purchased");
       toast.success(t("notices.shop.purchasedTitle"), {

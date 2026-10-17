@@ -4284,6 +4284,10 @@ export type Database = {
         Args: { _keys: string[] }
         Returns: undefined
       }
+      get_daily_ring: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_zukan_index: {
         Args: { _user_id?: string }
         Returns: {

@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Camera, Check, ChevronRight, Flame, Gift, Sparkles } from "lucide-react";
+import { CalendarDays, Camera, Check, ChevronRight, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
+import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
+import { PockeRing } from "./PockeRing";
 import { useOshiNewBadge } from "@/hooks/useOshiReleases";
 import { useOshiPhotos } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
@@ -15,9 +16,9 @@ import { IconTile } from "@/components/ui/icon-tile";
  * 並びの考え方（アプリの中心は「登録する → 眺める → コンプ → 交換」）:
  *  1) 主役は「推しの新着」。新商品を見て、持っているものを登録する入口なので、帯の幅のほとんどを渡す。
  *     押すと「推しの新商品」の画面（/releases: 今週発売・カレンダー・新着）。まだ見ていない新着は件数で出す（見たら消える）
- *  2) 連続ログイン（炎）と推しフォトは、毎日の習慣の小さなボタンに縮める。
+ *  2) 今日のポッケリング（毎日の目標と連続）と推しフォトは、毎日の習慣の小さなボタンに縮める。
  *     以前は炎が帯の主役で、新着は横の小さな四角だった（「何のアプリか」より「毎日開く理由」が前に出ていた）。
- *     炎を押すと、ボーナスの次の段階と「ポイントのもらい方」への入口が開く。
+ *     リングを押すと、今日の3つの目標・連続・ログインボーナスの画面が開く（DailyRingSheet）。
  *     以前ここにあった「投稿 +3pt・コメント +1pt・交換 +10pt」の札は、もらい方の画面にまとめた（額の正はサーバーの表）
  */
 export function DailyHubCard() {
@@ -25,7 +26,7 @@ export function DailyHubCard() {
   const navigate = useNavigate();
   const hub = useDailyHub();
   const releases = useOshiNewBadge();
-  const [expanded, setExpanded] = useState(false);
+  const { data: ring } = useDailyRing();
   const oshi = useOshiPhotos();
 
   // 連続ログインの記録がまだ読めていないとき・初回のログイン前は何も出さない
@@ -56,14 +57,14 @@ export function DailyHubCard() {
           <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         </button>
 
-        <StripButton
-          onClick={() => setExpanded((v) => !v)}
-          icon={<Flame className="h-4 w-4" />}
-          label={hub.streak > 0 ? t("engage.dailyHub.streakChip", { n: hub.streak }) : t("engage.dailyHub.today")}
-          ariaLabel={hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
-          expanded={expanded}
-          warm={hub.streak > 0}
-        />
+        {ring && (
+          <StripButton
+            onClick={openDailyRing}
+            icon={<PockeRing done={[ring.collect, ring.care, ring.social]} size={18} stroke={3.5} />}
+            label={ring.streak > 0 ? t("pocke.ring.chip", { n: ring.streak }) : t("pocke.ring.chipNone")}
+            ariaLabel={t("pocke.ring.chipLabel", { done: ringDoneCount(ring), n: ring.streak })}
+          />
+        )}
         <StripButton
           onClick={() => navigate("/oshi")}
           icon={oshi.todayDone ? <Check className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
@@ -73,35 +74,6 @@ export function DailyHubCard() {
         />
       </div>
 
-      {expanded && (
-        <div className="mt-2 space-y-1.5 border-t px-2 pb-1 pt-2">
-          <p className="text-xs">
-            <span className="font-bold">
-              {hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
-            </span>
-            <span className="text-muted-foreground">
-              {" · "}
-              {hub.claimedToday && hub.todayPoints !== null
-                ? t("engage.dailyHub.claimed", { n: hub.todayPoints })
-                : t("engage.dailyHub.notClaimed")}
-            </span>
-          </p>
-          {hub.next && (
-            <p className="text-xs font-medium text-primary">
-              {t("engage.dailyHub.next", { days: hub.next.inDays, points: hub.next.points })}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate("/point-shop/earn")}
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-          >
-            <Gift className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("engage.dailyHub.earnLink")}
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        </div>
-      )}
     </Card>
   );
 }
@@ -120,9 +92,9 @@ function StripButton({
   label: string;
   ariaLabel: string;
   done?: boolean;
-  /** 開閉するボタン（炎）のとき、開いているか */
+  /** 開閉するボタンのとき、開いているか */
   expanded?: boolean;
-  /** 連続ログイン中（炎を暖色にする） */
+  /** 暖色にする */
   warm?: boolean;
 }) {
   return (

@@ -50,6 +50,7 @@ const RULES: { reason: string; group: Group; labelKey: string; icon: LucideIcon;
   { reason: "official_item_add", group: "collection", labelKey: "officialItemAdd", icon: PackagePlus, noteKey: "perItem" },
   { reason: "content_add", group: "collection", labelKey: "contentAdd", icon: BookPlus, noteKey: "perItem" },
   // 毎日
+  { reason: "daily_ring", group: "daily", labelKey: "dailyRing", icon: Flame, noteKey: "perDay", cap: 1 },
   { reason: "daily_photo", group: "daily", labelKey: "dailyPhoto", icon: Camera, noteKey: "perDay", cap: 1 },
   // みんなと
   { reason: "post_create", group: "social", labelKey: "postCreate", icon: PenLine, noteKey: "perDay", cap: 3 },

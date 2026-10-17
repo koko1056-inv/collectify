@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Camera, Check, ChevronRight, Flame, Gift, Home, Sparkles, Trophy } from "lucide-react";
+import { CalendarDays, Camera, Check, Home, Sparkles, Trophy } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useDailyHub } from "@/hooks/useDailyHub";
+import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
+import { PockeRing } from "@/components/daily/PockeRing";
 import { useOshiNewBadge } from "@/hooks/useOshiReleases";
 import { useCompanions, useOshiPhotos } from "@/hooks/useOshi";
 import { nextCare } from "@/hooks/useOshiRoomSocial";
@@ -16,18 +17,17 @@ interface CollectionShortcutsProps {
 
 /**
  * コレクション画面の小さな入口の1行（横にスクロール）。
- * 推しの新着・連続ログイン（今日分）・推しフォト・コンプ・推しの部屋。
+ * 推しの新着・今日のポッケリング（毎日の目標と連続）・推しフォト・コンプ・推しの部屋。
  * 以前はそれぞれが画面の上のほうで大きなカードになっていて（合わせて約600px）、グッズの一覧が
  * 最初の画面に1つも見えなかった。どれも無くさず、押せば今までと同じ場所へ行ける小さな札にした。
  */
 export function CollectionShortcuts({ onOpenTargets }: CollectionShortcutsProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const hub = useDailyHub();
+  const { data: ring } = useDailyRing();
   const releases = useOshiNewBadge();
   const oshi = useOshiPhotos();
   const companions = useCompanions();
-  const [streakOpen, setStreakOpen] = useState(false);
 
   const unseen = releases.unseen > 99 ? "99+" : String(releases.unseen);
   const careLeft = companions.data && companions.data.length > 0 ? nextCare(companions.data, todayJst()) : null;
@@ -43,14 +43,14 @@ export function CollectionShortcuts({ onOpenTargets }: CollectionShortcutsProps)
           ariaLabel={releases.unseen > 0 ? t("engage.dailyHub.newForYou", { n: releases.unseen }) : t("discover.releases.title")}
           testId="daily-releases"
         />
-        {hub.ready && (
+        {ring && (
           <Shortcut
-            onClick={() => setStreakOpen((v) => !v)}
-            icon={<Flame />}
-            label={hub.streak > 0 ? t("engage.dailyHub.streakChip", { n: hub.streak }) : t("engage.dailyHub.today")}
-            ariaLabel={hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
-            expanded={streakOpen}
-            iconClassName={hub.streak > 0 ? "text-warning" : undefined}
+            onClick={openDailyRing}
+            icon={<PockeRing done={[ring.collect, ring.care, ring.social]} size={18} stroke={3.5} />}
+            label={ring.streak > 0 ? t("pocke.ring.chip", { n: ring.streak }) : t("pocke.ring.chipNone")}
+            ariaLabel={t("pocke.ring.chipLabel", { done: ringDoneCount(ring), n: ring.streak })}
+            dot={ringDoneCount(ring) < 3}
+            testId="daily-ring-chip"
           />
         )}
         <Shortcut
@@ -81,35 +81,6 @@ export function CollectionShortcuts({ onOpenTargets }: CollectionShortcutsProps)
         />
       </div>
 
-      {streakOpen && hub.ready && (
-        <div className="space-y-1.5 rounded-xl border bg-card px-3 py-2.5">
-          <p className="text-xs">
-            <span className="font-bold">
-              {hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
-            </span>
-            <span className="text-muted-foreground">
-              {" · "}
-              {hub.claimedToday && hub.todayPoints !== null
-                ? t("engage.dailyHub.claimed", { n: hub.todayPoints })
-                : t("engage.dailyHub.notClaimed")}
-            </span>
-          </p>
-          {hub.next && (
-            <p className="text-xs font-medium text-primary">
-              {t("engage.dailyHub.next", { days: hub.next.inDays, points: hub.next.points })}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate("/point-shop/earn")}
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-          >
-            <Gift className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("engage.dailyHub.earnLink")}
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
