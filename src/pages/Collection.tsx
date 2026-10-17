@@ -9,9 +9,10 @@ import { FilterSheet } from "@/components/FilterSheet";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
-import { OshiRoomMiniCard } from "@/components/oshi/OshiRoomMiniCard";
 import { PreorderArrivalBanner } from "@/components/preorders/PreorderArrivalBanner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NoticeSlotProvider } from "@/components/collection/NoticeSlot";
+import { useCollectionCount } from "@/hooks/useCollectionLimit";
 
 
 export default function Collection() {
@@ -26,6 +27,7 @@ export default function Collection() {
   // 「探して追加」からは選択肢を挟まずカタログ検索を直接開く
   const [addSheetView, setAddSheetView] = useState<"menu" | "pick">("menu");
   const { data: allTags = [] } = useTags();
+  const { data: itemCount } = useCollectionCount();
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -47,51 +49,51 @@ export default function Collection() {
     <div className="min-h-screen bg-background pb-nav">
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
-        <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          {/* アプリの一言説明。初めての人が「何のアプリか」で迷わないよう、いちばん上に1行だけ置く。
-              ログイン画面・ウェルカム・OGP の説明と同じ「推しグッズの図鑑」の軸で書く */}
-          <p className="px-1 text-2xs text-muted-foreground" data-testid="app-tagline">{t("chrome.collection.tagline")}</p>
+        {/* 上から「タイトル（検索・絞り込み）→ お知らせ1つ → 小さな入口の1行 → 持ってる/ほしい/予約中/手放した → グッズ」。
+            以前は、ガイド・予約・推しの新着・コンプ・作品の札（3〜4行）・推しの部屋が縦に並び、
+            グッズの一覧が上から約930px（最初の画面の外）まで押し下げられていた。どれも無くさず、小さくした */}
+        <NoticeSlotProvider>
+          <div className="max-w-5xl mx-auto space-y-3 animate-fade-in">
+            <FilterSheet
+              header={
+                <h1 className="flex items-baseline gap-2 px-1">
+                  <span className="text-xl font-bold">{t("collectionScreen.header.title")}</span>
+                  {user && itemCount !== undefined && itemCount > 0 && (
+                    <span className="text-sm font-normal tabular-nums text-muted-foreground">
+                      {t("collectionScreen.header.count", { n: itemCount })}
+                    </span>
+                  )}
+                </h1>
+              }
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+              selectedTags={selectedTags}
+              onTagsChange={handleTagsChange}
+              selectedContent={selectedContent}
+              onContentChange={handleContentChange}
+              tags={allTags}
+              selectedPersonalTag={selectedPersonalTag}
+              onPersonalTagChange={handlePersonalTagChange}
+            />
 
-          {/* 「Collectifyはじめてガイド」。ログイン後に最初に開く画面がここなので、ここに置く。
-              タブから辿り着けない画面に置いておくと誰も進められない。 */}
-          {user && <OnboardingChecklist />}
+            {/* お知らせ枠。大事な順に1つだけ出る（予約の到着 → 枠の残り → 重複 → はじめてガイド → 思い出） */}
+            {user && <PreorderArrivalBanner />}
+            {user && <SlotUsageMeter type="collection" minPercent={80} />}
+            {user && <OnboardingChecklist />}
 
-          {/* 枠の使用状況は 80% を超えてから出す（常に出すと、最初の画面にグッズが1つも見えなかった）。
-              普段の使用数はポイント画面と設定で見られる */}
-          {user && <SlotUsageMeter type="collection" minPercent={80} />}
-
-          {/* 発売日を過ぎた予約（届いた？）。無いときは何も出さない */}
-          {user && <PreorderArrivalBanner />}
-
-          <FilterSheet
-            searchQuery={searchQuery}
-            onSearchChange={handleSearchChange}
-            selectedTags={selectedTags}
-            onTagsChange={handleTagsChange}
-            selectedContent={selectedContent}
-            onContentChange={handleContentChange}
-            tags={allTags}
-            selectedPersonalTag={selectedPersonalTag}
-            onPersonalTagChange={handlePersonalTagChange}
-          />
-          
-          <div className="transition-all duration-200">
-            <UserCollection 
-              selectedTags={selectedTags} 
-              userId={user?.id || null} 
-              selectedContent={selectedContent} 
+            <UserCollection
+              layout="shelf"
+              selectedTags={selectedTags}
+              userId={user?.id || null}
+              selectedContent={selectedContent}
               searchQuery={searchQuery}
               onContentChange={handleContentChange}
               selectedPersonalTag={selectedPersonalTag}
               onPersonalTagChange={handlePersonalTagChange}
               onPickFromCatalog={() => { setAddSheetView("pick"); setIsAddSheetOpen(true); }}
-              // 自分の推しの部屋の小さな窓（今日のお世話の残り・なかよしLv・いいね）。タップで /oshi へ。
-              // 推しの部屋は「眺める・愛着」の場所なので、上の「推しの新着（登録のきっかけ）・コンプ」の下に置く。
-              // 以前は画面のいちばん上（ガイドの直下）にあり、最初の画面が部屋とガイドで埋まっていた
-              belowProgress={user ? <OshiRoomMiniCard /> : null}
             />
           </div>
-        </div>
+        </NoticeSlotProvider>
       </main>
       
       {/* グッズ追加の常設導線は下タブ中央のボタンに移した。

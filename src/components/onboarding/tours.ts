@@ -139,15 +139,11 @@ export const PAGE_TOURS: PageTour[] = [
     id: "explore-v2",
     path: "/explore",
     steps: [
-      {
-        target: "explore-tabs",
-        titleKey: "tour.explore.tabs.title",
-        bodyKey: "tour.explore.tabs.body",
-      },
+      // タブの列は無くした（最初の画面に少しずつ並べ、「すべて」から一覧へ）。反応の説明は投稿の一覧の側で足りる
       {
         target: "explore-feed",
-        titleKey: "tour.explore.feed.title",
-        bodyKey: "tour.explore.feed.body",
+        titleKey: "tour.explore.tabs.title",
+        bodyKey: "tour.explore.tabs.body",
       },
     ],
   },

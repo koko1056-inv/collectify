@@ -119,9 +119,18 @@ export const collectionScreen = {
       normalView: "通常表示",
       listView: "一覧表示",
     },
+    header: {
+      title: "コレクション",
+      count: "{n}点",
+      search: "グッズを検索",
+    },
+    shortcuts: {
+      complete: "コンプ",
+      room: "推しの部屋",
+    },
     viewToggle: {
-      grid: "通常表示",
-      wishlist: "ほしいものリスト",
+      grid: "持ってる",
+      wishlist: "ほしい",
       taggedEmptyPrefix: "「",
       taggedEmptySuffix: "」タグが付いたグッズはまだありません",
       empty: "該当するグッズがありません",
@@ -320,8 +329,17 @@ export const collectionScreen = {
       normalView: "Grid view",
       listView: "List view",
     },
+    header: {
+      title: "Collection",
+      count: "{n} items",
+      search: "Search goods",
+    },
+    shortcuts: {
+      complete: "Complete",
+      room: "Oshi room",
+    },
     viewToggle: {
-      grid: "Grid",
+      grid: "Owned",
       wishlist: "Wishlist",
       taggedEmptyPrefix: "No goods with the “",
       taggedEmptySuffix: "” tag yet",

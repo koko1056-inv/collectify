@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Flame, Images, Sparkles, Users } from "lucide-react";
@@ -86,6 +86,15 @@ export function ItemPostsFeedPanel() {
     setPickerOpen(true);
   };
 
+  // ?compose=<お題>: 「みんな」の上の「今週のお題 → 投稿する」から来たとき、その場で投稿を始める
+  const composeParam = searchParams.get("compose");
+  useEffect(() => {
+    if (composeParam === null) return;
+    patchParams((p) => p.delete("compose"));
+    startPost(composeParam || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 合図（compose）が来たときだけ
+  }, [composeParam]);
+
   const handleCreated = (postId: string) => {
     toast.success(t("engage.posts.postedTitle"), {
       description: t("engage.posts.postedDesc"),
@@ -148,11 +157,12 @@ export function ItemPostsFeedPanel() {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
+      {/* 作品の札は折り返さず1行で横にスクロール（以前は3〜4行に折り返し、投稿が押し下げられていた） */}
+      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
         <FilterPill active={!contentFilter} onClick={() => patchParams((p) => p.delete("content"))}>
           {t("screens.itemPostsFeed.allFilter")}
         </FilterPill>
-        {contentNames.slice(0, 12).map((c) => (
+        {contentNames.slice(0, 30).map((c) => (
           <FilterPill
             key={c.id}
             active={activeContentPill === c.name}

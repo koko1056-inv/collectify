@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   countFacets,
@@ -26,6 +27,11 @@ interface CollectionExplorerProps {
   userId?: string | null;
   /** 自分の棚か。目標のピン留め・「あと1個」の追加は自分の棚だけ */
   isOwn?: boolean;
+  /**
+   * 1行だけの表示（自分のコレクション画面）。コンプの的は出さず（「コンプ」の入口から開く）、
+   * 作品・キャラなどの切り替えは小さなメニューに、札は折り返さず横にスクロールする
+   */
+  compact?: boolean;
 }
 
 const KINDS: FacetKind[] = ["series", "character", "type", "source"];
@@ -39,6 +45,7 @@ export function CollectionExplorer({
   onShareSeries,
   userId,
   isOwn = false,
+  compact = false,
 }: CollectionExplorerProps) {
   const { t } = useLanguage();
   const [kind, setKind] = useState<FacetKind>("series");
@@ -60,6 +67,51 @@ export function CollectionExplorer({
 
   const toggle = (k: FacetKind, v: string) =>
     onFacetChange(isSelected(k, v) ? null : { kind: k, value: v });
+
+  if (compact) {
+    if (!activeKind) return null;
+    return (
+      <div className="-mx-3 flex items-center gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0" data-tour="collection-explorer" aria-label={t("engage.collection.browseBy")}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex h-8 shrink-0 items-center gap-0.5 rounded-full border border-foreground/70 bg-card px-3 text-xs font-bold"
+            >
+              {t(`engage.collection.kind.${activeKind}`)}
+              <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {availableKinds.map((k) => (
+              <DropdownMenuItem key={k} onClick={() => setKind(k)} className={cn(activeKind === k && "bg-accent font-medium")}>
+                {t(`engage.collection.kind.${k}`)}
+                <span className="ml-auto pl-3 text-2xs tabular-nums text-muted-foreground">{counts[k].length}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {chips.map((c) => {
+          const selected = isSelected(activeKind, c.value);
+          return (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => toggle(activeKind, c.value)}
+              aria-pressed={selected}
+              className={cn(
+                "inline-flex h-8 shrink-0 items-center gap-1 rounded-full border px-3 text-xs transition-colors",
+                selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/40"
+              )}
+            >
+              <span className="max-w-[10rem] truncate">{c.value}</span>
+              <span className={cn("tabular-nums text-3xs", selected ? "opacity-80" : "text-muted-foreground")}>{c.count}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3" data-tour="collection-explorer">

@@ -57,6 +57,7 @@ export const preorders = {
       title: "発売日を過ぎた予約が{count}件あります",
       desc: "届いていたら、コレクションに入れましょう",
       all: "予約中をすべて見る",
+      check: "確認する",
     },
     tile: {
       preordered: "予約中",
@@ -114,6 +115,7 @@ export const preorders = {
       title: "{count} pre-orders are past their release date",
       desc: "If they've arrived, add them to your collection",
       all: "See all pre-orders",
+      check: "Review",
     },
     tile: {
       preordered: "On order",

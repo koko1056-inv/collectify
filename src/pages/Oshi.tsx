@@ -63,10 +63,11 @@ const Oshi = () => {
   const room = useProfileOshiRoom(user?.id);
   const saveRoom = useSaveOshiRoom();
   const { owned } = useMyUnlocks();
-  const [tab, setTab] = useState("room");
   // ?item=<id>: コレクション画面のミニ部屋から「この推しのお世話がまだ」で来たとき、そのグッズを選んだ状態で開く。
   // ?likes=1: いいねの通知から来たとき、誰がいいねしたかを開く
   const [searchParams, setSearchParams] = useSearchParams();
+  // ?tab=photo: コレクション画面の「推しフォト」から来たとき、写真のタブで開く
+  const [tab, setTab] = useState(() => (searchParams.get("tab") === "photo" ? "photo" : "room"));
   const likes = useOshiRoomLikes(user?.id);
   const likersOpen = searchParams.get("likes") === "1";
   const setLikersOpen = (o: boolean) => {

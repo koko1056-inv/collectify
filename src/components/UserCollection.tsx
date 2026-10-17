@@ -38,6 +38,10 @@ import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/
 import { OnThisDayCard } from "./collection/OnThisDayCard";
 import { DailyHubCard } from "./daily/DailyHubCard";
 import { DuplicateCleanupBanner } from "./collection/DuplicateCleanupBanner";
+import { CollectionShortcuts } from "./collection/CollectionShortcuts";
+import { CompletionTargets } from "./collection/CompletionTargets";
+import { NOTICE_PRIORITY, useNoticeTurn } from "./collection/noticeSlot";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { UniverseEntryCard } from "./universe/UniverseEntryCard";
 import { UniverseView } from "./universe/UniverseView";
 import { InstallAppCard } from "./pwa/InstallAppCard";
@@ -84,6 +88,12 @@ interface UserCollectionProps {
    * 「登録・コンプ」を上に、「眺める・愛着」をその下に置くための差し込み口。
    */
   belowProgress?: React.ReactNode;
+  /**
+   * "shelf": 自分のコレクション画面の並べ方。グッズの一覧を最初の画面に出すため、
+   * 推しの新着・今日分・推しフォト・コンプ・推しの部屋は小さな入口の1行にまとめ、
+   * 作品の札と並び替えは「持ってる」のタブの中（一覧のすぐ上）に置く
+   */
+  layout?: "default" | "shelf";
 }
 
 export function UserCollection({
@@ -98,6 +108,7 @@ export function UserCollection({
   activeFilterCount: activeFilterCountProp,
   onPickFromCatalog,
   belowProgress,
+  layout = "default",
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -122,6 +133,7 @@ export function UserCollection({
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isUniverseOpen, setIsUniverseOpen] = useState(false);
+  const [isTargetsOpen, setIsTargetsOpen] = useState(false);
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
   const effectiveUserId = userId || user?.id;
@@ -255,6 +267,8 @@ export function UserCollection({
 
   // 自分の棚だけ。お迎え日から自動で出す思い出（入力は不要）
   const onThisDay = useMemo(() => (isOwnCollection ? findOnThisDay(items) : null), [isOwnCollection, items]);
+  // 「N年前の今日」はお知らせ枠でいちばん後回し（ほかのお知らせがあるときは出さない）
+  const showOnThisDay = useNoticeTurn("onThisDay", NOTICE_PRIORITY.onThisDay, !!onThisDay && !onThisDayDismissed);
   const monthGroups = useMemo(
     () => (sortOption === "timeline" ? groupByMonth(filteredItems) : []),
     [sortOption, filteredItems]
@@ -456,44 +470,12 @@ export function UserCollection({
     setSelectedItemIds([]);
   };
 
-  return (
-    <div className="space-y-4 my-0 mx-0 px-0 py-px">
-      {/* 上から「推しの新着（登録のきっかけ）→ コンプ → 推しの部屋・思い出（眺める）→ 棚」の順。
-          アプリの中心は「登録する → 眺める → コンプ → 交換」なので、その入口を上に寄せる。
-          ホーム画面への追加の案内は道具なので、棚の下へ回した（以前は棚の上にあり、グッズが押し下げられていた） */}
-      {isOwnCollection && <DailyHubCard />}
+  const isFacetSelected = (k: CollectionFacet["kind"], v: string) =>
+    facet?.kind === k && facet.value.toLowerCase() === v.toLowerCase();
 
-      {isOwnCollection && <DuplicateCleanupBanner />}
-
-      <CollectionExplorer
-        items={items}
-        progress={progress}
-        facet={facet}
-        onFacetChange={setFacet}
-        onShareSeries={isOwnCollection ? openSeriesShare : undefined}
-        userId={effectiveUserId}
-        isOwn={isOwnCollection}
-      />
-
-      {belowProgress}
-
-      {/* 「去年の今日」の思い出は眺める側のもの。コンプの下に置く */}
-      {onThisDay && !onThisDayDismissed && (
-        <OnThisDayCard
-          memory={onThisDay}
-          onDismiss={() => {
-            setOnThisDayDismissed(true);
-            try {
-              localStorage.setItem(ON_THIS_DAY_KEY, todayKey());
-            } catch {
-              /* 保存できなくても、この画面では閉じたままにする */
-            }
-          }}
-        />
-      )}
-
-      {/* ツールバー */}
-      <div className="flex items-center gap-2 mb-4">
+  // ツールバー（並び替え・選択・共有・今日のグッズ）
+  const toolbar = (
+      <div className={layout === "shelf" ? "flex items-center gap-2" : "flex items-center gap-2 mb-4"}>
         {!isSelectionMode ? (
           <>
             {/* 左：並び替え + フィルター（コンパクト） */}
@@ -532,12 +514,13 @@ export function UserCollection({
                   (selectedPersonalTag ? 1 : 0);
                 const filterCount = activeFilterCountProp ?? localCount;
                 const hasFilter = filterCount > 0;
+                // 開く先が無いとき（コレクション画面は上の検索の横に絞り込みがある）は出さない。以前は押せないまま出ていた
+                if (!onOpenFilter) return null;
                 return (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={onOpenFilter}
-                    disabled={!onOpenFilter}
                     className="tap-safe-y relative h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
                     title={t("chrome.collection.filter")}
                     aria-label={t("chrome.collection.filter")}
@@ -627,37 +610,11 @@ export function UserCollection({
           </>
         )}
       </div>
+  );
 
-      {filteredItems.length === 0 ? (
-        <EmptyState
-          icon={Search}
-          title={t("chrome.collection.noMatchTitle")}
-          description={t("chrome.collection.noMatchDesc")}
-        />
-      ) : (
-        <CollectionViewToggle
-          userId={effectiveUserId}
-          items={filteredItems}
-          groups={
-            sortOption === "timeline"
-              ? monthGroups.map((g) => ({
-                  key: g.key,
-                  label: t("engage.timeline.month", { y: g.year, m: g.month }),
-                  count: t("engage.timeline.count", { n: g.items.length }),
-                  items: g.items,
-                }))
-              : undefined
-          }
-          isCompact={isCompact}
-          handleDragEnd={handleDragEnd}
-          selectedPersonalTag={selectedPersonalTag}
-          onPersonalTagChange={onPersonalTagChange}
-          isSelectionMode={isSelectionMode}
-          selectedItems={selectedItemIds}
-          onSelectItem={handleSelectItem}
-        />
-      )}
-
+  // 一覧の下（推し宇宙・ホーム画面への追加）と、開いて使うもの（選択の操作・ダイアログ）
+  const sharedBottom = (
+    <>
       {/* 推し宇宙の入口は一覧の下に置く（上にあると、最初の画面にグッズが見えなかった） */}
       {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
 
@@ -731,6 +688,166 @@ export function UserCollection({
         onClose={handleRandomModalClose}
         userId={effectiveUserId}
       />
+    </>
+  );
+
+  if (layout === "shelf") {
+    return (
+      <div className="space-y-3">
+        {/* お知らせ枠（画面の上の予約・枠・ガイドと順番を決めて、1つだけ出る） */}
+        {isOwnCollection && <DuplicateCleanupBanner />}
+        {/* 「N年前の今日」の思い出（お知らせ枠でいちばん後回し） */}
+        {onThisDay && showOnThisDay && (
+          <OnThisDayCard
+            memory={onThisDay}
+            onDismiss={() => {
+              setOnThisDayDismissed(true);
+              try {
+                localStorage.setItem(ON_THIS_DAY_KEY, todayKey());
+              } catch {
+                /* 保存できなくても、この画面では閉じたままにする */
+              }
+            }}
+          />
+        )}
+
+        {isOwnCollection && <CollectionShortcuts onOpenTargets={() => setIsTargetsOpen(true)} />}
+
+        {/* 持ってる / ほしい / 予約中 / 手放した のタブ。作品の札と並び替えは「持ってる」の中、一覧のすぐ上 */}
+        <CollectionViewToggle
+          beforeGrid={
+            <>
+              <CollectionExplorer
+                items={items}
+                progress={progress}
+                facet={facet}
+                onFacetChange={setFacet}
+                userId={effectiveUserId}
+                isOwn={isOwnCollection}
+                compact
+              />
+              {toolbar}
+            </>
+          }
+          userId={effectiveUserId}
+          items={filteredItems}
+          groups={
+            sortOption === "timeline"
+              ? monthGroups.map((g) => ({
+                  key: g.key,
+                  label: t("engage.timeline.month", { y: g.year, m: g.month }),
+                  count: t("engage.timeline.count", { n: g.items.length }),
+                  items: g.items,
+                }))
+              : undefined
+          }
+          isCompact={isCompact}
+          handleDragEnd={handleDragEnd}
+          selectedPersonalTag={selectedPersonalTag}
+          onPersonalTagChange={onPersonalTagChange}
+          isSelectionMode={isSelectionMode}
+          selectedItems={selectedItemIds}
+          onSelectItem={handleSelectItem}
+        />
+
+        {/* コンプまであと少し（以前は画面の上に大きく出ていた。「コンプ」の入口から開く） */}
+        <Sheet open={isTargetsOpen} onOpenChange={setIsTargetsOpen}>
+          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
+            {/* 中の一覧にも同じ見出しがあるので、シートの題は読み上げ用だけにする */}
+            <SheetHeader className="sr-only">
+              <SheetTitle>{t("collectGoals.targets.title")}</SheetTitle>
+            </SheetHeader>
+            <div className="pt-2">
+              <CompletionTargets
+                userId={effectiveUserId}
+                items={items}
+                progress={progress}
+                isOwn={isOwnCollection}
+                isSelected={isFacetSelected}
+                onToggleFacet={(k, v) => {
+                  setFacet(isFacetSelected(k, v) ? null : { kind: k, value: v });
+                  setIsTargetsOpen(false);
+                }}
+                onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {sharedBottom}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      {/* 上から「推しの新着（登録のきっかけ）→ コンプ → 推しの部屋・思い出（眺める）→ 棚」の順。
+          アプリの中心は「登録する → 眺める → コンプ → 交換」なので、その入口を上に寄せる。
+          ホーム画面への追加の案内は道具なので、棚の下へ回した（以前は棚の上にあり、グッズが押し下げられていた） */}
+      {isOwnCollection && <DailyHubCard />}
+
+      {isOwnCollection && <DuplicateCleanupBanner />}
+
+      <CollectionExplorer
+        items={items}
+        progress={progress}
+        facet={facet}
+        onFacetChange={setFacet}
+        onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+        userId={effectiveUserId}
+        isOwn={isOwnCollection}
+      />
+
+      {belowProgress}
+
+      {/* 「去年の今日」の思い出は眺める側のもの。コンプの下に置く */}
+      {onThisDay && showOnThisDay && (
+        <OnThisDayCard
+          memory={onThisDay}
+          onDismiss={() => {
+            setOnThisDayDismissed(true);
+            try {
+              localStorage.setItem(ON_THIS_DAY_KEY, todayKey());
+            } catch {
+              /* 保存できなくても、この画面では閉じたままにする */
+            }
+          }}
+        />
+      )}
+
+      {toolbar}
+
+      {filteredItems.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title={t("chrome.collection.noMatchTitle")}
+          description={t("chrome.collection.noMatchDesc")}
+        />
+      ) : (
+        <CollectionViewToggle
+          userId={effectiveUserId}
+          items={filteredItems}
+          groups={
+            sortOption === "timeline"
+              ? monthGroups.map((g) => ({
+                  key: g.key,
+                  label: t("engage.timeline.month", { y: g.year, m: g.month }),
+                  count: t("engage.timeline.count", { n: g.items.length }),
+                  items: g.items,
+                }))
+              : undefined
+          }
+          isCompact={isCompact}
+          handleDragEnd={handleDragEnd}
+          selectedPersonalTag={selectedPersonalTag}
+          onPersonalTagChange={onPersonalTagChange}
+          isSelectionMode={isSelectionMode}
+          selectedItems={selectedItemIds}
+          onSelectItem={handleSelectItem}
+        />
+      )}
+
+      {sharedBottom}
     </div>
   );
 }

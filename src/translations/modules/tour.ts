@@ -83,8 +83,8 @@ export const tour = {
 
     explore: {
       tabs: {
-        title: "みんなの投稿と、グッズ探し",
-        body: "「投稿」では今週のお題や新着が見られます。「グッズ」では、そのグッズを誰が持っているか・交換できる人がいるかが分かります。",
+        title: "みんなの楽しみを1つの画面に",
+        body: "今週のお題・新着の投稿・推しの部屋・AI作品・人気のユーザーを少しずつ並べています。「すべて」を押すと一覧が開きます。",
       },
       feed: {
         title: "気になったらワンタップで反応",
@@ -216,8 +216,8 @@ export const tour = {
 
     explore: {
       tabs: {
-        title: "Posts from everyone, and goods search",
-        body: "\"Posts\" shows this week's theme and new posts. \"Goods\" shows who owns an item and who is open to trading.",
+        title: "Everything from everyone, on one screen",
+        body: "This week's theme, new posts, oshi rooms, AI creations and popular users, a few of each. Tap \"See all\" to open the full list.",
       },
       feed: {
         title: "React with one tap",

@@ -14,6 +14,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDuplicateUserItems, useMergeDuplicateUserItems } from "@/hooks/useDuplicateUserItems";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { NOTICE_PRIORITY, useNoticeTurn } from "./noticeSlot";
 
 /**
  * 同じグッズが別々のカードになっているときだけ出す「お掃除」の入口。
@@ -24,8 +25,9 @@ export function DuplicateCleanupBanner() {
   const { data: groups = [] } = useDuplicateUserItems();
   const merge = useMergeDuplicateUserItems();
   const [open, setOpen] = useState(false);
+  const myTurn = useNoticeTurn("duplicates", NOTICE_PRIORITY.duplicates, groups.length > 0);
 
-  if (groups.length === 0 && !open) return null;
+  if (!myTurn && !open) return null;
 
   const totalCards = groups.reduce((sum, g) => sum + g.cardCount, 0);
 
@@ -41,7 +43,7 @@ export function DuplicateCleanupBanner() {
 
   return (
     <>
-      {groups.length > 0 && (
+      {myTurn && (
         <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
           <Layers className="h-5 w-5 shrink-0 text-primary" aria-hidden />
           <div className="min-w-0 flex-1">
