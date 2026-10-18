@@ -23,7 +23,7 @@ export function OnboardingAiTry() {
   const make = async () => {
     setPhase("making");
     try {
-      const res = await generateMissionImage("onboarding");
+      const res = await generateMissionImage({ mode: "onboarding" });
       setResult(res);
       setPhase("made");
       pockeCheer("added");

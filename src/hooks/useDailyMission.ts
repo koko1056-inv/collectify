@@ -20,15 +20,29 @@ export interface DailyMission {
 export const DAILY_MISSION_KEY = "daily-mission";
 /** ミッションの写真を撮る画面（推しの部屋の写真タブで、撮るダイアログを開く） */
 export const MISSION_SHOOT_HREF = "/oshi?tab=photo&mission=1";
-/** ミッションを AI で作る（同じ撮影画面を開いて、すぐ作り始める） */
+/** ミッションを AI で作る（同じ撮影画面を開いて、どんな場面にしたいか書ける指示欄にフォーカスする） */
 export const MISSION_AI_HREF = "/oshi?tab=photo&mission=1&ai=1";
+
+/** 自由入力の指示欄の文字数上限（Edge Function 側でも同じ値で切る） */
+export const MISSION_AI_INSTRUCTION_MAX_LEN = 200;
+
+export interface GenerateMissionImageOptions {
+  mode?: "mission" | "onboarding";
+  /** どんな場面にしたいか、自由入力（任意。空なら従来どおりお題の自動生成） */
+  instruction?: string;
+  /** false なら推しグッズの写真を参考にせず、名前だけで作る（既定 true） */
+  useReference?: boolean;
+}
 
 /** ミッションのお題どおりの1枚を AI で作る。作った画像は自分の推しフォトのフォルダに置かれ、その URL が返る（保存は別） */
 export async function generateMissionImage(
-  mode: "mission" | "onboarding" = "mission"
+  options: GenerateMissionImageOptions = {}
 ): Promise<{ imageUrl: string; itemId: string; triesLeft: number }> {
   // onboarding: ウェルカムのお祝いで AI をためす1回（いま登録したグッズを飾った1枚。1人1回だけ無料）
-  const { data, error } = await supabase.functions.invoke("generate-mission-image", { body: { mode } });
+  const { mode = "mission", instruction, useReference } = options;
+  const { data, error } = await supabase.functions.invoke("generate-mission-image", {
+    body: { mode, instruction, useReference },
+  });
   if (error) {
     // 関数が返したエラーの種類（mission_ai_limit など）を取り出す
     let code = "generation_failed";
