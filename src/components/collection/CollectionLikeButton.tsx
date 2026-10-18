@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { Button } from "../ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface CollectionLikeButtonProps {
   collectionOwnerId: string;
@@ -74,9 +75,8 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
       queryClient.invalidateQueries({ queryKey: ["collection-likes-count", collectionOwnerId] });
       queryClient.invalidateQueries({ queryKey: ["collection-is-liked", collectionOwnerId, user.id] });
 
-      toast.success(isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"), {
-        description: isLiked ? t("collectionScreen.like.unlikedDesc") : t("collectionScreen.like.likedDesc"),
-      });
+      // いいね（押す前は isLiked===false）だけポッケが喜ぶ。外すときはハートの見た目の変化で十分なので知らせない
+      if (!isLiked) pockeCheer("liked");
     } catch (error) {
       console.error("Error toggling collection like:", error);
       toast.error(t("collectionScreen.common.error"), {

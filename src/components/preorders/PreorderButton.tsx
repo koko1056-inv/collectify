@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { usePreorders } from "@/hooks/usePreorders";
 import { parseYen } from "@/utils/preorders";
 import { cn } from "@/lib/utils";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 export interface PreorderTarget {
   officialItemId: string;
@@ -85,7 +86,9 @@ export function PreorderDialog({ target, onClose }: { target: PreorderTarget; on
     setBusy("save");
     try {
       await pre.save({ officialItemId: target.officialItemId, quantity, price: priceNumber, shop: shop.trim() || null });
-      toast.success(existing ? t("preorders.dialog.updated") : t("preorders.dialog.saved"));
+      // 新規の「予約した」はポッケが伝える。内容の直し（既存の予約を更新）は変化が分かりにくいのでトーストのまま
+      if (existing) toast.success(t("preorders.dialog.updated"));
+      else pockeCheer("preordered");
       onClose();
     } catch (e) {
       console.error("[PreorderDialog] save failed:", e);

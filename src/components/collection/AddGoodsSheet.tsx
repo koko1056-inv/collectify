@@ -589,9 +589,10 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       const result = await addManyToCollection(user.id, list);
       if (result.success) {
         pockeCheer(result.added > 1 ? "addedMany" : "added", result.added);
-        toast.success(t("collectGoals.bulk.addedToast", { n: result.added }), {
-          description: result.skippedOwned > 0 ? t("collectGoals.bulk.skippedOwned", { n: result.skippedOwned }) : undefined,
-        });
+        // 入れた数はポッケが伝えるので、トーストは「持っていたので除いた」ときだけ出す
+        if (result.skippedOwned > 0) {
+          toast.success(t("collectGoals.bulk.skippedOwned", { n: result.skippedOwned }));
+        }
         stopSelecting();
         await invalidateCollectionChanged(queryClient, { userId: user.id });
         // 「最初のグッズを登録」などのはじめてガイドの報酬を、その場で確かめてもらう
@@ -627,11 +628,10 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
       if (result.success) {
         pockeCheer("added");
-        toast.success(t("collectionScreen.official.added"), {
-          description: result.pointsAwarded
-            ? t("notices.adminItem.pointsEarnedDesc", { n: result.pointsAwarded })
-            : item.title,
-        });
+        // 「追加したよ」はポッケが伝えるので、トーストはポイント獲得があるときだけ出す
+        if (result.pointsAwarded) {
+          toast.success(t("notices.adminItem.pointsEarnedDesc", { n: result.pointsAwarded }));
+        }
         // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
         await Promise.all([
           invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id }),

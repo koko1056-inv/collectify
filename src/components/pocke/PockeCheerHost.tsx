@@ -25,11 +25,15 @@ const LINES: Record<Exclude<PockeCheerKind, "addedMany">, { pose: PockePose; key
   tradeDone: [{ pose: "celebrate", key: "pocke.cheer.tradeDone" }],
   freezeUsed: [{ pose: "sleepy", key: "pocke.cheer.freezeUsed" }],
   missionDone: [{ pose: "celebrate", key: "pocke.mission.cheer" }],
+  wishlisted: [{ pose: "think", key: "pocke.cheer.wishlisted" }],
+  preordered: [{ pose: "point", key: "pocke.cheer.preordered" }],
+  liked: [{ pose: "love", key: "pocke.cheer.liked" }],
 };
 
 /**
- * うれしいことがあったときに画面のすみで跳ねるポッケ（グッズを入れた・交換が進んだ・毎日来てくれた など）。pockeCheer() のイベントを受けて出す。
- * 文字の知らせ（トースト）は今までどおり出るので、ここは飾り（読み上げない）。押しても何もしない（操作の邪魔をしない）。
+ * うれしいことがあったときに画面右下で跳ねるポッケ（グッズを入れた・ほしいものに入れた・予約した・いいね・交換が進んだ・毎日来てくれた など）。
+ * pockeCheer() のイベントを受けて出す。トーストは画面上部に出るため、ここは下部固定ボタン・ボトムシートのフッター・ボトムナビにかぶらない
+ * 右下（safe-area 込み）に出す。タップで早めに引っ込められる。見た目は飾り（読み上げない）だが、同じ内容を見えないライブリージョンで読み上げる。
  */
 export function PockeCheerHost() {
   const { t } = useLanguage();
@@ -62,18 +66,35 @@ export function PockeCheerHost() {
   }, [t]);
 
   if (!shown) return null;
+  const hide = () => {
+    window.clearTimeout(timer.current);
+    setShown(null);
+  };
   return (
-    // スマホ: 下タブとトースト（画面の下）の上・左寄せ。PC: 左下（トーストは右下）
-    <div
-      key={shown.id}
-      aria-hidden="true"
-      className="pointer-events-none fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+2.75rem)] left-3 z-[90] flex items-end gap-1.5 sm:bottom-6 sm:left-6"
-      data-testid="pocke-cheer"
-    >
-      <Pocke pose={shown.pose} height={88} motion="pop" />
-      <PockeBubble tail="left" className="mb-5 max-w-[12rem] py-2 text-sm font-bold motion-safe:animate-fade-in">
+    <>
+      {/* 画面読み上げ用。見た目のポッケ＋吹き出しは飾りなので、知らせの文章はここだけで読み上げる */}
+      <span className="sr-only" role="status" aria-live="polite">
         {shown.text}
-      </PockeBubble>
-    </div>
+      </span>
+      {/* スマホ・PCとも右下。下タブ（スマホのみ）の上にのせる。下タブ中央の「追加」ボタンは行の上にはみ出しているので、
+          それより高い位置に置いて、下部の固定ボタン・ボトムシートのフッター・ボトムナビのどれにもかぶらないようにする */}
+      <div
+        key={shown.id}
+        className="pointer-events-none fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+2rem)] right-3 z-[90] flex items-end gap-1.5 sm:bottom-6 sm:right-6"
+        data-testid="pocke-cheer"
+      >
+        <button
+          type="button"
+          onClick={hide}
+          aria-label={t("pocke.cheer.close")}
+          className="pointer-events-auto flex items-end gap-1.5 rounded-2xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+        >
+          <Pocke pose={shown.pose} height={88} motion="pop" />
+          <PockeBubble tail="left" className="mb-5 max-w-[12rem] py-2 text-sm font-bold motion-safe:animate-fade-in">
+            <span aria-hidden="true">{shown.text}</span>
+          </PockeBubble>
+        </button>
+      </div>
+    </>
   );
 }

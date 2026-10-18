@@ -187,10 +187,11 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       // 効果音を再生
       playSuccessSound();
 
-      toast.success(t("collectionScreen.official.added"), {
-        description: result.pointsAwarded ? `+${result.pointsAwarded}${t("collectionScreen.official.pointsEarnedSuffix")}` : undefined,
-      });
       pockeCheer("added");
+      // 「追加したよ」はポッケが伝えるので、トーストはポイント獲得があるときだけ出す
+      if (result.pointsAwarded) {
+        toast.success(`+${result.pointsAwarded}${t("collectionScreen.official.pointsEarnedSuffix")}`);
+      }
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast.error(t("collectionScreen.common.error"), {
