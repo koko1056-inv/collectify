@@ -13,7 +13,10 @@ export type PockeCheerKind =
   | "tradeAccepted" // 交換の申し込みを受けた
   | "tradeDone" // 交換のグッズを受け取った
   | "freezeUsed" // お休みの日を使って連続を守った（n）
-  | "missionDone"; // 今日のミッションを達成した（n = もらったポイント）
+  | "missionDone" // 今日のミッションを達成した（n = もらったポイント）
+  | "wishlisted" // ほしいものに追加した
+  | "preordered" // 予約した
+  | "liked"; // いいねした
 
 export interface PockeCheerDetail {
   kind: PockeCheerKind;

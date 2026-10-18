@@ -8,6 +8,7 @@ import { useAddOfficialItem } from "@/hooks/useAddOfficialItem";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, Plus } from "lucide-react";
 import { PreorderButton } from "@/components/preorders/PreorderButton";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 interface ItemButtonsProps {
   isInCollection: boolean;
   itemId: string;
@@ -77,9 +78,7 @@ export function ItemButtons({
       await queryClient.invalidateQueries({
         queryKey: ["wishlist-counts"]
       });
-      toast.success(t("itemDetails.buttons.success"), {
-        description: t("itemDetails.buttons.wishlistAdded")
-      });
+      pockeCheer("wishlisted");
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       toast.error(t("itemDetails.common.error"), {

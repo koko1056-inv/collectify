@@ -155,7 +155,7 @@ export default function ItemPublic() {
         prize: item.price,
       });
       if (result.success) {
-        toast.success(t("engage.itemPage.addedToast"));
+        // 「追加したよ」はポッケが伝える
         pockeCheer("added");
         // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
         await Promise.all([refresh(), invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id })]);
@@ -174,7 +174,7 @@ export default function ItemPublic() {
     try {
       const { error } = await supabase.from("wishlists").insert({ user_id: user.id, official_item_id: item.id });
       if (error) throw error;
-      toast.success(t("engage.itemPage.wished"));
+      pockeCheer("wishlisted");
       await Promise.all([
         refresh(),
         queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" }),

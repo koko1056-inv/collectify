@@ -121,11 +121,10 @@ export function useAddOfficialItem({ onAdded }: { onAdded?: () => Promise<unknow
       ]);
 
       pockeCheer("added");
-      toast.success(t("itemDetails.buttons.addedToCollection"), {
-        description: result.pointsAwarded
-          ? t("itemDetails.buttons.pointsEarned", { count: result.pointsAwarded })
-          : undefined,
-      });
+      // 「追加したよ」はポッケが伝えるので、トーストはポイント獲得など追加の情報があるときだけ出す
+      if (result.pointsAwarded) {
+        toast.success(t("itemDetails.buttons.pointsEarned", { count: result.pointsAwarded }));
+      }
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast.error(t("itemDetails.common.error"), { description: t("itemDetails.buttons.collectionAddFailed") });

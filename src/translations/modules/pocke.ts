@@ -103,6 +103,10 @@ export const pocke = {
       tradeAccepted: "交換が決まったね！ 発送もがんばろう",
       tradeDone: "交換成立！ 新しい推しグッズ、袋に入れておくね",
       freezeUsed: "お休みの日を{n}つ使って、連続を守ったよ",
+      wishlisted: "ほしいものに入れたよ！ 見つけたら教えるね",
+      preordered: "予約、メモしたよ！ 届くの楽しみだね",
+      liked: "いいね、ありがとう！",
+      close: "とじる",
     },
     ring: {
       title: "今日のポッケリング",
@@ -314,6 +318,10 @@ export const pocke = {
       tradeAccepted: "It's a deal! Time to ship",
       tradeDone: "Trade complete! I'll tuck your new goods in my pouch",
       freezeUsed: "I used {n} day(s) off to protect your streak",
+      wishlisted: "Added to your wishlist! I'll keep an eye out for it",
+      preordered: "Preorder noted! Can't wait for it to arrive",
+      liked: "Thanks for the like!",
+      close: "Close",
     },
     ring: {
       title: "Today's Pocke ring",
