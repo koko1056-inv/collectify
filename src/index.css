@@ -242,6 +242,24 @@
     --accent-foreground: 25 90% 75%;
   }
 
+  /* スクロールは html (viewport) だけが担当する。
+     以前は body にも overflow-y: auto を付けていたが、body は高さを
+     height:100vh などで固定しておらず（コンテンツなりに伸びる auto のまま）、
+     「overflow を持つのに実際にはスクロールしない要素」になっていた。
+     iOS Safari はこの状態の body を fixed 要素の containing block に
+     取り違えることがあり、ドラッグ並び替えやポッケの通知描画などで
+     ページの高さが再計算されるタイミングと重なると、下タブ（position: fixed）
+     が画面下端ではなく body の下端（＝スクロール位置によって変わる画面の
+     途中の高さ）に固定されてしまっていた。html 側に一本化して取り違えの
+     余地をなくす。 */
+  html {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    /* iOS のラバーバンド（オーバースクロール）で発生する、上と同じ fixed 要素の
+       位置ズレ・描画遅延のきっかけ自体を断つ（弾む動きそのものを止める） */
+    overscroll-behavior-y: none;
+  }
+
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
@@ -251,11 +269,9 @@
     /* 日本語を文節で折り返す（「ぬい／ぐるみ」のような単語の途中での改行を防ぐ。未対応のブラウザは無視する） */
     word-break: auto-phrase;
     line-break: strict;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
     touch-action: pan-y;
   }
-  
+
   * {
     -webkit-overflow-scrolling: touch;
   }
