@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "./ui/skeleton";
 import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "./ui/button";
 import {
   Dices,
@@ -22,9 +21,11 @@ import {
   Sparkles,
   Share2,
   CalendarDays,
+  GripVertical,
 } from "lucide-react";
 import { setPendingAiItems } from "@/utils/ai-studio-handoff";
 import { toast } from "sonner";
+import { computeDroppedSortOrder } from "@/utils/reorder";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { usePreorders } from "@/hooks/usePreorders";
@@ -59,7 +60,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Pocke } from "@/components/pocke/Pocke";
 
-type SortOption = "newest" | "oldest" | "title" | "content" | "timeline";
+type SortOption = "newest" | "oldest" | "title" | "content" | "timeline" | "custom";
 
 const ON_THIS_DAY_KEY = "collectify.onThisDay.dismissedOn";
 const todayKey = () => {
@@ -257,6 +258,8 @@ export function UserCollection({
           const contentA = 'content_name' in a ? (a.content_name || "") : "";
           const contentB = 'content_name' in b ? (b.content_name || "") : "";
           return contentA.localeCompare(contentB, "ja");
+        case "custom":
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
         default:
           return 0;
       }
@@ -339,6 +342,7 @@ export function UserCollection({
     title: t("chrome.collection.sortTitle"),
     content: t("chrome.collection.sortContent"),
     timeline: t("engage.timeline.sortLabel"),
+    custom: t("chrome.collection.sortCustom"),
   };
 
   const sortIcons: Record<SortOption, React.ReactNode> = {
@@ -347,18 +351,38 @@ export function UserCollection({
     title: <SortAsc className="w-4 h-4" />,
     content: <Heart className="w-4 h-4" />,
     timeline: <CalendarDays className="w-4 h-4" />,
+    custom: <GripVertical className="w-4 h-4" />,
   };
+
+  // 「好きな順」のときだけ使う: ドラッグで動かした1件の sort_order を、新しい前後の中間値に更新して
+  // Supabase に永続化する（並び替えは本人のコレクションでだけ呼ばれる）
+  const persistReorder = useCallback((activeId: string, overId: string) => {
+    if (!isOwnCollection) return;
+    const newOrder = computeDroppedSortOrder(items, activeId, overId);
+    if (newOrder == null) return;
+    const queryKey = ["user-items", effectiveUserId, selectedTags];
+    queryClient.setQueryData(queryKey, (old: typeof items = []) =>
+      old.map((item) => (item.id === activeId ? { ...item, sort_order: newOrder } : item))
+    );
+    supabase
+      .from("user_items")
+      .update({ sort_order: newOrder })
+      .eq("id", activeId)
+      .then(({ error }) => {
+        if (error) {
+          toast.error(t("chrome.collection.reorderFailed"));
+          queryClient.invalidateQueries({ queryKey });
+        }
+      });
+  }, [items, isOwnCollection, queryClient, effectiveUserId, selectedTags, t]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-    if (active.id !== over.id) {
-      const oldIndex = items.findIndex(item => item.id === active.id);
-      const newIndex = items.findIndex(item => item.id === over.id);
-      const newItems = arrayMove([...items], oldIndex, newIndex);
-      queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
-    }
-  }, [items, queryClient, effectiveUserId, selectedTags]);
+    persistReorder(String(active.id), String(over.id));
+  }, [persistReorder]);
+
+  const enableCustomOrder = useCallback(() => setSortOption("custom"), []);
 
   if (!effectiveUserId) {
     return <EmptyState title={t("collection.empty")} className="py-8" />;
@@ -757,6 +781,10 @@ export function UserCollection({
           onSelectItem={handleSelectItem}
           display={display}
           collectionVersion={collectionVersion}
+          sortOption={sortOption}
+          reorderEnabled={isOwnCollection && sortOption === "custom"}
+          onEnableReorder={enableCustomOrder}
+          onReorderItem={persistReorder}
         />
 
         {/* コンプまであと少し（以前は画面の上に大きく出ていた。「コンプ」の入口から開く） */}
@@ -855,6 +883,10 @@ export function UserCollection({
           onSelectItem={handleSelectItem}
           display={display}
           collectionVersion={collectionVersion}
+          sortOption={sortOption}
+          reorderEnabled={isOwnCollection && sortOption === "custom"}
+          onEnableReorder={enableCustomOrder}
+          onReorderItem={persistReorder}
         />
       )}
 

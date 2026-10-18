@@ -3782,6 +3782,7 @@ export type Database = {
           purchase_shop: string | null
           quantity: number
           release_date: string
+          sort_order: number
           theme: string | null
           title: string
           user_id: string
@@ -3805,6 +3806,7 @@ export type Database = {
           purchase_shop?: string | null
           quantity?: number
           release_date: string
+          sort_order?: number
           theme?: string | null
           title: string
           user_id: string
@@ -3828,6 +3830,7 @@ export type Database = {
           purchase_shop?: string | null
           quantity?: number
           release_date?: string
+          sort_order?: number
           theme?: string | null
           title?: string
           user_id?: string

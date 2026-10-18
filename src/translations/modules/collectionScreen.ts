@@ -159,6 +159,10 @@ export const collectionScreen = {
       page: "{n} / {total}",
       prev: "前のページ",
       next: "次のページ",
+      reorder: "並び替え",
+      reorderDone: "完了",
+      reorderHint: "グッズを長押しして、好きな場所にドラッグできます",
+      reorderSaved: "並び順を保存しました",
     },
     shelf: {
       other: "その他",
@@ -405,6 +409,10 @@ export const collectionScreen = {
       page: "{n} / {total}",
       prev: "Previous page",
       next: "Next page",
+      reorder: "Reorder",
+      reorderDone: "Done",
+      reorderHint: "Press and hold a goods card, then drag it to a new spot",
+      reorderSaved: "Order saved",
     },
     shelf: {
       other: "Other",
