@@ -92,7 +92,10 @@ export function Footer() {
     <>
       <div
         data-tour="nav-bar"
-        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50 pb-[env(safe-area-inset-bottom)]"
+        // transform-gpu: 自前のコンポジットレイヤーを強制する。backdrop-blur と
+        // position:fixed の組み合わせは iOS Safari でスクロール中の再描画が遅れ、
+        // 一瞬古い位置のまま表示されることがあるための保険。
+        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50 pb-[env(safe-area-inset-bottom)] transform-gpu"
       >
         <div className="flex items-center justify-around h-16 relative">
           {leftTabs.map(renderTab)}
