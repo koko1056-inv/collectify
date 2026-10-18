@@ -12,6 +12,8 @@ interface CollectionGridProps {
   selectedItems: string[];
   onSelectItem: (itemId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  /** 「好きな順」に並べているときだけドラッグで並び替えられる（他の並びでは次の表示で順番が戻ってしまうため） */
+  enableDrag?: boolean;
 }
 
 const CollectionGrid = memo(function CollectionGrid({
@@ -21,6 +23,7 @@ const CollectionGrid = memo(function CollectionGrid({
   selectedItems,
   onSelectItem,
   onDragEnd,
+  enableDrag = false,
 }: CollectionGridProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -102,8 +105,8 @@ const CollectionGrid = memo(function CollectionGrid({
     </div>
   );
 
-  // 選択モード中は DnD を無効化
-  if (isSelectionMode) {
+  // 選択モード中、または「好きな順」以外で並べているときは DnD を無効化
+  if (isSelectionMode || !enableDrag) {
     return grid;
   }
 

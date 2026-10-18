@@ -38,6 +38,14 @@ interface CollectionViewToggleProps {
   display?: CollectionDisplay;
   /** 図鑑を読み直すための目印（持っているグッズの件数と最新の id） */
   collectionVersion?: string;
+  /** 現在の並べ方（並び替えが効くのは "custom" のときだけ） */
+  sortOption?: string;
+  /** 本人のコレクションで、並べ方が「好きな順」のときだけ true（ドラッグ並び替えを許可する） */
+  reorderEnabled?: boolean;
+  /** バインダーの「並び替え」を押したときに呼ぶ。並べ方を「好きな順」に切り替える */
+  onEnableReorder?: () => void;
+  /** ドラッグで activeId を overId の位置に動かしたときに呼ぶ（Supabase に永続化する） */
+  onReorderItem?: (activeId: string, overId: string) => void;
 }
 
 export function CollectionViewToggle({
@@ -54,6 +62,10 @@ export function CollectionViewToggle({
   beforeGrid,
   display = "grid",
   collectionVersion = "",
+  sortOption,
+  reorderEnabled = false,
+  onEnableReorder,
+  onReorderItem,
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
   const { t } = useLanguage();
@@ -170,7 +182,13 @@ export function CollectionViewToggle({
       ) : items.length === 0 ? (
         <EmptyState icon={Package} title={emptyTitle} />
       ) : altDisplay === "binder" ? (
-        <BinderView items={items} isOwn={isOwn} />
+        <BinderView
+          items={items}
+          isOwn={isOwn}
+          reorderEnabled={isOwn && reorderEnabled}
+          onEnableReorder={onEnableReorder}
+          onReorderItem={onReorderItem}
+        />
       ) : altDisplay === "shelf" ? (
         <ShelfView items={items} isOwn={isOwn} />
       ) : groups ? (
@@ -201,6 +219,7 @@ export function CollectionViewToggle({
           selectedItems={selectedItems}
           onSelectItem={onSelectItem ?? (() => {})}
           onDragEnd={handleDragEnd}
+          enableDrag={isOwn && reorderEnabled}
         />
       )}
     </div>
