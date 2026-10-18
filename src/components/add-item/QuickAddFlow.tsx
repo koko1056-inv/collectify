@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AddedNextSteps, type AddedItem } from "./AddedNextSteps";
-import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
+import { Camera, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -126,7 +126,6 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const [autoFilledTagCount, setAutoFilledTagCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const submitLockRef = useRef(false);
   const handoffHandledRef = useRef(false);
   const { user } = useAuth();
@@ -614,36 +613,18 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               </p>
             </div>
 
-            <div data-tour="quickadd-capture" className="grid grid-cols-3 gap-3 w-full max-w-md">
-              {/* カメラで撮影 */}
-              <Button
-                variant="outline"
-                className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
-                onClick={() => cameraInputRef.current?.click()}
-              >
-                <Camera className="w-8 h-8 text-primary" />
-                <span className="font-medium text-xs">{t("misc.addItem.camera")}</span>
-              </Button>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileSelect(file);
-                }}
-              />
-
-              {/* ギャラリーから選択 */}
+            <div data-tour="quickadd-capture" className="grid grid-cols-2 gap-3 w-full max-w-md">
+              {/* 写真（撮影・ライブラリ選択の両方）。
+                  capture 属性を付けずに通常の file input にすると、モバイルでは
+                  「写真または動画を撮る」と「ライブラリから選択」の両方を選べる
+                  OS標準のシートが出るため、カメラとギャラリーを別ボタンに分ける必要がない。 */}
               <Button
                 variant="outline"
                 className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="w-8 h-8 text-primary" />
-                <span className="font-medium text-xs">{t("misc.addItem.gallery")}</span>
+                <Camera className="w-8 h-8 text-primary" />
+                <span className="font-medium text-xs">{t("misc.addItem.photo")}</span>
               </Button>
               <input
                 ref={fileInputRef}
