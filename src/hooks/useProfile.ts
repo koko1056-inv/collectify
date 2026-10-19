@@ -27,6 +27,7 @@ export function useProfile(userId: string | undefined) {
           followers_count,
           following_count,
           is_admin,
+          is_sample,
           interests,
           x_username,
           featured_room_id,

@@ -2883,6 +2883,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
+          is_sample: boolean
           onboarded_at: string | null
           profile_cover_key: string | null
           profile_oshi_color: string | null
@@ -2910,6 +2911,7 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
+          is_sample?: boolean
           onboarded_at?: string | null
           profile_cover_key?: string | null
           profile_oshi_color?: string | null
@@ -2937,6 +2939,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
+          is_sample?: boolean
           onboarded_at?: string | null
           profile_cover_key?: string | null
           profile_oshi_color?: string | null
@@ -3187,6 +3190,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sample_account_usernames: {
+        Row: {
+          created_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          username?: string
+        }
+        Relationships: []
       }
       scraped_images: {
         Row: {

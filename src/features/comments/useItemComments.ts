@@ -25,7 +25,7 @@ export function useItemComments(officialItemId: string | null | undefined) {
         .from("item_comments")
         .select(
           `id, official_item_id, user_id, parent_id, content, helpful_count, created_at, updated_at,
-           profiles:profiles!item_comments_user_id_fkey ( id, username, display_name, avatar_url )`
+           profiles:profiles!item_comments_user_id_fkey ( id, username, display_name, avatar_url, is_sample )`
         )
         .eq("official_item_id", officialItemId!)
         .order("created_at", { ascending: true });
@@ -41,7 +41,7 @@ export function useItemComments(officialItemId: string | null | undefined) {
         const ids = Array.from(new Set((simple ?? []).map((r) => r.user_id)));
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url")
+          .select("id, username, display_name, avatar_url, is_sample")
           .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
         const pmap = new Map((profs ?? []).map((p) => [p.id, p]));
         const merged = (simple ?? []).map((r) => ({

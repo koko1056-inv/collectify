@@ -27,6 +27,7 @@ import { preorders } from './preorders';
 import { records } from './records';
 import { pocke } from './pocke';
 import { badges } from './badges';
+import { sampleAccount } from './sampleAccount';
 
 export const moduleTranslations = {
   ja: {
@@ -57,6 +58,7 @@ export const moduleTranslations = {
     records: records.ja,
     pocke: pocke.ja,
     badges: badges.ja,
+    sampleAccount: sampleAccount.ja,
   },
   en: {
     admin: admin.en,
@@ -86,5 +88,6 @@ export const moduleTranslations = {
     records: records.en,
     pocke: pocke.en,
     badges: badges.en,
+    sampleAccount: sampleAccount.en,
   },
 };
