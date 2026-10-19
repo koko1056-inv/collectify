@@ -16,6 +16,7 @@ export interface ItemPostComment {
     username: string | null;
     display_name: string | null;
     avatar_url: string | null;
+    is_sample?: boolean | null;
   } | null;
 }
 
@@ -110,7 +111,7 @@ export function useItemPostComments(postId: string | null) {
         .select(
           `
           *,
-          profile:profiles ( id, username, display_name, avatar_url )
+          profile:profiles ( id, username, display_name, avatar_url, is_sample )
         `
         )
         .eq("post_id", postId)

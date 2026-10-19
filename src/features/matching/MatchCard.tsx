@@ -10,6 +10,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { MatchCandidate } from "./types";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Props {
   match: MatchCandidate;
@@ -25,7 +26,7 @@ export function MatchCard({ match, onCompare }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url, bio, interests")
+        .select("id, username, display_name, avatar_url, bio, interests, is_sample")
         .eq("id", match.candidate_id)
         .maybeSingle();
       return data;
@@ -53,6 +54,7 @@ export function MatchCard({ match, onCompare }: Props) {
               >
                 {profile.display_name ?? profile.username ?? t("trade.match.userFallback")}
               </button>
+              <SampleAccountBadge isSample={profile.is_sample} />
               <TrustBadge userId={profile.id} size="sm" />
             </div>
             <div className="flex items-center gap-1 mt-1">

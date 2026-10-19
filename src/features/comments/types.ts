@@ -14,6 +14,7 @@ export interface ItemCommentNode {
     username: string | null;
     display_name: string | null;
     avatar_url: string | null;
+    is_sample?: boolean | null;
   } | null;
   // 自分がhelpfulを付けているか
   myReaction?: CommentReaction | null;

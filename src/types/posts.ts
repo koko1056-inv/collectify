@@ -10,6 +10,7 @@ export interface GoodsPost {
   profiles?: {
     username: string;
     avatar_url?: string;
+    is_sample?: boolean | null;
   };
   user_items?: {
     title: string;
@@ -53,6 +54,7 @@ export interface PostComment {
   profiles?: {
     username: string;
     avatar_url?: string;
+    is_sample?: boolean | null;
   };
   replies?: PostComment[];
   comment_likes?: Array<{

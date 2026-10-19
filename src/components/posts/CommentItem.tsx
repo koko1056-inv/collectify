@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface CommentItemProps {
   comment: PostComment;
@@ -39,8 +40,9 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="bg-muted rounded-lg p-3">
-            <p className="text-sm font-bold">
-              {comment.profiles?.username || 'Unknown User'}
+            <p className="flex items-center gap-1 text-sm font-bold">
+              <span className="truncate">{comment.profiles?.username || 'Unknown User'}</span>
+              <SampleAccountBadge isSample={comment.profiles?.is_sample} />
             </p>
             <p className="text-sm mt-1">
               {comment.comment}

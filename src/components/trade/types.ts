@@ -3,6 +3,7 @@ export interface TradeParty {
   username: string;
   display_name?: string | null;
   avatar_url?: string | null;
+  is_sample?: boolean | null;
 }
 
 export interface TradeRequest {

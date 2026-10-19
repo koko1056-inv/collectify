@@ -22,6 +22,7 @@ export interface ItemPost {
     username: string | null;
     display_name: string | null;
     avatar_url: string | null;
+    is_sample?: boolean | null;
   } | null;
   is_liked_by_me?: boolean;
 }
@@ -49,7 +50,7 @@ export function useItemPosts(target: PostTarget | null, limit = 20, authorId?: s
           `
           *,
           images:item_post_images ( id, image_url, display_order ),
-          profile:profiles ( id, username, display_name, avatar_url )
+          profile:profiles ( id, username, display_name, avatar_url, is_sample )
         `
         )
         .order("created_at", { ascending: false })
@@ -111,7 +112,7 @@ export function useItemPost(postId: string | null) {
           `
           *,
           images:item_post_images ( id, image_url, display_order ),
-          profile:profiles ( id, username, display_name, avatar_url )
+          profile:profiles ( id, username, display_name, avatar_url, is_sample )
         `
         )
         .eq("id", postId)

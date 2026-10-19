@@ -2883,6 +2883,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
+          is_sample: boolean
           onboarded_at: string | null
           profile_cover_key: string | null
           profile_oshi_color: string | null
@@ -2910,6 +2911,7 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
+          is_sample?: boolean
           onboarded_at?: string | null
           profile_cover_key?: string | null
           profile_oshi_color?: string | null
@@ -2937,6 +2939,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
+          is_sample?: boolean
           onboarded_at?: string | null
           profile_cover_key?: string | null
           profile_oshi_color?: string | null
@@ -3187,6 +3190,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sample_account_usernames: {
+        Row: {
+          created_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          username?: string
+        }
+        Relationships: []
       }
       scraped_images: {
         Row: {
@@ -4546,6 +4564,7 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           display_name: string | null
+          is_sample: boolean
           liked_at: string
           user_id: string
           username: string
@@ -4560,6 +4579,7 @@ export type Database = {
           display_name: string | null
           floor_key: string | null
           goods: Json
+          is_sample: boolean
           layout: Json | null
           liked_by_me: boolean
           likes: number
@@ -4628,6 +4648,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           image: string | null
+          is_sample: boolean
           official_item_id: string | null
           title: string | null
           user_id: string
@@ -4652,6 +4673,7 @@ export type Database = {
         Returns: {
           partner_avatar_url: string
           partner_id: string
+          partner_is_sample: boolean
           partner_username: string
           shared_series: string[]
           their_items: Json
@@ -4680,6 +4702,7 @@ export type Database = {
           my_items: Json
           partner_avatar_url: string
           partner_id: string
+          partner_is_sample: boolean
           partner_username: string
           their_items: Json
         }[]

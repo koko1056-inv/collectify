@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface WishlistUsersModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export function WishlistUsersModal({
       
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url")
+        .select("id, username, display_name, avatar_url, is_sample")
         .in("id", userIds);
 
       if (profileError) {
@@ -259,10 +260,13 @@ export function WishlistUsersModal({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">
-                      {wishlistItem.profiles?.display_name || 
-                       wishlistItem.profiles?.username || 
-                       "Unknown User"}
+                    <p className="font-medium text-sm flex items-center gap-1">
+                      <span>
+                        {wishlistItem.profiles?.display_name ||
+                         wishlistItem.profiles?.username ||
+                         "Unknown User"}
+                      </span>
+                      <SampleAccountBadge isSample={wishlistItem.profiles?.is_sample} />
                     </p>
                     <p className="text-xs text-muted-foreground">
                       @{wishlistItem.profiles?.username || "unknown"}

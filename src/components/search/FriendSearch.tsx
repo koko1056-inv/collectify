@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fetchBlockedUserIds, toNotInList } from "@/hooks/useBlocks";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Profile {
   id: string;
@@ -25,6 +26,7 @@ interface Profile {
   interests?: (string | { name: string; [key: string]: any })[];
   followers_count?: number;
   following_count?: number;
+  is_sample?: boolean | null;
 }
 
 interface FriendSearchProps {
@@ -45,7 +47,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url, bio, interests, followers_count, following_count")
+        .select("id, username, display_name, avatar_url, bio, interests, followers_count, following_count, is_sample")
         .neq("id", user?.id || "")
         .limit(50);
 
@@ -154,6 +156,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             <h4 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
               {profile.display_name || profile.username}
             </h4>
+            <SampleAccountBadge isSample={profile.is_sample} />
           </div>
           <p className="text-sm text-muted-foreground truncate">
             @{profile.username}

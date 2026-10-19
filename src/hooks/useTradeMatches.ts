@@ -12,6 +12,7 @@ export interface TradeMatch {
   partner_id: string;
   partner_username: string | null;
   partner_avatar_url: string | null;
+  partner_is_sample: boolean | null;
   /** 両想い。相手の出しているものが欲しくて、相手も自分の出しているものを欲しがっている */
   is_mutual: boolean;
   /** 相手が交換に出していて、自分が欲しいもの */
@@ -52,6 +53,7 @@ export function useTradeMatches() {
         partner_id: row.partner_id,
         partner_username: row.partner_username,
         partner_avatar_url: row.partner_avatar_url,
+        partner_is_sample: row.partner_is_sample,
         is_mutual: row.is_mutual,
         their_items: toItems(row.their_items),
         my_items: toItems(row.my_items),
@@ -109,6 +111,7 @@ export interface TradeSeriesPartner {
   partner_id: string;
   partner_username: string | null;
   partner_avatar_url: string | null;
+  partner_is_sample: boolean | null;
   /** 自分と重なっている作品名 */
   shared_series: string[];
   /** 相手がその作品で交換に出しているもの */
@@ -138,6 +141,7 @@ export function useTradeSeriesPartners() {
         partner_id: row.partner_id,
         partner_username: row.partner_username,
         partner_avatar_url: row.partner_avatar_url,
+        partner_is_sample: row.partner_is_sample,
         shared_series: Array.isArray(row.shared_series) ? row.shared_series : [],
         their_items: toItems(row.their_items),
       }));
@@ -183,6 +187,7 @@ export interface WishHolder {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  is_sample: boolean | null;
   /** 相手が持っているそのグッズ（user_items の id）。申請の宛先になる */
   user_item_id: string;
   /** 相手が「交換に出す」にしているか。出していなくても申請はできる */

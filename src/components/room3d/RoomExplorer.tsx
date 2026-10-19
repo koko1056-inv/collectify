@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface FeaturedRoom {
   id: string;
@@ -32,6 +33,7 @@ interface FeaturedRoom {
     username: string;
     avatar_url: string | null;
     display_name: string | null;
+    is_sample?: boolean | null;
   };
   like_count: number;
   item_count: number;
@@ -75,7 +77,7 @@ export function RoomExplorer() {
         visibleRooms.map(async (room) => {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url, display_name")
+            .select("username, avatar_url, display_name, is_sample")
             .eq("id", room.user_id)
             .single();
 
@@ -108,7 +110,7 @@ export function RoomExplorer() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, display_name, followers_count")
+        .select("id, username, avatar_url, display_name, followers_count, is_sample")
         .order("followers_count", { ascending: false })
         .limit(10);
 
@@ -201,8 +203,9 @@ export function RoomExplorer() {
                     <Sparkles className="w-3 h-3 text-primary-foreground" />
                   </div>
                 </div>
-                <span className="text-sm text-muted-foreground truncate max-w-[80px]">
-                  {user.display_name || user.username}
+                <span className="flex max-w-[80px] items-center gap-0.5 text-sm text-muted-foreground">
+                  <span className="truncate">{user.display_name || user.username}</span>
+                  <SampleAccountBadge isSample={user.is_sample} />
                 </span>
               </button>
             ))}
@@ -279,8 +282,9 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
               {getInitial(null, room.profile?.username)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-foreground/90 text-sm truncate">
-            {room.profile?.display_name || room.profile?.username}
+          <span className="flex min-w-0 items-center gap-0.5 text-foreground/90 text-sm">
+            <span className="truncate">{room.profile?.display_name || room.profile?.username}</span>
+            <SampleAccountBadge isSample={room.profile?.is_sample} />
           </span>
         </div>
         

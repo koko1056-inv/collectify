@@ -11,12 +11,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useBlockedUserIds } from "@/hooks/useBlocks";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Conversation {
   partnerId: string;
   partnerName: string;
   partnerUsername: string;
   partnerAvatar: string | null;
+  partnerIsSample: boolean | null;
   lastMessage: string;
   lastMessageTime: string;
   unreadCount: number;
@@ -113,7 +115,7 @@ export function ConversationList() {
 
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
-        .select("id, display_name, username, avatar_url")
+        .select("id, display_name, username, avatar_url, is_sample")
         .in("id", partnerIds);
 
       if (profileError) {
@@ -135,6 +137,7 @@ export function ConversationList() {
             partnerName: profile.display_name || profile.username,
             partnerUsername: profile.username,
             partnerAvatar: profile.avatar_url,
+            partnerIsSample: profile.is_sample,
             lastMessage: conv.lastMessage.content,
             lastMessageTime: conv.lastMessage.created_at,
             unreadCount: conv.unreadCount,
@@ -263,8 +266,9 @@ export function ConversationList() {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`font-medium truncate ${conv.unreadCount > 0 ? 'text-foreground' : 'text-foreground/80'}`}>
-                    {conv.partnerName}
+                  <span className={`flex items-center gap-1 min-w-0 font-medium ${conv.unreadCount > 0 ? 'text-foreground' : 'text-foreground/80'}`}>
+                    <span className="truncate">{conv.partnerName}</span>
+                    <SampleAccountBadge isSample={conv.partnerIsSample} />
                   </span>
                   <span className="text-xs text-muted-foreground shrink-0">
                     {formatRelative(conv.lastMessageTime)}

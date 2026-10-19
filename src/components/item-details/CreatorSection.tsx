@@ -6,6 +6,7 @@ import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface CreatorSectionProps {
   isEditing: boolean;
@@ -26,7 +27,7 @@ export function CreatorSection({
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("username, display_name, avatar_url")
+        .select("username, display_name, avatar_url, is_sample")
         .eq("id", createdBy)
         .maybeSingle();
       
@@ -69,7 +70,10 @@ export function CreatorSection({
               </Avatar>
               <div>
                 <div className="font-medium">{t("itemDetails.creator.registeredBy")}</div>
-                <div>{creatorProfile.display_name || creatorProfile.username}</div>
+                <div className="flex items-center gap-1">
+                  <span>{creatorProfile.display_name || creatorProfile.username}</span>
+                  <SampleAccountBadge isSample={creatorProfile.is_sample} />
+                </div>
               </div>
             </>
           )}

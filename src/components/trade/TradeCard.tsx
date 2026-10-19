@@ -44,6 +44,7 @@ import { TradeProgress } from "./TradeProgress";
 import { ReportUserDialog } from "./ReportUserDialog";
 import { isStalled, viewpointOf, type TradeRequest } from "./types";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface TradeCardProps {
   trade: TradeRequest;
@@ -144,7 +145,10 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{partnerName}</p>
+          <p className="flex items-center gap-1 text-sm font-medium">
+            <span className="truncate">{partnerName}</span>
+            <SampleAccountBadge isSample={view.partner?.is_sample} />
+          </p>
           <StatusBadge trade={trade} />
         </div>
 

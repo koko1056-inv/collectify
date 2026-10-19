@@ -18,6 +18,7 @@ import { useMyAiBookmarks, useToggleAiBookmark } from "@/hooks/ai-room/useAiBook
 import { setPendingAvatarPrompt } from "@/utils/ai-studio-handoff";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -105,10 +106,13 @@ export default function AiAvatarDetail() {
                       {getInitial(null, avatar.profile?.username)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">
-                    {avatar.profile?.display_name ||
-                      avatar.profile?.username ||
-                      t("chrome.exploreCard.userFallback")}
+                  <span className="flex items-center gap-1 text-sm font-medium">
+                    <span className="truncate">
+                      {avatar.profile?.display_name ||
+                        avatar.profile?.username ||
+                        t("chrome.exploreCard.userFallback")}
+                    </span>
+                    <SampleAccountBadge isSample={avatar.profile?.is_sample} />
                   </span>
                 </button>
                 <span className="text-xs text-muted-foreground ml-auto">

@@ -70,7 +70,7 @@ export function useItemRoomMessages(roomId: string | undefined) {
 
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url")
+        .select("id, username, display_name, avatar_url, is_sample")
         .in("id", userIds);
 
       const map = new Map((profiles || []).map((p) => [p.id, p]));

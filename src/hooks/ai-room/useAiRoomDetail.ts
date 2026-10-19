@@ -17,7 +17,7 @@ export function useAiRoomDetail(roomId: string | undefined) {
       if (!room) return null;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url")
+        .select("id, username, display_name, avatar_url, is_sample")
         .eq("id", (room as any).user_id)
         .maybeSingle();
       return { room: room as AiGeneratedRoom, profile };

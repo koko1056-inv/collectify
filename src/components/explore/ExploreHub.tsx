@@ -43,6 +43,7 @@ import { useMatches } from "@/features/matching/useMatches";
 import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useExplorePockeTips } from "@/components/pocke/usePockeTips";
 
@@ -289,7 +290,7 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
       if (userIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, username, avatar_url, display_name")
+          .select("id, username, avatar_url, display_name, is_sample")
           .in("id", userIds);
         (profiles || []).forEach((p) => profilesMap.set(p.id, p));
       }
@@ -467,7 +468,7 @@ function CollectionsTab({ searchQuery, excludeUserId }: { searchQuery: string; e
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, display_name, bio")
+        .select("id, username, avatar_url, display_name, bio, is_sample")
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
@@ -525,7 +526,10 @@ function CollectionsTab({ searchQuery, excludeUserId }: { searchQuery: string; e
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-bold truncate">{c.display_name || c.username}</p>
+            <p className="flex items-center gap-1 font-bold">
+              <span className="truncate">{c.display_name || c.username}</span>
+              <SampleAccountBadge isSample={c.is_sample} />
+            </p>
             <p className="text-xs text-muted-foreground truncate">@{c.username}</p>
             <div className="flex items-center gap-1 mt-1 text-xs text-primary">
               <Package className="w-3 h-3" />
@@ -551,7 +555,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, display_name, followers_count, bio")
+        .select("id, username, avatar_url, display_name, followers_count, bio, is_sample")
         .order("followers_count", { ascending: false })
         .limit(31);
       if (error) throw error;
@@ -644,8 +648,9 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-medium truncate max-w-full">
-                  {u.display_name || u.username}
+                <span className="flex max-w-full items-center gap-0.5 text-sm font-medium">
+                  <span className="truncate">{u.display_name || u.username}</span>
+                  <SampleAccountBadge isSample={u.is_sample} />
                 </span>
                 <span className="text-3xs text-muted-foreground">
                   {t("chrome.explore.followers", { n: u.followers_count || 0 })}

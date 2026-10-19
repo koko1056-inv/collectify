@@ -8,11 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, ArrowLeft, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fallbackToOriginal, getAvatarImageUrl } from "@/utils/optimized-image";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Profile {
   id: string;
   username: string;
   avatar_url?: string | null;
+  is_sample?: boolean | null;
 }
 
 export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -30,7 +32,7 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
 
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url")
+        .select("id, username, avatar_url, is_sample")
         .ilike("username", `%${username}%`)
         .limit(5);
 
@@ -120,7 +122,10 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
                       <User className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
-                  <span className="flex-1 text-left">{profile.username}</span>
+                  <span className="flex-1 flex items-center gap-1 text-left">
+                    <span className="truncate">{profile.username}</span>
+                    <SampleAccountBadge isSample={profile.is_sample} />
+                  </span>
                 </button>
               ))}
             </div>

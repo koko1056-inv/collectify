@@ -7,7 +7,8 @@ export interface Message {
 
 export interface PartnerProfile {
   id: string;
-  username: string; 
+  username: string;
   display_name: string | null;
   avatar_url: string | null;
+  is_sample?: boolean | null;
 }

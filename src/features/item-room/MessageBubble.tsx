@@ -9,6 +9,7 @@ import { useDeleteItemRoomMessage } from "./useItemRoom";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import type { ItemRoomMessage } from "./types";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Props {
   message: ItemRoomMessage;
@@ -58,9 +59,10 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
           <div className="flex items-center gap-1.5 mb-0.5 px-1">
             <button
               onClick={goToProfile}
-              className="text-xs font-medium hover:underline"
+              className="flex items-center gap-1 text-xs font-medium hover:underline"
             >
-              {senderName}
+              <span className="truncate">{senderName}</span>
+              <SampleAccountBadge isSample={message.sender?.is_sample} />
             </button>
             <TrustBadge userId={message.user_id} size="xs" showLabel={false} />
           </div>

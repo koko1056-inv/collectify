@@ -15,6 +15,7 @@ import { getInitial } from "@/utils/initial";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { WeeklyPromptBanner } from "@/components/item-posts/WeeklyPromptBanner";
 import { OshiRoomCardView } from "./OshiRoomsTab";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 「みんな」の最初の画面。タブを並べず、お題・新着の投稿・推しの部屋・AI作品・人気のユーザー・グッズ探しを
@@ -51,7 +52,7 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
     queryFn: async () => {
       let q = supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url")
+        .select("id, username, display_name, avatar_url, is_sample")
         .order("followers_count", { ascending: false })
         .limit(9);
       if (user?.id) q = q.neq("id", user.id);
@@ -165,7 +166,10 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
                     <AvatarImage src={u.avatar_url ?? undefined} alt="" />
                     <AvatarFallback>{getInitial(name)}</AvatarFallback>
                   </Avatar>
-                  <span className="w-full truncate text-center text-2xs">{name}</span>
+                  <span className="flex w-full min-w-0 items-center justify-center gap-0.5 text-center text-2xs">
+                    <span className="truncate">{name}</span>
+                    <SampleAccountBadge isSample={u.is_sample} />
+                  </span>
                 </button>
               );
             })}

@@ -27,7 +27,7 @@ export function usePostsWithPagination() {
           image_url,
           caption,
           created_at,
-          profiles!user_id (username, avatar_url),
+          profiles!user_id (username, avatar_url, is_sample),
           user_items!user_item_id (
             title, 
             image, 

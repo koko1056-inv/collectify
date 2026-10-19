@@ -12,6 +12,7 @@ import type { PartnerProfile } from "./types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { useBlockedUserIds, useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -83,8 +84,9 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm truncate">
-                {partnerProfile?.display_name || partnerProfile?.username || t("social.chat.user")}
+              <h3 className="font-bold text-sm truncate flex items-center gap-1">
+                <span className="truncate">{partnerProfile?.display_name || partnerProfile?.username || t("social.chat.user")}</span>
+                <SampleAccountBadge isSample={partnerProfile?.is_sample} />
               </h3>
               <p className="text-xs text-muted-foreground">
                 @{partnerProfile?.username || "unknown"}

@@ -12,6 +12,7 @@ export interface RecentRegistration {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  is_sample: boolean | null;
 }
 
 /** 公開コレクションの直近の登録。投稿がまだ少なくても「いま誰かが動いている」を見せるための供給源。 */

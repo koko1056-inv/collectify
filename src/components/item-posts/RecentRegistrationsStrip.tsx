@@ -6,6 +6,7 @@ import { useRecentRegistrations, type RecentRegistration } from "@/hooks/useRece
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { PublicUserItemModal } from "@/components/item-details/PublicUserItemModal";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 「いま登録されたグッズ」。
@@ -50,9 +51,11 @@ export function RecentRegistrationsStrip() {
             <button
               type="button"
               onClick={() => navigate(`/user/${r.user_id}`)}
-              className="block w-full truncate text-left text-3xs text-muted-foreground hover:text-foreground"
+              className="flex w-full min-w-0 items-center gap-0.5 text-left text-3xs text-muted-foreground hover:text-foreground"
             >
-              {r.display_name || r.username} · {formatRelative(r.created_at)}
+              <span className="truncate">{r.display_name || r.username}</span>
+              <SampleAccountBadge isSample={r.is_sample} />
+              <span className="shrink-0">· {formatRelative(r.created_at)}</span>
             </button>
           </div>
         ))}

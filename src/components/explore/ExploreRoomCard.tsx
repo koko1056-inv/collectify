@@ -27,6 +27,7 @@ import { setPendingRemix } from "@/utils/ai-studio-handoff";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 export interface ExploreRoom {
   id: string;
@@ -45,6 +46,7 @@ export interface ExploreRoom {
     username: string | null;
     avatar_url: string | null;
     display_name: string | null;
+    is_sample?: boolean | null;
   } | null;
 }
 
@@ -215,8 +217,9 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
                 {getInitial(null, room.profile?.username)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs text-muted-foreground truncate">
-              {room.profile?.display_name || room.profile?.username || t("chrome.exploreCard.userFallback")}
+            <span className="flex min-w-0 items-center gap-0.5 text-xs text-muted-foreground">
+              <span className="truncate">{room.profile?.display_name || room.profile?.username || t("chrome.exploreCard.userFallback")}</span>
+              <SampleAccountBadge isSample={room.profile?.is_sample} />
             </span>
           </button>
           <div className="flex items-center gap-2 text-3xs text-muted-foreground shrink-0">

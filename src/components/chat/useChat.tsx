@@ -47,7 +47,7 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
   const fetchPartnerProfile = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, username, display_name, avatar_url")
+      .select("id, username, display_name, avatar_url, is_sample")
       .eq("id", partnerId)
       .single();
 
