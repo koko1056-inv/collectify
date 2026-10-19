@@ -401,14 +401,14 @@ AS $function$
     SELECT jsonb_agg(jsonb_build_object('id', y.id, 'title', y.title, 'image', y.image)) AS items
     FROM (SELECT t2.id, t2.title, t2.image FROM they_want t2 WHERE t2.pid = p.pid LIMIT 8) y
   ) t ON true
-  ORDER BY 4 DESC,
+  ORDER BY (h.items IS NOT NULL AND t.items IS NOT NULL) DESC,
            public.trade_spotlight_user(p.pid) DESC,
            jsonb_array_length(COALESCE(h.items, '[]'::jsonb))
              + jsonb_array_length(COALESCE(t.items, '[]'::jsonb)) DESC,
            pr.username
   LIMIT GREATEST(1, LEAST(COALESCE(_limit, 30), 100));
 $function$;
-REVOKE ALL ON FUNCTION public.find_trade_matches(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.find_trade_matches(integer) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.find_trade_matches(integer) TO authenticated;
 
 -- 同じ作品を集めている人
@@ -497,7 +497,7 @@ AS $function$
   order by x.spot desc, x.n desc, pr.username
   limit greatest(1, least(coalesce(_limit, 20), 50));
 $function$;
-revoke all on function public.find_trade_series_partners(integer) from public;
+revoke all on function public.find_trade_series_partners(integer) from public, anon;
 grant execute on function public.find_trade_series_partners(integer) to authenticated;
 
 -- ほしいものを持っている人（holders は jsonb 配列。各要素に is_sample を足す。
