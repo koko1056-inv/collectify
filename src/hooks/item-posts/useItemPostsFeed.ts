@@ -35,7 +35,7 @@ export function useItemPostsFeed({
           `
           *,
           images:item_post_images ( id, image_url, display_order ),
-          profile:profiles ( id, username, display_name, avatar_url )
+          profile:profiles ( id, username, display_name, avatar_url, is_sample )
         `
         )
         .limit(limit);

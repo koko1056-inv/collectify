@@ -17,6 +17,7 @@ export interface ExploreAvatar {
     username: string | null;
     avatar_url: string | null;
     display_name: string | null;
+    is_sample?: boolean | null;
   } | null;
 }
 
@@ -50,13 +51,14 @@ export function usePublicAvatars() {
       if (userIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, username, avatar_url, display_name")
+          .select("id, username, avatar_url, display_name, is_sample")
           .in("id", userIds);
         (profiles || []).forEach((p) =>
           profilesMap.set(p.id, {
             username: p.username,
             avatar_url: p.avatar_url,
             display_name: p.display_name,
+            is_sample: p.is_sample,
           })
         );
       }
@@ -166,7 +168,7 @@ export function useAvatarDetail(avatarId: string | undefined) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, avatar_url, display_name")
+        .select("username, avatar_url, display_name, is_sample")
         .eq("id", data.user_id)
         .maybeSingle();
 

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface TrustScoreSectionProps {
   userId: string;
@@ -31,17 +32,18 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
       if (error) throw error;
 
       const reviewerIds = Array.from(new Set((data ?? []).map((r) => r.reviewer_id)));
-      const profiles: Record<string, { username: string; display_name: string | null; avatar_url: string | null }> = {};
+      const profiles: Record<string, { username: string; display_name: string | null; avatar_url: string | null; is_sample: boolean | null }> = {};
       if (reviewerIds.length > 0) {
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url")
+          .select("id, username, display_name, avatar_url, is_sample")
           .in("id", reviewerIds);
         for (const p of profs ?? []) {
           profiles[p.id] = {
             username: p.username,
             display_name: p.display_name,
             avatar_url: p.avatar_url,
+            is_sample: p.is_sample,
           };
         }
       }
@@ -98,8 +100,9 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium truncate">
-                        {r.reviewer?.display_name || r.reviewer?.username || t("trade.trust.anonymous")}
+                      <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                        <span className="truncate">{r.reviewer?.display_name || r.reviewer?.username || t("trade.trust.anonymous")}</span>
+                        <SampleAccountBadge isSample={r.reviewer?.is_sample} />
                       </p>
                       <span className="text-3xs text-muted-foreground">
                         {formatRelative(r.created_at)}

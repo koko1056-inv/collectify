@@ -89,7 +89,7 @@ export function useBlockedUserIds() {
 export interface BlockedUser {
   blocked_id: string;
   created_at: string;
-  profile: { username: string | null; display_name: string | null; avatar_url: string | null } | null;
+  profile: { username: string | null; display_name: string | null; avatar_url: string | null; is_sample: boolean | null } | null;
 }
 
 /** 設定画面用: 自分がブロックした人の一覧（プロフィール付き）。 */
@@ -101,7 +101,7 @@ export function useBlockedUsers() {
     queryFn: async (): Promise<BlockedUser[]> => {
       const { data, error } = await supabase
         .from("user_blocks")
-        .select("blocked_id, created_at, profile:profiles!user_blocks_blocked_id_fkey(username, display_name, avatar_url)")
+        .select("blocked_id, created_at, profile:profiles!user_blocks_blocked_id_fkey(username, display_name, avatar_url, is_sample)")
         .eq("blocker_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;

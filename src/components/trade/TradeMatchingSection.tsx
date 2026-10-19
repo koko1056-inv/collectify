@@ -38,6 +38,7 @@ import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
 import { TradePostDialog } from "./TradePostDialog";
 import { WishlistViewModal } from "@/components/WishlistViewModal";
 import { PockeSays } from "@/components/pocke/Pocke";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 交換相手の候補。
@@ -584,9 +585,10 @@ function SeriesPartnerCard({
           <button
             type="button"
             onClick={onOpenProfile}
-            className="tap-safe-y block max-w-full truncate text-left font-medium transition-colors hover:text-primary"
+            className="tap-safe-y flex max-w-full items-center gap-1 text-left font-medium transition-colors hover:text-primary"
           >
-            {name}
+            <span className="truncate">{name}</span>
+            <SampleAccountBadge isSample={partner.partner_is_sample} />
           </button>
           <div className="mt-0.5 flex flex-wrap items-center gap-1">
             {spotlight && <SpotlightChip />}
@@ -663,9 +665,10 @@ function PartnerHeader({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="tap-safe-y block max-w-full truncate text-left font-medium transition-colors hover:text-primary"
+          className="tap-safe-y flex max-w-full items-center gap-1 text-left font-medium transition-colors hover:text-primary"
         >
-          {name}
+          <span className="truncate">{name}</span>
+          <SampleAccountBadge isSample={match.partner_is_sample} />
         </button>
         <div className="flex flex-wrap items-center gap-1">
           {spotlight && <SpotlightChip />}

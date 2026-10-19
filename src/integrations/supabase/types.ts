@@ -4564,6 +4564,7 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           display_name: string | null
+          is_sample: boolean
           liked_at: string
           user_id: string
           username: string
@@ -4578,6 +4579,7 @@ export type Database = {
           display_name: string | null
           floor_key: string | null
           goods: Json
+          is_sample: boolean
           layout: Json | null
           liked_by_me: boolean
           likes: number
@@ -4646,6 +4648,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           image: string | null
+          is_sample: boolean
           official_item_id: string | null
           title: string | null
           user_id: string
@@ -4670,6 +4673,7 @@ export type Database = {
         Returns: {
           partner_avatar_url: string
           partner_id: string
+          partner_is_sample: boolean
           partner_username: string
           shared_series: string[]
           their_items: Json
@@ -4698,6 +4702,7 @@ export type Database = {
           my_items: Json
           partner_avatar_url: string
           partner_id: string
+          partner_is_sample: boolean
           partner_username: string
           their_items: Json
         }[]

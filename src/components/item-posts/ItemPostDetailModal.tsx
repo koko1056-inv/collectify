@@ -40,6 +40,7 @@ import { shareContent } from "@/utils/share";
 import { buildShareText } from "@/utils/shareLinks";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -192,8 +193,11 @@ export function ItemPostDetailModal({
               </Avatar>
             </button>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">
-                {post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector")}
+              <p className="flex items-center gap-1 font-medium text-sm">
+                <span className="truncate">
+                  {post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector")}
+                </span>
+                <SampleAccountBadge isSample={post.profile?.is_sample} />
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatRelative(post.created_at)}
@@ -273,9 +277,12 @@ export function ItemPostDetailModal({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-xs font-medium truncate">
-                      {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
+                  <div className="flex items-baseline gap-1">
+                    <p className="flex min-w-0 items-center gap-1 text-xs font-medium">
+                      <span className="truncate">
+                        {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
+                      </span>
+                      <SampleAccountBadge isSample={c.profile?.is_sample} />
                     </p>
                     <p className="text-3xs text-muted-foreground shrink-0">
                       {formatRelative(c.created_at)}

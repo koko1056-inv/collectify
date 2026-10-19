@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Props {
   userId?: string;
@@ -24,7 +25,7 @@ export function GalleryListView({ userId, enabled }: Props) {
       const { data, error } = await supabase
         .from("display_gallery")
         .select(
-          `*, profiles:user_id (username, display_name, avatar_url)`
+          `*, profiles:user_id (username, display_name, avatar_url, is_sample)`
         )
         .eq("is_public", true)
         .order("created_at", { ascending: false });
@@ -85,9 +86,12 @@ export function GalleryListView({ userId, enabled }: Props) {
                             className="w-5 h-5 rounded-full"
                           />
                         )}
-                        <span>
-                          {gallery.profiles.display_name ||
-                            gallery.profiles.username}
+                        <span className="flex items-center gap-0.5">
+                          <span className="truncate">
+                            {gallery.profiles.display_name ||
+                              gallery.profiles.username}
+                          </span>
+                          <SampleAccountBadge isSample={gallery.profiles.is_sample} />
                         </span>
                       </>
                     )}

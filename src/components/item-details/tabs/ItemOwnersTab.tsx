@@ -15,6 +15,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemOwnersTabProps {
   officialItemId: string;
@@ -58,7 +59,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
         .from("user_items")
         .select(
           `id, user_id, quantity, for_trade,
-           profiles ( id, username, avatar_url, display_name, bio )`
+           profiles ( id, username, avatar_url, display_name, bio, is_sample )`
         )
         .eq("official_item_id", officialItemId);
 
@@ -156,9 +157,12 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                 </Avatar>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-medium text-sm truncate">
-                      {owner.profile?.display_name || owner.profile?.username || t("itemDetails.common.user")}
-                      {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
+                    <p className="flex items-center gap-1 text-sm font-medium">
+                      <span className="truncate">
+                        {owner.profile?.display_name || owner.profile?.username || t("itemDetails.common.user")}
+                        {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
+                      </span>
+                      <SampleAccountBadge isSample={owner.profile?.is_sample} />
                     </p>
                     {!isMe && score && (
                       <TrustBadge score={score} size="xs" showLabel={false} />

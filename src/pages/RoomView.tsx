@@ -21,6 +21,7 @@ import { trackRoomView, trackRoomShare } from "@/utils/analytics";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBlockedUserIds } from "@/hooks/useBlocks";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 export default function RoomView() {
   const { t } = useLanguage();
@@ -324,8 +325,9 @@ export default function RoomView() {
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <p className="text-white font-medium group-hover:text-primary transition-colors">
-                {ownerProfile?.display_name || ownerProfile?.username}
+              <p className="flex items-center gap-1 text-white font-medium group-hover:text-primary transition-colors">
+                <span className="truncate">{ownerProfile?.display_name || ownerProfile?.username}</span>
+                <SampleAccountBadge isSample={ownerProfile?.is_sample} />
               </p>
               <p className="text-white/50 text-sm">@{ownerProfile?.username}</p>
             </div>

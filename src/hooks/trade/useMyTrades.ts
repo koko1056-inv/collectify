@@ -26,8 +26,8 @@ const TRADE_SELECT = `
   offered_image,
   requested_title,
   requested_image,
-  sender:profiles!trade_requests_sender_id_fkey(id, username, display_name, avatar_url),
-  receiver:profiles!trade_requests_receiver_id_fkey(id, username, display_name, avatar_url),
+  sender:profiles!trade_requests_sender_id_fkey(id, username, display_name, avatar_url, is_sample),
+  receiver:profiles!trade_requests_receiver_id_fkey(id, username, display_name, avatar_url, is_sample),
   offered_item:user_items!trade_requests_offered_item_id_fkey(id, title, image),
   requested_item:user_items!trade_requests_requested_item_id_fkey(id, title, image)
 `;

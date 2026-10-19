@@ -31,6 +31,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyAiRoomLikes, useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
 import { useAuth } from "@/contexts/AuthContext";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 export default function AiWorkDetail() {
   const { t } = useLanguage();
@@ -203,8 +204,9 @@ export default function AiWorkDetail() {
                       <AvatarFallback>{getInitial(null, profile.username)}</AvatarFallback>
                     </Avatar>
                     <div className="text-left">
-                      <p className="text-sm font-medium">
-                        {profile.display_name || profile.username}
+                      <p className="flex items-center gap-1 text-sm font-medium">
+                        <span className="truncate">{profile.display_name || profile.username}</span>
+                        <SampleAccountBadge isSample={profile.is_sample} />
                       </p>
                       <p className="text-2xs text-muted-foreground">@{profile.username}</p>
                     </div>

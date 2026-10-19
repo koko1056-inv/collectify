@@ -52,7 +52,7 @@ export function usePostComments(postId: string) {
       const [profilesResult, likesResult] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, username, avatar_url")
+          .select("id, username, avatar_url, is_sample")
           .in("id", userIds),
         supabase
           .from("comment_likes")
@@ -61,7 +61,7 @@ export function usePostComments(postId: string) {
       ]);
 
       const profilesMap = new Map(
-        (profilesResult.data || []).map(p => [p.id, { username: p.username, avatar_url: p.avatar_url }])
+        (profilesResult.data || []).map(p => [p.id, { username: p.username, avatar_url: p.avatar_url, is_sample: p.is_sample }])
       );
       
       const likesMap = new Map<string, CommentLike[]>();
@@ -151,7 +151,7 @@ export function useAddComment() {
       // 次にプロフィール情報を別途取得
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("username, avatar_url")
+        .select("username, avatar_url, is_sample")
         .eq("id", user.id)
         .single();
 

@@ -24,11 +24,11 @@ export function usePosts() {
           caption,
           created_at,
           updated_at,
-          profiles!user_id (username, avatar_url),
+          profiles!user_id (username, avatar_url, is_sample),
           user_items!user_item_id (
-            title, 
-            image, 
-            official_item_id, 
+            title,
+            image,
+            official_item_id,
             content_name,
             user_item_tags (
               tags (
@@ -124,10 +124,10 @@ export function usePostsForItem(userItemId: string) {
           caption,
           created_at,
           updated_at,
-          profiles!user_id (username, avatar_url),
+          profiles!user_id (username, avatar_url, is_sample),
           user_items!user_item_id (
-            title, 
-            image, 
+            title,
+            image,
             official_item_id,
             user_item_tags (
               tags (
