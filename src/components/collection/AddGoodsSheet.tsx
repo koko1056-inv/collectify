@@ -338,7 +338,12 @@ const AUTO_FETCH_MAX = 1200;
 /** 「全部選ぶ」でこれより多く選ぶときは、いったん確かめる（作品まるごとだと数千件になることがある） */
 const SELECT_ALL_CONFIRM = 100;
 
-function PickFromCatalogView({ onBack }: { onBack: () => void }) {
+/**
+ * 「みんなのカタログから探して選ぶ」一覧。このシート専用ではなく、
+ * 今日のポッケリングの「グッズを追加」ステップ（QuickAddFlow）からも
+ * 同じ検索・選択・追加（pockeCheer を含む）をそのまま使うため export する。
+ */
+export function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();

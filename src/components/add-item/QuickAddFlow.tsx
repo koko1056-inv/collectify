@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AddedNextSteps, type AddedItem } from "./AddedNextSteps";
-import { Camera, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
+import { Camera, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, ListChecks, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarcodeScanner } from "./BarcodeScanner";
+import { PickFromCatalogView } from "@/components/collection/AddGoodsSheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimilarItemsCheck } from "@/hooks/admin-item-form/useSimilarItemsCheck";
 import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
@@ -105,6 +107,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     series: null,
   });
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+  // 「リストから選ぶ」。コレクション画面の AddGoodsSheet と同じ一覧をそのまま重ねて出す
+  // （ステップにはしない。選んだあとも一覧に戻って続けて選べるようにするため）。
+  const [pickOpen, setPickOpen] = useState(false);
   /**
    * 「みんなのカタログにも登録する」。既定は ON（写真からの登録でカタログを充実させたいため）。
    * OFF のときは official_items を作らず、自分のコレクションにだけ入れる。
@@ -613,7 +618,18 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               </p>
             </div>
 
-            <div data-tour="quickadd-capture" className="grid grid-cols-2 gap-3 w-full max-w-md">
+            <div data-tour="quickadd-capture" className="grid grid-cols-3 gap-3 w-full max-w-md">
+              {/* 一覧から選ぶ。通常の追加（コレクション画面の AddGoodsSheet）と同じ検索・選択を
+                  ドロワーで重ねて出す。既にカタログにあるグッズはここから選んでもらうと重複が生まれない。 */}
+              <Button
+                variant="outline"
+                className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                onClick={() => setPickOpen(true)}
+              >
+                <ListChecks className="w-8 h-8 text-primary" />
+                <span className="font-medium text-xs">{t("misc.addItem.pickFromList")}</span>
+              </Button>
+
               {/* 写真（撮影・ライブラリ選択の両方）。
                   capture 属性を付けずに通常の file input にすると、モバイルでは
                   「写真または動画を撮る」と「ライブラリから選択」の両方を選べる
@@ -1102,6 +1118,15 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 一覧から選ぶ。追加すると、コレクション画面から選んだときと同じく pockeCheer("added" / "addedMany") が飛び、
+          今日のポッケリング（DailyRingHost）がそれを拾って読み直す。「集める」はグッズを登録した事実（user_items）だけで
+          サーバーが判定するため、写真・バーコードと全く同じ仕組みでミッションの達成に数えられる。 */}
+      <Drawer open={pickOpen} onOpenChange={setPickOpen}>
+        <DrawerContent className="h-[94dvh] max-h-[94dvh]">
+          <PickFromCatalogView onBack={() => setPickOpen(false)} />
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
