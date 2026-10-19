@@ -15,6 +15,7 @@ import { useItemPostsFeed, type FeedMode } from "@/hooks/item-posts/useItemPosts
 import { useItemPostReactions } from "@/hooks/item-posts/useItemPostReactions";
 import type { ItemPost, PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { shareContent } from "@/utils/share";
+import { SITE_URL } from "@/config/site";
 import { ItemPostGrid } from "./ItemPostGrid";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { SelectItemForPostModal } from "./SelectItemForPostModal";
@@ -104,7 +105,7 @@ export function ItemPostsFeedPanel() {
           void shareContent({
             title: t("social.itemPosts.shareTitle"),
             text: t("engage.posts.shareMine"),
-            url: `${window.location.origin}/post/${postId}`,
+            url: `${SITE_URL}/post/${postId}`,
           });
         },
       },

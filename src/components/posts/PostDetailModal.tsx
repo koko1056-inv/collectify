@@ -13,6 +13,7 @@ import { DeletePostDialog } from "./DeletePostDialog";
 import { ShareModal } from "@/components/ShareModal";
 import { CommentItem } from "./CommentItem";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SITE_URL } from "@/config/site";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -294,7 +295,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        url={`${window.location.origin}/posts/${post.id}`}
+        url={`${SITE_URL}/posts/${post.id}`}
         title={t("social.posts.shareTitle")}
         image={post.image_url}
       />

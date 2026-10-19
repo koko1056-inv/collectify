@@ -9,6 +9,10 @@ const SUPABASE_ANON_KEY =
 
 const PAGE = 1000;
 
+// カノニカルドメイン固定。vercel.app から直接このエンドポイントを叩かれても、
+// サイトマップの <loc> は常に collectify.jp を指す（重複コンテンツ回避）。
+const SITE_URL = (process.env.SITE_URL || process.env.VITE_SITE_URL || "https://collectify.jp").replace(/\/+$/, "");
+
 async function fetchPage(from: number): Promise<{ id: string; created_at: string }[]> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/official_items?select=id,created_at&merged_into=is.null&order=created_at.desc,id.asc&limit=${PAGE}&offset=${from}`,
@@ -35,15 +39,13 @@ async function fetchItems(): Promise<{ id: string; created_at: string }[]> {
 }
 
 export default async function handler(req: any, res: any) {
-  const host = (req.headers["x-forwarded-host"] as string) || (req.headers.host as string) || "collectify-main.vercel.app";
-  const origin = `https://${host.split(",")[0]}`;
   const items = await fetchItems().catch(() => []);
 
   const urls = [
-    { loc: `${origin}/`, priority: "1.0", lastmod: undefined as string | undefined },
-    { loc: `${origin}/login`, priority: "0.6", lastmod: undefined },
-    { loc: `${origin}/how-to-use`, priority: "0.5", lastmod: undefined },
-    ...items.map((i) => ({ loc: `${origin}/item/${i.id}`, priority: "0.7", lastmod: i.created_at?.slice(0, 10) })),
+    { loc: `${SITE_URL}/`, priority: "1.0", lastmod: undefined as string | undefined },
+    { loc: `${SITE_URL}/login`, priority: "0.6", lastmod: undefined },
+    { loc: `${SITE_URL}/how-to-use`, priority: "0.5", lastmod: undefined },
+    ...items.map((i) => ({ loc: `${SITE_URL}/item/${i.id}`, priority: "0.7", lastmod: i.created_at?.slice(0, 10) })),
   ];
 
   const xml =

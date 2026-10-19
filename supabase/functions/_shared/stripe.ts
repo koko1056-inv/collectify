@@ -104,8 +104,15 @@ export async function verifyStripeSignature(
   });
 }
 
-const DEFAULT_SITE_URL = "https://collectify-main.vercel.app";
-const DEFAULT_ALLOWED = [DEFAULT_SITE_URL, "http://localhost:5173", "http://localhost:8080", "http://127.0.0.1:5173"];
+const DEFAULT_SITE_URL = "https://collectify.jp";
+const DEFAULT_ALLOWED = [
+  DEFAULT_SITE_URL,
+  "https://www.collectify.jp",
+  "https://collectify-main.vercel.app", // 旧ドメイン（併用中）
+  "http://localhost:5173",
+  "http://localhost:8080",
+  "http://127.0.0.1:5173",
+];
 
 /** 決済後に戻すURLの土台。リクエスト元が許可リストにあればそれ、なければ本番のURL */
 export function siteOrigin(req: Request): string {

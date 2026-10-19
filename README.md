@@ -36,7 +36,8 @@ node scripts/check-i18n.mjs   # 日本語・英語のキーが揃っているか
 
 | 変数 | 用途 |
 | --- | --- |
-| `VITE_APP_URL` | 「URLをコピー」で配る正規URL。未設定なら開いているドメインを使う |
+| `VITE_SITE_URL` | 「URLをコピー」・SNSシェアで配る正規URL。未設定なら既定で `https://collectify.jp` |
+| `VITE_APP_URL` | `VITE_SITE_URL` の旧名。後方互換のために残しているだけなので新規設定は不要 |
 | `VITE_REVENUECAT_IOS_KEY` | iOS の課金 |
 
 ## Edge Functions

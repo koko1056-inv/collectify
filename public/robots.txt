@@ -15,4 +15,4 @@ Disallow: /trade-requests
 Disallow: /image-search
 
 # グッズの公開ページ(/item/:id)は /api/sitemap が全件列挙する
-Sitemap: https://collectify-main.vercel.app/sitemap.xml
+Sitemap: https://collectify.jp/sitemap.xml
