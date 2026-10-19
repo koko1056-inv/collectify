@@ -11,6 +11,8 @@
  * SNSの投稿に絵が出るようにする（URLは本文に必ず残す）。
  */
 
+import { SITE_URL } from "@/config/site";
+
 export type ShareResult = "shared" | "copied" | "cancelled" | "failed";
 
 interface ShareContentInput {
@@ -26,9 +28,13 @@ interface ShareContentInput {
   fileName?: string;
 }
 
-/** アプリ内の作品ページの絶対URLを作る */
+/**
+ * アプリ内の作品ページの絶対URLを作る。
+ * 外部に配るURLなので `window.location.origin` は使わない（iOS の Capacitor アプリだと
+ * `capacitor://localhost` になってしまい、共有相手が開けなくなる）。
+ */
 export function buildWorkUrl(kind: "ai-work" | "ai-avatar" | "post", id: string): string {
-  return `${window.location.origin}/${kind}/${id}`;
+  return `${SITE_URL}/${kind}/${id}`;
 }
 
 /**

@@ -8,19 +8,7 @@
  *   OGPが読まれず、人が開いてもソースが表示されてしまう。
  * - シェアテキストは煽り＋数字＋ハッシュタグ入りで拡散しやすく
  */
-/**
- * 「URLをコピー」で配るときの土台。
- *
- * 既定では、いま開いているドメインをそのまま使う。
- * 以前は Lovable のドメインを直書きしていたので、Vercel で開いていても
- * コピーしたURLは Lovable を指していた。見ている場所と配る場所が違うのは事故の元。
- *
- * 独自ドメインを正規のURLにしたい場合は VITE_APP_URL を設定する。
- * プレビュー環境から本番のURLを配りたいときはこれが要る。
- */
-const APP_URL =
-  import.meta.env.VITE_APP_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "https://collectify-main.vercel.app");
+import { SITE_URL as APP_URL } from "@/config/site";
 
 export type ShareTarget =
   | { type: "item"; id: string; title?: string; contentName?: string | null }

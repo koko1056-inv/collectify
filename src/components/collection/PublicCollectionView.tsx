@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { SITE_URL } from "@/config/site";
 
 interface CollectionOwner {
   id: string;
@@ -152,7 +153,7 @@ export function PublicCollectionView() {
 
   const handleShare = async (collection: CollectionOwner, e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/user/${collection.id}`;
+    const url = `${SITE_URL}/user/${collection.id}`;
     try {
       await navigator.share({
         title: `${collection.username}${t("collectionScreen.publicCollections.shareTitleSuffix")}`,

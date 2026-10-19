@@ -9,7 +9,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ────────────────────────────── CORS ──────────────────────────────
 
-const DEFAULT_SITE_URL = "https://collectify-main.vercel.app";
+// collectify.jp への移行後のカノニカルドメイン。旧ドメイン(vercel.app)も併用するので
+// 両方を既定の許可オリジンに入れておく。
+const DEFAULT_SITE_URL = "https://collectify.jp";
 
 /**
  * 既定で許可するオリジン。"*" は1ラベル分（英数字とハイフン、ポートなら数字）に一致する。
@@ -19,6 +21,8 @@ const DEFAULT_SITE_URL = "https://collectify-main.vercel.app";
  */
 const DEFAULT_ALLOWED_ORIGINS = [
   DEFAULT_SITE_URL,
+  "https://www.collectify.jp",
+  "https://collectify-main.vercel.app", // 旧ドメイン（併用中）
   "http://localhost:*", // vite dev（5173 / 8080 など）
   "http://127.0.0.1:*",
   "capacitor://localhost", // iOS アプリ（Capacitor）

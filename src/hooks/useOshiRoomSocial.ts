@@ -5,6 +5,7 @@ import { resolveOshiColor, type OshiColor } from "@/lib/cosmetics";
 import { DEFAULT_FLOOR, DEFAULT_WALLPAPER, defaultLayout, mergeGoods, parseLayout, roomAsset, type RoomLayout, type RoomState } from "@/lib/oshiRoom";
 import type { SceneGoods } from "@/components/oshi/room/RoomScene";
 import type { Companion } from "@/hooks/useOshi";
+import { SITE_URL } from "@/config/site";
 
 /**
  * 推しの部屋の「みんなで見る・いいねする」まわり。
@@ -78,9 +79,13 @@ export function nextCare(list: Companion[], today: string): { target: Companion;
   return null;
 }
 
-/** 推しの部屋を開くリンク（「みんな」のお部屋タブで、その部屋を開いた状態になる）。シェアに使う */
+/**
+ * 推しの部屋を開くリンク（「みんな」のお部屋タブで、その部屋を開いた状態になる）。シェアに使う。
+ * 外部に配るURLなので `window.location.origin` は使わない（Capacitor の iOS アプリでは
+ * `capacitor://localhost` になってしまう）。
+ */
 export function oshiRoomUrl(profileId: string): string {
-  return `${window.location.origin}/explore?tab=oshi-rooms&room=${encodeURIComponent(profileId)}`;
+  return `${SITE_URL}/explore?tab=oshi-rooms&room=${encodeURIComponent(profileId)}`;
 }
 
 function parseGoods(raw: unknown): OshiRoomGoods[] {

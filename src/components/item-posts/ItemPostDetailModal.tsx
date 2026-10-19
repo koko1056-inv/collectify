@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
+import { SITE_URL } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -99,7 +100,7 @@ export function ItemPostDetailModal({
   const currentImage = post.images[imageIdx];
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/post/${post.id}`;
+    const shareUrl = `${SITE_URL}/post/${post.id}`;
     const owner = post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector");
     // 本文の1行目は buildShareText と同じ文言にそろえる（URLは shareContent が末尾に付ける）
     const text = buildShareText({ type: "post", id: post.id, ownerName: owner }).split("\n").slice(0, 2).join("\n");

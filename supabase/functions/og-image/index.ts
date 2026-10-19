@@ -17,7 +17,7 @@ const corsHeaders = {
  * 独自ドメインにしたら APP_URL を設定し直すこと。
  * 既定は Vercel の本番ドメイン（Lovable のドメインから移行済み）。
  */
-const APP_URL = Deno.env.get("APP_URL") ?? "https://collectify-main.vercel.app";
+const APP_URL = Deno.env.get("APP_URL") ?? "https://collectify.jp";
 
 // Generate an HTML page with OG meta tags for social link previews.
 // Usage:

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { buildInviteUrl } from "@/utils/shareLinks";
+import { SITE_URL } from "@/config/site";
 
 function generateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -22,7 +23,7 @@ export function useShareInvite() {
   const { user } = useAuth();
 
   const getInviteUrl = useCallback(async (): Promise<string> => {
-    if (!user?.id) return window.location.origin;
+    if (!user?.id) return SITE_URL;
     try {
       const { data: existing } = await supabase
         .from("invite_codes")
@@ -46,7 +47,7 @@ export function useShareInvite() {
       if (error) throw error;
       return buildInviteUrl(code);
     } catch {
-      return window.location.origin;
+      return SITE_URL;
     }
   }, [user?.id]);
 

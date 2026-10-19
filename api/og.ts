@@ -17,6 +17,13 @@ const SUPABASE_URL = "https://dmgrgzysrzzgsajwqyrh.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtZ3Jnenlzcnp6Z3NhandxeXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MTExODUsImV4cCI6MjA1MDE4NzE4NX0.UsoRjDcgPGmEqmYetdsvH9bk-Zj9-dFz7YuonnF2WT4";
 
+/**
+ * SEO上のカノニカルURL。vercel.app やプレビューから見てもここに固定することで、
+ * 同じページが複数ドメインで評価される重複コンテンツを避ける。
+ * 人間を返す先（リダイレクト）は `originOf()` の方で、今アクセスしているドメインをそのまま使う。
+ */
+const SITE_URL = (process.env.SITE_URL || process.env.VITE_SITE_URL || "https://collectify.jp").replace(/\/+$/, "");
+
 const BOT_RE = /bot|crawler|spider|facebookexternalhit|line-poker|whatsapp|telegram|slurp|preview/i;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SHARE_TYPES = new Set(["room", "user", "post", "display"]);
@@ -53,13 +60,15 @@ async function loadItem(id: string) {
 }
 
 function itemHtml(origin: string, item: NonNullable<Awaited<ReturnType<typeof loadItem>>>, isBot: boolean) {
-  const pageUrl = `${origin}/item/${item.id}`;
+  // canonical / og:url はカノニカルドメイン固定。人間へのリダイレクトは今のドメイン（origin）のまま。
+  const pageUrl = `${SITE_URL}/item/${item.id}`;
+  const redirectUrl = `${origin}/item/${item.id}`;
   const series = item.content_name ? `${item.content_name}の` : "";
   const title = `${item.title}｜${item.content_name ?? "グッズ"} | Collectify`;
   const description =
     `${series}グッズ「${item.title}」。持っている人・交換できる人がわかる、推しグッズの図鑑アプリ Collectify。` +
     (item.release_date ? ` 発売日: ${item.release_date}。` : "");
-  const image = item.image || `${origin}/og-image.png`;
+  const image = item.image || `${SITE_URL}/og-image.png`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -88,12 +97,12 @@ function itemHtml(origin: string, item: NonNullable<Awaited<ReturnType<typeof lo
   <meta name="twitter:description" content="${esc(description)}" />
   <meta name="twitter:image" content="${esc(image)}" />
   <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>
-  ${isBot ? "" : `<meta http-equiv="refresh" content="0; url=${esc(pageUrl)}" />`}
+  ${isBot ? "" : `<meta http-equiv="refresh" content="0; url=${esc(redirectUrl)}" />`}
 </head>
 <body>
   <h1>${esc(item.title)}</h1>
   ${item.content_name ? `<p>${esc(item.content_name)}</p>` : ""}
-  <p><a href="${esc(pageUrl)}">Collectifyで見る</a></p>
+  <p><a href="${esc(redirectUrl)}">Collectifyで見る</a></p>
 </body>
 </html>`;
 }

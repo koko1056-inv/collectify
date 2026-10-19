@@ -22,12 +22,16 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Collectify - 推しグッズの図鑑" />
     <meta property="og:description" content="推しグッズの図鑑アプリ。アニメ・ゲーム・アイドルのグッズを登録して眺め、シリーズのコンプを目指し、ダブったグッズは交換に出せます。" />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="https://collectify.jp/og-image.png" />
+    <meta property="og:url" content="https://collectify.jp/" />
     <meta property="og:site_name" content="Collectify" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Collectify - 推しグッズの図鑑" />
     <meta name="twitter:description" content="推しグッズの図鑑アプリ。アニメ・ゲーム・アイドルのグッズを登録して眺め、シリーズのコンプを目指し、ダブったグッズは交換に出せます。" />
-    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image" content="https://collectify.jp/og-image.png" />
+    <!-- SPA のため個別ページ(アイテム等)には別途 canonical を出していない（ボット向けは api/og.ts が担う）。
+         ここはトップページ自体のカノニカル -->
+    <link rel="canonical" href="https://collectify.jp/" />
 
     <!-- 画像（サムネ・Storage）と API の接続を先に張っておく。
          <img> は crossorigin なし、supabase-js の fetch は CORS なので接続が別になる。両方張る -->
