@@ -272,6 +272,25 @@
     touch-action: pan-y;
   }
 
+  /* 上の「html だけがスクロールを担当する」を、モーダル表示中も崩さない。
+     メッセージの会話モーダル（Dialog）など react-remove-scroll を使う部品が開くと、
+     その内部の react-remove-scroll-bar が data-scroll-locked 属性を body に付け、
+     !important で body に position: relative / overflow: hidden を強制する。
+     これはまさに直前のコメントで避けたかった「overflow を持つ body」そのものに
+     なってしまい、iOS Safari が body を下タブ（position: fixed）の containing block と
+     取り違える同じ不具合を、モーダルを閉じたあとの画面にも持ち込んでいた
+     （#150 はスタイルシート側の body の overflow は塞いだが、ライブラリが実行時に
+     付けるこの属性は想定していなかった）。属性ごとこちらで無効化し、
+     body は常に static・overflow なしのままにする。
+     （本来のスクロール抑止は touchmove 側の JS で行われているので、ここを
+     打ち消しても背景が動くようにはならない） */
+  html body[data-scroll-locked] {
+    position: static !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   * {
     -webkit-overflow-scrolling: touch;
   }
