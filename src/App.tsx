@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { DailyBonusListener } from "@/components/daily/DailyBonusListener";
 import { ConsentBanner } from "@/components/legal/ConsentBanner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
@@ -16,6 +15,7 @@ import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewar
 import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
+import { DailyLoginRewardHost } from "@/components/daily/DailyLoginRewardHost";
 import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
 import { GuestPouchImporter } from "@/components/guest/GuestPouchImporter";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -173,7 +173,6 @@ const App: React.FC = () => {
               <OnboardingProvider>
                 <TooltipProvider>
                   <Sonner />
-                  <DailyBonusListener />
                   <ConsentBanner />
                   <RouteReadyTracker />
                   <ScrollToTop />
@@ -240,6 +239,7 @@ const App: React.FC = () => {
                   {/* 作品・シリーズがそろった瞬間のお祝い */}
                   <PockeCompletionHost />
                   <DailyRingHost />
+                  <DailyLoginRewardHost />
                   <BadgeUnlockHost />
                   <GuestPouchImporter />
                   </AppErrorBoundary>

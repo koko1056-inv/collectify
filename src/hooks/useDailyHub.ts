@@ -1,56 +1,23 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
-
-function todayJst(): string {
-  return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-}
+import { useDailyLoginStatus, type DailyLoginWeekDay } from "@/hooks/useDailyLoginReward";
 
 /**
- * 「今日のチェック」に出す情報。
- *  - 連続ログイン日数・今日のボーナス・次の段階までの残り日数
+ * 「今日のチェック」に出す情報。連続ログイン日数・今日の報酬・受け取り済みか。
  * 推しの作品の新着グッズは、ここでは読まない。「推しの新商品」の画面（/releases）と、
  * その入口のバッジ（useOshiNewBadge: 最後に見た時刻からの件数）に移した。
- * ログインボーナスの付与そのものは AuthContext が行う（ここは表示のための読み取りだけ）。
+ *
+ * 報酬の付与そのものは get_daily_login_status / claim_daily_login_reward（サーバー）が行う。
+ * 以前はポイント固定の login_bonus_tiers を読んでいたが、7日サイクルのカレンダー
+ * （daily_login_calendar）に替わったので、ここも今日の実際の報酬を返す。
  */
 export function useDailyHub() {
-  const { user } = useAuth();
-  const uid = user?.id;
-  const tiers = useLoginBonusTiers();
+  const status = useDailyLoginStatus();
 
-  const points = useQuery({
-    queryKey: ["daily-hub-points", uid],
-    enabled: !!uid,
-    staleTime: 1000 * 60,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_points")
-        .select("login_streak, last_login_bonus_date")
-        .eq("user_id", uid!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const derived = useMemo(() => {
-    const streak = points.data?.login_streak ?? 0;
-    const claimedToday = points.data?.last_login_bonus_date === todayJst();
-    const sorted = [...(tiers.data ?? [])].sort((a, b) => a.min_streak - b.min_streak);
-    const current = [...sorted].reverse().find((t) => t.min_streak <= Math.max(streak, 1));
-    const next = sorted.find((t) => t.min_streak > streak) ?? null;
-    return {
-      streak,
-      claimedToday,
-      todayPoints: current?.points ?? null,
-      next: next ? { inDays: next.min_streak - streak, points: next.points } : null,
-    };
-  }, [points.data, tiers.data]);
+  const todayReward: DailyLoginWeekDay | null = status.data?.week.find((d) => d.is_today) ?? null;
 
   return {
-    ...derived,
-    ready: points.isSuccess,
+    streak: status.data?.streak ?? 0,
+    claimedToday: status.data?.claimed_today ?? false,
+    todayReward,
+    ready: status.isSuccess,
   };
 }

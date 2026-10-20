@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { Capacitor } from '@capacitor/core'
@@ -21,27 +21,6 @@ const rcLogout = () => {
   })
 }
 
-// ログインボーナス処理のユーティリティ関数（連続ログイン対応）
-const awardLoginBonus = async (userId: string) => {
-  try {
-    // Use server-side function for login bonus
-    const { data: claimed, error } = await supabase
-      .rpc('claim_login_bonus', { _user_id: userId });
-
-    if (error) {
-      console.error("[AuthContext] Login bonus error:", error);
-      return;
-    }
-    // claimed が false の場合は本日付与済み（正常系なので何も出力しない）
-    // 受け取れたときだけ、「連続◯日・+◯pt」を見せるための合図を出す（表示は DailyBonusListener）
-    if (claimed === true && typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('collectify:daily-bonus-claimed'));
-    }
-  } catch (error) {
-    console.error("[AuthContext] ログインボーナス付与エラー:", error);
-  }
-};
-
 type AuthContextType = {
   user: User | null
   session: Session | null
@@ -54,8 +33,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  // ログインボーナスは同セッション中1回だけ
-  const bonusAwardedForRef = useRef<string | null>(null)
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -86,23 +63,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (_event === 'SIGNED_IN') {
           trackLogin(currentSession.user.id)
           rcLogin(currentSession.user.id)
-          // ログインボーナスは同セッションで1度だけ
-          if (bonusAwardedForRef.current !== currentSession.user.id) {
-            bonusAwardedForRef.current = currentSession.user.id
-            setTimeout(() => {
-              awardLoginBonus(currentSession.user.id)
-            }, 0)
-          }
         } else if (_event === 'SIGNED_OUT') {
           trackLogout(currentSession.user.id)
           rcLogout()
-          bonusAwardedForRef.current = null
         }
       } else {
         setSession(null)
         setUser(null)
         rcLogout()
-        bonusAwardedForRef.current = null
       }
       setLoading(false)
     })

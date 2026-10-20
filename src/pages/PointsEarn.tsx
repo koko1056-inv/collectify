@@ -14,8 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserPoints } from "@/hooks/usePoints";
-import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
+import { openDailyLoginReward, useDailyLoginStatus } from "@/hooks/useDailyLoginReward";
 import { useOnboardingRewardPoints } from "@/hooks/useOnboardingRewardPoints";
+import { Pocke } from "@/components/pocke/Pocke";
 import { ONBOARDING_STEPS } from "@/components/onboarding/steps";
 
 /**
@@ -23,9 +24,11 @@ import { ONBOARDING_STEPS } from "@/components/onboarding/steps";
  *
  * 以前はポイントショップの下に「無料でポイントを獲得」の固定の文言（投稿 +3pt…）があるだけで、
  * 推しフォト・なかよしLv・はじめてガイドなど、実際にもらえるものの半分が載っていなかった。
- * ここでは額を画面に直書きせず、サーバーの表（point_rewards / login_bonus_tiers / onboarding_reward_steps）から読む。
+ * ここでは額を画面に直書きせず、サーバーの表（point_rewards / onboarding_reward_steps）から読む。
  * 表に行が無い・止めてある（is_active = false）ものは出さない。
  * → グッズの登録・コンプの報酬は 20261016060631（core_loop_points）で表に入った。
+ * → ログインボーナスは 20261020050000（daily_login_rewards）で7日サイクルのカレンダーになり、
+ *   ここでは専用のカード（DailyLoginEarnCard）にして、今日のポッケリングと同じシートを開く。
  *
  * 並びはアプリの中心（登録する → 眺める → コンプ → 交換）に合わせ、「コレクションを進める」を先頭にする。
  */
@@ -77,7 +80,7 @@ export default function PointsEarn() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: userPoints, isLoading: pointsLoading } = useUserPoints();
-  const { data: tiers } = useLoginBonusTiers();
+  const { data: dailyLogin } = useDailyLoginStatus();
   const { data: stepPoints } = useOnboardingRewardPoints();
 
   const rewards = useQuery({
@@ -131,18 +134,6 @@ export default function PointsEarn() {
       out.collection.push({ key: "onboarding", icon: Sparkles, label: k("onboarding"), value: `+${guideTotal}pt`, note: k("onboardingNote") });
     }
 
-    // ログインボーナス（段階の最小〜最大）
-    if (tiers && tiers.length > 0) {
-      const pts = tiers.map((x) => x.points);
-      out.daily.unshift({
-        key: "login",
-        icon: Flame,
-        label: k("loginBonus"),
-        value: k("range", { min: Math.min(...pts), max: Math.max(...pts) }),
-        note: k("loginBonusNote"),
-      });
-    }
-
     // なかよしLv（companion_lv2〜10 をまとめて1行）
     const lv = (rewards.data ?? []).filter((r) => /^companion_lv\d+$/.test(r.reason)).map((r) => r.points);
     if (lv.length > 0) {
@@ -157,7 +148,7 @@ export default function PointsEarn() {
 
     out.social.push({ key: "referral", icon: UserPlus, label: k("referral"), value: `+${REFERRAL_BONUS}pt` });
     return out;
-  }, [rewards.data, tiers, stepPoints, t]);
+  }, [rewards.data, stepPoints, t]);
 
   const GROUP_ORDER: { id: Group; titleKey: string }[] = [
     { id: "collection", titleKey: "groupCollection" },
@@ -199,6 +190,26 @@ export default function PointsEarn() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* ログインボーナス（7日サイクルのカレンダー）。本体は DailyLoginRewardSheet（今日のポッケリングと共通） */}
+        {dailyLogin && (
+          <button type="button" onClick={openDailyLoginReward} className="block w-full text-left">
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background transition-colors hover:bg-accent/40">
+              <CardContent className="flex items-center gap-3 p-4">
+                <Pocke pose={dailyLogin.claimed_today ? "wink" : "wave"} height={44} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold">{t("pocke.dailyLogin.openFromEarn")}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Flame className="h-3.5 w-3.5 text-warning" aria-hidden />
+                    {t("pocke.dailyLogin.streak", { n: dailyLogin.streak })}
+                    {" · "}
+                    {dailyLogin.claimed_today ? t("pocke.dailyLogin.claimed") : t("pocke.dailyLogin.claim")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+        )}
 
         {rewards.isLoading ? (
           <div className="space-y-2">
