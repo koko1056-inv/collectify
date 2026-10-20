@@ -25,6 +25,8 @@ export interface OshiPhoto {
   caption: string | null;
   taken_on: string;
   created_at: string;
+  /** タイムラインに公開した投稿（item_posts）のID。null なら非公開のまま */
+  shared_post_id: string | null;
 }
 
 /** プレゼントの種類。値段・xp・1日の回数は DB（companion_gift_kinds）だけが正で、ここでは表示に使うだけ */
@@ -239,7 +241,7 @@ export function useOshiPhotos(days = 400) {
       const since = new Date(Date.now() - days * 86400e3).toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from("oshi_photos")
-        .select("id, user_item_id, image_url, caption, taken_on, created_at")
+        .select("id, user_item_id, image_url, caption, taken_on, created_at, shared_post_id")
         .eq("user_id", user!.id)
         .gte("taken_on", since)
         .order("taken_on", { ascending: false })
@@ -278,15 +280,19 @@ export function useUploadOshiPhoto() {
     }) => {
       if (!user) throw new Error("login_required");
       if (imageUrl) {
-        const { error } = await supabase.from("oshi_photos").insert({
-          user_id: user.id,
-          user_item_id: itemId,
-          image_url: imageUrl,
-          caption: caption?.trim() || null,
-          is_ai: isAi,
-        });
+        const { data, error } = await supabase
+          .from("oshi_photos")
+          .insert({
+            user_id: user.id,
+            user_item_id: itemId,
+            image_url: imageUrl,
+            caption: caption?.trim() || null,
+            is_ai: isAi,
+          })
+          .select("id")
+          .single();
         if (error) throw error;
-        return;
+        return { id: data.id as string };
       }
       if (!file) throw new Error("no_image");
       // 圧縮して、撮影場所などの情報（EXIF）も取り除いてから保存する
@@ -298,17 +304,22 @@ export function useUploadOshiPhoto() {
         .upload(path, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("kuji_images").getPublicUrl(path);
-      const { error } = await supabase.from("oshi_photos").insert({
-        user_id: user.id,
-        user_item_id: itemId,
-        image_url: urlData.publicUrl,
-        caption: caption?.trim() || null,
-      });
+      const { data, error } = await supabase
+        .from("oshi_photos")
+        .insert({
+          user_id: user.id,
+          user_item_id: itemId,
+          image_url: urlData.publicUrl,
+          caption: caption?.trim() || null,
+        })
+        .select("id")
+        .single();
       if (error) {
         // 保存に失敗したら、置いたファイルを残さない
         await supabase.storage.from("kuji_images").remove([path]);
         throw error;
       }
+      return { id: data.id as string };
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["oshi-photos", user?.id] });
@@ -321,6 +332,25 @@ export function useUploadOshiPhoto() {
   });
 }
 
+/** 推しフォトをタイムラインに公開する（いつもの投稿として、みんなが見られるようにする）。グッズと紐づいた写真だけ公開できる */
+export function useShareOshiPhoto() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (photoId: string): Promise<{ postId: string }> => {
+      const { data, error } = await supabase.rpc("share_oshi_photo", { _photo_id: photoId });
+      if (error) throw error;
+      return { postId: (data as { post_id: string }).post_id };
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["oshi-photos", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
+      void qc.invalidateQueries({ queryKey: ["user-item-posts", user?.id] });
+      void qc.invalidateQueries({ queryKey: ["userPoints"] });
+    },
+  });
+}
+
 export function useDeleteOshiPhoto() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -328,10 +358,11 @@ export function useDeleteOshiPhoto() {
     mutationFn: async (photo: OshiPhoto) => {
       const { error } = await supabase.from("oshi_photos").delete().eq("id", photo.id);
       if (error) throw error;
-      // 置いたファイルも消す（自分のフォルダのものだけ）
+      // 置いたファイルも消す（自分のフォルダのものだけ）。
+      // タイムラインに公開した写真は、投稿が同じファイルをそのまま使っているので消さない
       const marker = "/object/public/kuji_images/";
       const idx = photo.image_url.indexOf(marker);
-      if (idx >= 0) {
+      if (idx >= 0 && !photo.shared_post_id) {
         const path = decodeURIComponent(photo.image_url.slice(idx + marker.length));
         if (user && path.startsWith(`${user.id}/`)) await supabase.storage.from("kuji_images").remove([path]);
       }
