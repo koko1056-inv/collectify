@@ -4331,6 +4331,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_daily_login_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      claim_daily_login_reward: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_zukan_index: {
         Args: { _user_id?: string }
         Returns: {

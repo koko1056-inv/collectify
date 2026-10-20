@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
+import { openDailyLoginReward } from "@/hooks/useDailyLoginReward";
 import { ringDoneCount, type DailyRing } from "@/hooks/useDailyRing";
 import { cn } from "@/lib/utils";
 import { Pocke, PockeBubble } from "@/components/pocke/Pocke";
@@ -182,19 +183,31 @@ export function DailyRingSheet({
             )}
           </section>
 
-          {/* ログインボーナス（いままでの「今日分」） */}
+          {/* ログインボーナス（7日サイクルのカレンダー。本体は DailyLoginRewardSheet） */}
           {hub.ready && (
             <button
               type="button"
-              onClick={() => go("/point-shop/earn")}
+              onClick={() => {
+                onOpenChange(false);
+                openDailyLoginReward();
+              }}
               className="mt-3 flex w-full items-center gap-2 rounded-xl px-1 py-2 text-left text-xs text-muted-foreground hover:text-foreground"
             >
               <span className="flex-1">
                 {t("pocke.ring.login", { n: hub.streak })}
                 {" · "}
-                {hub.claimedToday && hub.todayPoints !== null
-                  ? t("engage.dailyHub.claimed", { n: hub.todayPoints })
-                  : t("engage.dailyHub.notClaimed")}
+                {hub.claimedToday
+                  ? t("pocke.dailyLogin.claimed")
+                  : t(
+                      hub.todayReward?.kind === "cosmetic_cover"
+                        ? "pocke.dailyLogin.kindCover"
+                        : hub.todayReward?.kind === "cosmetic_frame"
+                          ? "pocke.dailyLogin.kindFrame"
+                          : hub.todayReward?.kind === "points_slot"
+                            ? "pocke.dailyLogin.kindSlot"
+                            : "pocke.dailyLogin.kindPoints",
+                      { n: hub.todayReward?.points ?? 0, slots: hub.todayReward?.slot_bonus ?? 0 }
+                    )}
               </span>
               <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
             </button>
