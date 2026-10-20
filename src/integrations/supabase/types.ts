@@ -114,6 +114,7 @@ export type Database = {
           id: string
           image_url: string
           is_ai: boolean
+          shared_post_id: string | null
           taken_on: string
           user_id: string
           user_item_id: string | null
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           image_url: string
           is_ai?: boolean
+          shared_post_id?: string | null
           taken_on?: string
           user_id: string
           user_item_id?: string | null
@@ -134,11 +136,20 @@ export type Database = {
           id?: string
           image_url?: string
           is_ai?: boolean
+          shared_post_id?: string | null
           taken_on?: string
           user_id?: string
           user_item_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "oshi_photos_shared_post_id_fkey"
+            columns: ["shared_post_id"]
+            isOneToOne: false
+            referencedRelation: "item_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       oshi_room_assets: {
         Row: {
@@ -4430,6 +4441,10 @@ export type Database = {
       }
       set_companion: {
         Args: { _user_item_id: string }
+        Returns: Json
+      }
+      share_oshi_photo: {
+        Args: { _photo_id: string }
         Returns: Json
       }
       remove_companion: {

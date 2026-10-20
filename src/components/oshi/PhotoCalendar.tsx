@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Share2, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CheckCircle2, ChevronLeft, ChevronRight, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useDeleteOshiPhoto, type OshiPhoto } from "@/hooks/useOshi";
+import { useDeleteOshiPhoto, useShareOshiPhoto, type OshiPhoto } from "@/hooks/useOshi";
 import { todayJst } from "@/utils/companion";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
   const [viewing, setViewing] = useState<OshiPhoto | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<OshiPhoto | null>(null);
   const del = useDeleteOshiPhoto();
+  const share = useShareOshiPhoto();
 
   // その日の写真（新しい順の先頭を代表にする）
   const byDate = useMemo(() => {
@@ -61,7 +63,7 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
     });
   };
 
-  const share = async (photo: OshiPhoto) => {
+  const shareExternal = async (photo: OshiPhoto) => {
     const text = t("engage.oshi.shareText");
     try {
       if (navigator.share) {
@@ -72,6 +74,20 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
       }
     } catch {
       // キャンセルは何もしない
+    }
+  };
+
+  const publish = async (photo: OshiPhoto) => {
+    if (!photo.user_item_id) {
+      toast.error(t("engage.oshi.publishNeedsItem"));
+      return;
+    }
+    try {
+      await share.mutateAsync(photo.id);
+      toast.success(t("engage.oshi.published"));
+    } catch (e) {
+      console.error("share oshi photo failed:", e);
+      toast.error(t("engage.oshi.publishFailed"));
     }
   };
 
@@ -173,8 +189,32 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
                   <div key={p.id} className="space-y-2">
                     <img src={p.image_url} alt={p.caption ?? ""} className="w-full rounded-2xl object-cover" />
                     {p.caption && p.id !== viewing.id && <p className="text-xs text-muted-foreground">{p.caption}</p>}
+                    {p.shared_post_id ? (
+                      <div className="flex items-center justify-between gap-2 rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          {t("engage.oshi.publishedBadge")}
+                        </span>
+                        <Link to={`/post/${p.shared_post_id}`} className="underline">
+                          {t("engage.oshi.viewPost")}
+                        </Link>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-1.5"
+                        disabled={!p.user_item_id || share.isPending}
+                        title={!p.user_item_id ? t("engage.oshi.publishNeedsItem") : undefined}
+                        onClick={() => publish(p)}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        {t("engage.oshi.publishAction")}
+                      </Button>
+                    )}
                     <div className="flex gap-2">
-                      <Button type="button" variant="outline" size="sm" className="flex-1 gap-1" onClick={() => share(p)}>
+                      <Button type="button" variant="outline" size="sm" className="flex-1 gap-1" onClick={() => shareExternal(p)}>
                         <Share2 className="h-4 w-4" />
                         {t("engage.oshi.share")}
                       </Button>

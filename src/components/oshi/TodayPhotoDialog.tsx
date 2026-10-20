@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useCompanions, useOshiPhotos, useUploadOshiPhoto } from "@/hooks/useOshi";
+import { useCompanions, useOshiPhotos, useShareOshiPhoto, useUploadOshiPhoto } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
 import {
   DAILY_MISSION_KEY,
@@ -35,6 +35,7 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
   const { data: companions = [] } = useCompanions();
   const { streak, todayDone } = useOshiPhotos();
   const upload = useUploadOshiPhoto();
+  const share = useShareOshiPhoto();
   const queryClient = useQueryClient();
   // 今日のミッションのグッズ（推しグッズでないこともあるので、選べるように並べる）
   const { data: mission } = useDailyMission();
@@ -45,6 +46,8 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
   const [preview, setPreview] = useState<string | null>(null);
   const [itemId, setItemId] = useState<string | null>(initialItemId);
   const [caption, setCaption] = useState("");
+  // みんなに公開（タイムラインに投稿）。既定はオフ（これまで非公開だったので、急に全員に見えると驚かれるため）
+  const [shareToTimeline, setShareToTimeline] = useState(false);
   // AI で作った1枚（すでに自分の推しフォトのフォルダにある）。写真を選び直したら消す
   const [aiUrl, setAiUrl] = useState<string | null>(null);
   const [aiMaking, setAiMaking] = useState(false);
@@ -57,6 +60,12 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
   useEffect(() => {
     if (open) setItemId(initialItemId);
   }, [open, initialItemId]);
+
+  // 公開はグッズと紐づいた写真だけできる（item_posts の仕組み上、グッズが必須）。
+  // グッズの指定を外したら、公開トグルも自動でオフに戻す
+  useEffect(() => {
+    if (itemId === null) setShareToTimeline(false);
+  }, [itemId]);
 
   useEffect(() => {
     if (!file) {
@@ -74,6 +83,7 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
     setCaption("");
     setAiInstruction("");
     setAiUseReference(true);
+    setShareToTimeline(false);
   };
 
   // ミッションのグッズを選んでいて、まだ達成していないときだけ AI で作れる（1日2回まで無料）
@@ -132,16 +142,27 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
   const save = async () => {
     if (!file && !aiUrl) return;
     try {
-      await upload.mutateAsync(aiUrl ? { imageUrl: aiUrl, isAi: true, itemId, caption } : { file, itemId, caption });
+      const saved = await upload.mutateAsync(aiUrl ? { imageUrl: aiUrl, isAi: true, itemId, caption } : { file, itemId, caption });
       // ミッションのグッズで撮ったら達成（サーバーが撮った写真で決める）。ポッケが喜ぶ
       if (missionItem && itemId === missionItem.id) {
         pockeCheer("missionDone", mission?.bonus ?? 0);
       }
       void queryClient.invalidateQueries({ queryKey: [DAILY_MISSION_KEY] });
+      let shared = false;
+      if (shareToTimeline && itemId) {
+        try {
+          await share.mutateAsync(saved.id);
+          shared = true;
+        } catch (shareError) {
+          console.error("share oshi photo failed:", shareError);
+          toast.error(t("engage.oshi.publishFailed"));
+        }
+      }
       toast.success(
         todayDone ? t("engage.oshi.savedFirst") : streak > 0 ? t("engage.oshi.saved", { n: streak + 1 }) : t("engage.oshi.savedFirst"),
         { description: todayDone ? undefined : t("engage.oshi.savedPoints") }
       );
+      if (shared) toast.success(t("engage.oshi.published"));
       reset();
       onOpenChange(false);
       onSaved?.(itemId);
@@ -303,6 +324,19 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
           rows={2}
           className="resize-none"
         />
+
+        <label className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2.5 text-xs font-medium">
+          <span className={cn(itemId === null && "text-muted-foreground")}>
+            {t("engage.oshi.shareToggle")}
+            {itemId === null && <span className="mt-0.5 block text-2xs font-normal text-muted-foreground">{t("engage.oshi.shareToggleNeedsItem")}</span>}
+          </span>
+          <Switch
+            checked={shareToTimeline}
+            disabled={itemId === null || upload.isPending}
+            onCheckedChange={setShareToTimeline}
+            aria-label={t("engage.oshi.shareToggle")}
+          />
+        </label>
 
         <Button size="lg" className="h-12 w-full rounded-2xl" disabled={(!file && !aiUrl) || aiMaking || upload.isPending} onClick={save}>
           {upload.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
