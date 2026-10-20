@@ -70,6 +70,10 @@ verify_jwt = false
 [functions.revenuecat-webhook]
 verify_jwt = false
 
+# パスワードを忘れた人がログイン前（JWT なし）に呼ぶ。本人確認は秘密の質問の答えで行う。
+[functions.secret-question-reset]
+verify_jwt = false
+
 # Web 決済（Stripe）。Checkout とカスタマーポータルはログイン中のユーザーが呼ぶ。
 [functions.stripe-checkout]
 verify_jwt = true

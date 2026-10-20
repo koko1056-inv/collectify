@@ -4809,6 +4809,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_my_secret_question_status: {
+        Args: never
+        Returns: { has_question: boolean; question_id: string | null }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4837,6 +4841,10 @@ export type Database = {
         Returns: Json
       }
       redeem_invite_code: { Args: { _code: string }; Returns: Json }
+      set_my_secret_question: {
+        Args: { answer: string; question_id: string }
+        Returns: undefined
+      }
       report_trade_receipt: { Args: { _trade_id: string }; Returns: Json }
       report_trade_shipment: { Args: { _trade_id: string }; Returns: Json }
       respond_to_trade_request: {

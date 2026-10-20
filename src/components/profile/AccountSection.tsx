@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Download, KeyRound, Loader2, Trash2, UserX } from "lucide-react";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
+import { SecretQuestionSection } from "./SecretQuestionSection";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +36,8 @@ interface AccountSectionProps {
 export function AccountSection({ onDeleted }: AccountSectionProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { profile } = useProfile(user?.id);
   const [exporting, setExporting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [typed, setTyped] = useState("");
@@ -121,6 +126,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
             <div className="text-sm font-medium">{t("profileScreen.account.changePassword")}</div>
           </div>
         </button>
+        <SecretQuestionSection isSample={!!profile?.is_sample} />
         <button
           onClick={handleExport}
           disabled={exporting}
