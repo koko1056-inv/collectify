@@ -18,9 +18,14 @@
 -- 【セッションの失効について】
 -- パスワードをリセットしたら、それ以前に発行済みのセッション（トークン）は無効にしたい。
 -- auth.sessions / auth.refresh_tokens は supabase_auth_admin が所有し、service_role からの直接の
--- DELETE 権限は無い（Supabase の auth スキーマは Auth サーバー専用）。そのため DB 関数は作らず、
--- Edge Function（secret-question-reset）の中で supabase-js の
--- auth.admin.signOut(user_id, 'global') を呼ぶことで代替する。
+-- DELETE 権限は無い（Supabase の auth スキーマは Auth サーバー専用）。そのため DB 関数は作らない。
+--
+-- 加えて、supabase-js の auth.admin.signOut(token, scope) は「ユーザーID」ではなく
+-- 「アクセストークン（JWT）」を受け取る API で、ユーザーIDを渡しても失効しない。
+-- そのため Edge Function（secret-question-reset）の中で、パスワード変更後に新パスワードで
+-- 一度だけ signInWithPassword し、そこで得たアクセストークンを 'global' スコープで signOut
+-- することで、そのユーザーの全セッション（この一度きりのサインインで作った分も含む）を
+-- 失効させている。詳細は supabase/functions/secret-question-reset/index.ts の handleReset を参照。
 
 -- ---------------------------------------------------------------------------
 -- 0. pgcrypto（ハッシュ化に crypt/gen_salt を使う）

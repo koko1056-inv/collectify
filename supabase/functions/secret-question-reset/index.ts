@@ -1,8 +1,13 @@
 // ユーザー名＋秘密の質問によるパスワード再設定。
 //
 // ログイン前（JWTなし）に呼ばれる。本人確認は「秘密の質問」の答えで行い、正しければ
-// service role の auth.admin.updateUserById() でパスワードを変更し、既存のセッションを
-// auth.admin.signOut(..., 'global') で失効させる。
+// service role の auth.admin.updateUserById() でパスワードを変更し、既存のセッションを失効させる。
+//
+// セッション失効について: auth.admin.signOut(token, scope) は「ユーザーID」ではなく
+// 「アクセストークン（JWT）」を受け取る API で、ユーザーIDを渡しても失効しない（エラーになるだけ）。
+// そのため、パスワード変更後に新しいパスワードで一度だけ signInWithPassword し、
+// そこで得たアクセストークンを 'global' スコープで signOut することで、そのユーザーの
+// 全セッション（このサインインで作った分も含む）をまとめて失効させている。詳細は handleReset 参照。
 //
 // action:
 //   lookup: { username } -> { ok: true, question_id } | { ok: false, reason: 'unavailable' }
@@ -75,8 +80,11 @@ serve(async (req) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !serviceKey) {
-    console.error("secret-question-reset: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY is not configured");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !serviceKey || !anonKey) {
+    console.error(
+      "secret-question-reset: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY is not configured"
+    );
     return jsonResponse(cors, { ok: false, reason: "server_misconfigured" }, 500);
   }
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
@@ -101,7 +109,16 @@ serve(async (req) => {
     if (!isNonEmptyString(body.answer) || !isNonEmptyString(body.new_password)) {
       return jsonResponse(cors, { ok: false, reason: "invalid_input" }, 400);
     }
-    return await handleReset(admin, cors, username, body.answer as string, body.new_password as string, ipHash);
+    return await handleReset(
+      admin,
+      cors,
+      username,
+      body.answer as string,
+      body.new_password as string,
+      ipHash,
+      url,
+      anonKey
+    );
   } catch (e) {
     console.error("secret-question-reset failed:", e);
     return jsonResponse(cors, { ok: false, reason: "internal_error" }, 500);
@@ -142,7 +159,9 @@ async function handleReset(
   username: string,
   answer: string,
   newPassword: string,
-  ipHash: string | null
+  ipHash: string | null,
+  supabaseUrl: string,
+  anonKey: string
 ) {
   const locked = await isLocked(admin, username, ipHash);
   if (locked) {
@@ -185,11 +204,38 @@ async function handleReset(
     return jsonResponse(cors, { ok: false, reason: "internal_error" }, 500);
   }
 
-  // 既存のセッション（トークン）を失効させる。失敗してもパスワード変更自体は成功扱いにする
-  // （本人は新しいパスワードで入り直せる。失効漏れのログだけ残す）。
-  const { error: signOutError } = await admin.auth.admin.signOut(row.user_id, "global");
-  if (signOutError) {
-    console.error("secret-question-reset: signOut after reset failed (ignored):", signOutError);
+  // 既存のセッション（トークン）を失効させる。
+  //
+  // auth.admin.signOut(token, scope) は「ユーザーID」ではなく「アクセストークン」を受け取る API。
+  // user_id を渡しても失効しない（エラーになるだけで、変更前のパスワードで発行済みの
+  // セッションがすべて残ってしまう）。そこで、変更後の新パスワードで一度だけ signInWithPassword し、
+  // そこで得たアクセストークンを 'global' スコープで signOut することで、そのユーザーの全セッション
+  // （この一度きりのサインインで作った分も含む）を失効させる。
+  //
+  // email は username@example.com 方式を前提に推測せず、getUserById で実際の値を取得する。
+  // 失敗してもパスワード変更自体は成功扱いにする（本人は新しいパスワードで入り直せる。
+  // 失効漏れのログだけ残す。パスワードはログに出さない）。
+  try {
+    const { data: userRes, error: getUserError } = await admin.auth.admin.getUserById(row.user_id);
+    const email = userRes?.user?.email;
+    if (getUserError || !email) throw getUserError ?? new Error("user has no email");
+
+    // persistSession/autoRefreshToken: false の使い捨てクライアント。
+    // この Edge Function 内だけで使い、アクセストークンを得たらすぐ signOut する。
+    const ephemeral = createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: signInData, error: signInError } = await ephemeral.auth.signInWithPassword({
+      email,
+      password: newPassword,
+    });
+    const accessToken = signInData?.session?.access_token;
+    if (signInError || !accessToken) throw signInError ?? new Error("sign-in after reset returned no session");
+
+    const { error: signOutError } = await admin.auth.admin.signOut(accessToken, "global");
+    if (signOutError) throw signOutError;
+  } catch (e) {
+    console.error("secret-question-reset: session revocation after reset failed (ignored):", e);
   }
 
   await recordAttempt(admin, username, ipHash, "reset", true);
