@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { isNavActive } from "@/components/navigation/navGroups";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeftRight, Boxes, Compass, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -90,38 +91,48 @@ export function Footer() {
 
   return (
     <>
-      <div
-        data-tour="nav-bar"
-        // transform-gpu: 自前のコンポジットレイヤーを強制する。backdrop-blur と
-        // position:fixed の組み合わせは iOS Safari でスクロール中の再描画が遅れ、
-        // 一瞬古い位置のまま表示されることがあるための保険。
-        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50 pb-[env(safe-area-inset-bottom)] transform-gpu"
-      >
-        <div className="flex items-center justify-around h-16 relative">
-          {leftTabs.map(renderTab)}
-          {/* 中央: グッズを追加（撮る / 一覧から選ぶ / 手入力） */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="-mt-8 flex flex-col items-center">
-              <motion.button
-                data-tour="collection-add"
-                onClick={() => setIsAddOpen(true)}
-                whileTap={{ scale: 0.95 }}
-                aria-label={t("chrome.fab.addGoods")}
-                className={cn(
-                  "h-14 w-14 rounded-full flex items-center justify-center shadow-lg",
-                  "bg-primary text-primary-foreground hover:shadow-xl transition-all"
-                )}
-              >
-                <Plus className="h-7 w-7" />
-              </motion.button>
-              <span className="text-3xs font-medium text-muted-foreground mt-0.5">
-                {t("chrome.nav.add")}
-              </span>
+      {createPortal(
+        <div
+          data-tour="nav-bar"
+          // transform-gpu: 自前のコンポジットレイヤーを強制する。backdrop-blur と
+          // position:fixed の組み合わせは iOS Safari でスクロール中の再描画が遅れ、
+          // 一瞬古い位置のまま表示されることがあるための保険。
+          //
+          // document.body へポータルしているのは、各ページがこの Footer を
+          // 自分の JSX の中（スクロールコンテナやアニメーションラッパーの内側）に
+          // 置いているため。position: fixed の基準となる containing block は、
+          // 祖先に transform/filter/contain を持つ要素が挟まるだけでそちらに
+          // 変わってしまい、下タブが画面下端ではなく祖先要素基準の中段に
+          // 浮いて見える不具合につながる。body 直下に置くことでその祖先の影響を断つ。
+          className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50 pb-[env(safe-area-inset-bottom)] transform-gpu"
+        >
+          <div className="flex items-center justify-around h-16 relative">
+            {leftTabs.map(renderTab)}
+            {/* 中央: グッズを追加（撮る / 一覧から選ぶ / 手入力） */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="-mt-8 flex flex-col items-center">
+                <motion.button
+                  data-tour="collection-add"
+                  onClick={() => setIsAddOpen(true)}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label={t("chrome.fab.addGoods")}
+                  className={cn(
+                    "h-14 w-14 rounded-full flex items-center justify-center shadow-lg",
+                    "bg-primary text-primary-foreground hover:shadow-xl transition-all"
+                  )}
+                >
+                  <Plus className="h-7 w-7" />
+                </motion.button>
+                <span className="text-3xs font-medium text-muted-foreground mt-0.5">
+                  {t("chrome.nav.add")}
+                </span>
+              </div>
             </div>
+            {rightTabs.map(renderTab)}
           </div>
-          {rightTabs.map(renderTab)}
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
       <AddGoodsSheet open={isAddOpen} onOpenChange={setIsAddOpen} />
     </>

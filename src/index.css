@@ -291,6 +291,19 @@
     padding: 0 !important;
   }
 
+  /* iOS Safari はフォーカスした input/textarea/select の font-size が16px未満だと
+     ページを自動ズームし、blur後もズームを戻さない。SPA なので以降の全画面で
+     ズームしたままになり、position: fixed の下タブが画面中段に浮いて見える。
+     !important なのは、個々のコンポーネントが text-sm 等の Tailwind クラス
+     （class セレクタで詳細度が高い）を指定していても、ここだけは必ず勝たせたいため。 */
+  @media (max-width: 767px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
   * {
     -webkit-overflow-scrolling: touch;
   }
