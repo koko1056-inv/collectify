@@ -128,6 +128,10 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
                   </Button>
                 )}
               </div>
+            ) : partnerProfile?.is_sample ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+                <p className="text-sm font-medium">{t("sampleAccount.actionDisabled")}</p>
+              </div>
             ) : (
               <ChatStep
                 messages={messages}

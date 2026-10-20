@@ -25,6 +25,7 @@ import { BulkImportModal } from "./admin/BulkImportModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { CatalogRequestButton } from "./catalog/CatalogRequestButton";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -269,7 +270,10 @@ export function OfficialItemsList({
               : t("chrome.officialItems.emptyDesc")
           }
           action={
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
+              {searchQuery.trim().length > 0 && (
+                <CatalogRequestButton query={searchQuery} context="search" kind="goods" />
+              )}
               <Button onClick={() => navigate("/quick-add")} className="gap-2">
                 <Camera className="h-4 w-4" />
                 {t("chrome.collection.addByPhoto")}

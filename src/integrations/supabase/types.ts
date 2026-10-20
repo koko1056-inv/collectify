@@ -4310,11 +4310,48 @@ export type Database = {
           },
         ]
       }
+      catalog_requests: {
+        Row: {
+          context: string | null
+          created_at: string
+          id: string
+          kind: string
+          query: string
+          user_id: string | null
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          query: string
+          user_id?: string | null
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          query?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      catalog_request_ranking: {
+        Args: { _limit?: number }
+        Returns: {
+          query_norm: string
+          sample_query: string
+          request_count: number
+          unique_user_count: number
+          last_requested_at: string
+        }[]
+      }
       mark_completions_seen: {
         Args: { _keys: string[] }
         Returns: undefined

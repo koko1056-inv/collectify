@@ -28,6 +28,8 @@ import { records } from './records';
 import { pocke } from './pocke';
 import { badges } from './badges';
 import { sampleAccount } from './sampleAccount';
+import { inAppBrowser } from './inAppBrowser';
+import { catalogRequest } from './catalogRequest';
 
 export const moduleTranslations = {
   ja: {
@@ -59,6 +61,8 @@ export const moduleTranslations = {
     pocke: pocke.ja,
     badges: badges.ja,
     sampleAccount: sampleAccount.ja,
+    inAppBrowser: inAppBrowser.ja,
+    catalogRequest: catalogRequest.ja,
   },
   en: {
     admin: admin.en,
@@ -89,5 +93,7 @@ export const moduleTranslations = {
     pocke: pocke.en,
     badges: badges.en,
     sampleAccount: sampleAccount.en,
+    inAppBrowser: inAppBrowser.en,
+    catalogRequest: catalogRequest.en,
   },
 };

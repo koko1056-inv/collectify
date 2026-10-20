@@ -409,6 +409,8 @@ export function ProfileHero({
                   <Button
                     variant="outline"
                     onClick={() => setShowChat(true)}
+                    disabled={!!profile.is_sample}
+                    title={profile.is_sample ? t("sampleAccount.actionDisabled") : undefined}
                     className="flex-1 gap-1.5 rounded-full"
                   >
                     <MessageCircle className="w-4 h-4" />

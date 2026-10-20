@@ -19,6 +19,8 @@ import { useCatalogContentCovers, useCatalogContents } from "@/hooks/useOfficial
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { fuzzyRank } from "@/utils/fuzzy";
 import { DidYouMean } from "@/components/search/DidYouMean";
+import { CatalogRequestButton } from "@/components/catalog/CatalogRequestButton";
+import { useNavigate } from "react-router-dom";
 
 /** 作品。英語名と別名は検索に使う */
 type InterestContent = ContentInfo & { name_en?: string | null; aliases?: string[] | null };
@@ -52,6 +54,7 @@ export function InitialInterestSelection({
   const { user } = useAuth();
   const { completeWalkthrough } = useOnboarding();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -258,6 +261,11 @@ export function InitialInterestSelection({
               setSearchQuery("");
               if (!selectedContents.includes(name)) handleContentToggle(name);
             }}
+          />
+          <CatalogRequestButton
+            query={deferredQuery}
+            context="interests"
+            onPhoto={() => navigate("/quick-add")}
           />
           <div className="grid grid-cols-2 gap-3">{otherButton}</div>
         </div>

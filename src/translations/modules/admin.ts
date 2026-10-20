@@ -66,6 +66,15 @@ export const admin = {
       noneTitle: "該当する要望はありません",
       noneDesc: "条件を変えてみてください",
     },
+    catalogRequests: {
+      title: "追加してほしいリクエスト",
+      description: "検索で見つからなかったときに送られた「追加してほしい」のリクエストです。同じ語でまとめて、件数の多い順に表示します。",
+      loadFailed: "リクエストを読み込めませんでした",
+      noneTitle: "リクエストはありません",
+      noneDesc: "まだ送られたリクエストがありません",
+      count: "{n}件",
+      lastRequested: "最新 {date}",
+    },
     reports: {
       title: "通報",
       description:
@@ -187,6 +196,15 @@ export const admin = {
       loadFailed: "Couldn't load requests",
       noneTitle: "No matching requests",
       noneDesc: "Try changing the filters",
+    },
+    catalogRequests: {
+      title: "Add requests",
+      description: "Requests sent when a search came up empty, grouped by matching text and sorted by count.",
+      loadFailed: "Couldn't load requests",
+      noneTitle: "No requests",
+      noneDesc: "No requests have been sent yet",
+      count: "{n}",
+      lastRequested: "Latest {date}",
     },
     reports: {
       title: "Reports",

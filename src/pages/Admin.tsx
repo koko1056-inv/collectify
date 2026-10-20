@@ -6,6 +6,7 @@ import { TagCandidatesManager } from "@/components/admin/TagCandidatesManager";
 import { DuplicateItemsManager } from "@/components/admin/DuplicateItemsManager";
 import { ReportsManager } from "@/components/admin/ReportsManager";
 import { FeedbackManager } from "@/components/admin/FeedbackManager";
+import { CatalogRequestsManager } from "@/components/admin/CatalogRequestsManager";
 import { SeriesBackfillManager } from "@/components/admin/SeriesBackfillManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -44,6 +45,7 @@ const Admin = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="feedback">{t("screens.admin.feedbackTab")}</TabsTrigger>
+            <TabsTrigger value="catalogRequests">{t("screens.admin.catalogRequestsTab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="items" className="space-y-8">
@@ -69,6 +71,10 @@ const Admin = () => {
 
           <TabsContent value="feedback">
             <FeedbackManager />
+          </TabsContent>
+
+          <TabsContent value="catalogRequests">
+            <CatalogRequestsManager />
           </TabsContent>
         </Tabs>
       </main>
