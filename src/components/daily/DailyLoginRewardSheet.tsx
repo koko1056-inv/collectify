@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Pocke, PockeBubble } from "@/components/pocke/Pocke";
+import { LineFriendCard } from "@/components/line/LineFriendCard";
 import type { PockePose } from "@/components/pocke/pockeAssets";
 import { cosmeticI18nId, isCoverKey, isFrameKey } from "@/lib/cosmetics";
 import {
@@ -148,6 +149,8 @@ export function DailyLoginRewardSheet({
               </Button>
             </div>
           )}
+
+          {claimedNow && <LineFriendCard className="w-full max-w-sm" />}
         </div>
 
         <section className="mt-5" aria-label={t("pocke.dailyLogin.week")}>

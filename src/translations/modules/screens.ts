@@ -96,6 +96,7 @@ export const screens = {
       forgotPassword: "ログインできないとき",
       toSignup: "アカウントをお持ちでない方はこちら",
       toLogin: "すでにアカウントをお持ちの方はこちら",
+      agreeNoteOauth: "LINE/Appleでのログインにも、利用規約とプライバシーポリシーへの同意が必要です",
     },
     notifications: {
       title: "通知",
@@ -523,6 +524,7 @@ export const screens = {
       forgotPassword: "Can't log in?",
       toSignup: "Don't have an account? Sign up",
       toLogin: "Already have an account? Log in",
+      agreeNoteOauth: "Signing in with LINE/Apple also requires agreeing to the Terms and Privacy Policy",
     },
     notifications: {
       title: "Notifications",

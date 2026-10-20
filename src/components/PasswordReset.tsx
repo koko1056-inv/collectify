@@ -7,6 +7,7 @@ import { LEGAL_OPERATOR } from "@/config/legal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ENABLE_APPLE_LOGIN, ENABLE_LINE_LOGIN } from "@/config/lineAuth";
 
 interface PasswordResetProps {
   onBack: () => void;
@@ -51,6 +52,9 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
       <div className="space-y-4 text-sm leading-relaxed">
         <p>{t("chrome.passwordReset.usernameNote")}</p>
         <p className="text-muted-foreground">{t("chrome.passwordReset.loggedInHint")}</p>
+        {(ENABLE_LINE_LOGIN || ENABLE_APPLE_LOGIN) && (
+          <p className="text-muted-foreground">{t("chrome.passwordReset.socialHint")}</p>
+        )}
         {LEGAL_OPERATOR.email && (
           <p className="text-muted-foreground">
             {t("chrome.passwordReset.contactHint", { email: LEGAL_OPERATOR.email })}

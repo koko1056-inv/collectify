@@ -463,6 +463,7 @@ export const chrome = {
       loggedInHint: "ほかの端末でログインできている場合は、「設定 → アカウント → パスワードを変更」から新しいパスワードにできます。",
       contactHint: "どの端末でもログインできない場合は、{email} までユーザー名を添えてご連絡ください。",
       emailAccount: "メールアドレスで登録した方はこちら",
+      socialHint: "LINE/Appleを連携しておくと、パスワードを忘れてもログインできます",
     },
   },
 
@@ -922,6 +923,7 @@ export const chrome = {
       loggedInHint: "If you're still logged in on another device, go to Settings → Account → Change password to set a new one.",
       contactHint: "If you can't log in on any device, contact {email} with your username.",
       emailAccount: "Signed up with an email address?",
+      socialHint: "Linking LINE/Apple lets you sign in even if you forget your password",
     },
   },
 } as const;

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, User, Lock, Globe } from "lucide-react";
+import { AlertCircle, User, Lock, Globe, Apple } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -12,6 +12,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke } from "@/components/pocke/Pocke";
 import { readGuestPouch } from "@/utils/guestPouch";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
+import { ENABLE_APPLE_LOGIN, ENABLE_LINE_LOGIN, LINE_AUTH_PROVIDER } from "@/config/lineAuth";
 
 export default function Login() {
   const { t, language, setLanguage } = useLanguage();
@@ -33,6 +37,33 @@ export default function Login() {
   } = useLoginForm();
 
   const needsAgreement = !isLogin && !agreed;
+  const [oauthLoading, setOauthLoading] = useState<"line" | "apple" | null>(null);
+  const showOauth = ENABLE_LINE_LOGIN || ENABLE_APPLE_LOGIN;
+  // iOS（Capacitor）ではAppleのボタンを優先表示
+  const appleFirst = Capacitor.getPlatform() === "ios";
+
+  const handleOauthLogin = async (kind: "line" | "apple") => {
+    if (needsAgreement) return;
+    setOauthLoading(kind);
+    try {
+      // /login に戻ってくる（既存の redirect / from=try / invite をそのまま引き継ぐ）
+      const redirectTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+      const provider = kind === "apple" ? "apple" : LINE_AUTH_PROVIDER;
+      // LINEはSupabaseのカスタムOAuthプロバイダのため、supabase-jsの型では弾かれる
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.auth as any).signInWithOAuth({
+        provider,
+        options: { redirectTo },
+      });
+      if (error) throw error;
+    } catch (e) {
+      console.error("OAuth login failed:", e);
+      toast.error(t("lineConnect.login.oauthFailedTitle"), {
+        description: t("lineConnect.login.oauthFailedDesc"),
+      });
+      setOauthLoading(null);
+    }
+  };
   // おためし（/try）から来たときは「新規登録」で開き、袋の中身がそのまま入ることを伝える
   const fromTry = searchParams.get("from") === "try";
   const [guestCount] = useState(() => readGuestPouch().owned.length);
@@ -172,6 +203,9 @@ export default function Login() {
                 </label>
               </div>
             )}
+            {!isLogin && showOauth && (
+              <p className="text-2xs text-muted-foreground">{t("screens.login.agreeNoteOauth")}</p>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
@@ -182,6 +216,53 @@ export default function Login() {
             >
               {loading ? t("screens.login.processing") : isLogin ? t("screens.login.loginButton") : t("screens.login.signupButton")}
             </Button>
+            {showOauth && (
+              <div className="w-full space-y-2">
+                <div className="flex items-center gap-2 text-2xs text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  {t("lineConnect.login.orDivider")}
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+                {(() => {
+                  const lineButton = ENABLE_LINE_LOGIN && (
+                    <Button
+                      key="line"
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-2 border-[#06C755]/40 text-[#06C755] hover:bg-[#06C755]/10"
+                      disabled={loading || !!oauthLoading || needsAgreement}
+                      onClick={() => handleOauthLogin("line")}
+                    >
+                      {t("lineConnect.login.line")}
+                    </Button>
+                  );
+                  const appleButton = ENABLE_APPLE_LOGIN && (
+                    <Button
+                      key="apple"
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-2"
+                      disabled={loading || !!oauthLoading || needsAgreement}
+                      onClick={() => handleOauthLogin("apple")}
+                    >
+                      <Apple className="h-4 w-4" aria-hidden="true" />
+                      {t("lineConnect.login.apple")}
+                    </Button>
+                  );
+                  return appleFirst ? (
+                    <>
+                      {appleButton}
+                      {lineButton}
+                    </>
+                  ) : (
+                    <>
+                      {lineButton}
+                      {appleButton}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
             {isLogin && (
               <Button
                 type="button"

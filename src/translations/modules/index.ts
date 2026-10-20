@@ -28,6 +28,7 @@ import { records } from './records';
 import { pocke } from './pocke';
 import { badges } from './badges';
 import { sampleAccount } from './sampleAccount';
+import { lineConnect } from './lineConnect';
 
 export const moduleTranslations = {
   ja: {
@@ -59,6 +60,7 @@ export const moduleTranslations = {
     pocke: pocke.ja,
     badges: badges.ja,
     sampleAccount: sampleAccount.ja,
+    lineConnect: lineConnect.ja,
   },
   en: {
     admin: admin.en,
@@ -89,5 +91,6 @@ export const moduleTranslations = {
     pocke: pocke.en,
     badges: badges.en,
     sampleAccount: sampleAccount.en,
+    lineConnect: lineConnect.en,
   },
 };

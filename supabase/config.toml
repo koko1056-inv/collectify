@@ -118,3 +118,12 @@ verify_jwt = false
 # カタログ画像のサムネ作り。cron が x-cron-secret で呼ぶ（JWT を持たない）。認可は関数の中で cron の秘密か管理者かを確かめる
 [functions.catalog-thumbs]
 verify_jwt = false
+
+# LINE通知の送信。cron が x-cron-secret で呼ぶ（catalog-thumbs と同じ仕組み）。認可は関数の中で確かめる
+[functions.line-push]
+verify_jwt = false
+
+# LINE Messaging API からの Webhook（follow/unfollow）。LINE は Supabase の JWT を持たないので必ず false。
+# 認証は X-Line-Signature（LINE_CHANNEL_SECRET によるHMAC-SHA256）で行う。デプロイ時も --no-verify-jwt を指定すること。
+[functions.line-webhook]
+verify_jwt = false

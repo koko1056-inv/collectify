@@ -17,6 +17,7 @@ import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts"
 import { GoodsFan } from "./OnboardingArt";
 import { OnboardingAiTry } from "./OnboardingAiTry";
 import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
+import { LineFriendCard } from "@/components/line/LineFriendCard";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -421,6 +422,8 @@ function CelebrateStep({
               +50<span className="ml-0.5 text-xs">pt</span>
             </p>
           </motion.div>
+
+          <LineFriendCard className="mt-4 w-full" />
         </div>
       </div>
 

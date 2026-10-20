@@ -15,6 +15,7 @@ import { InstallAppCard } from "@/components/pwa/InstallAppCard";
 import { AccountSection } from "./AccountSection";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 import { BlockedUsersSection } from "@/components/safety/BlockedUsersSection";
+import { LineNotifySection } from "./LineNotifySection";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -150,6 +151,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
           <section className="bg-card rounded-2xl border border-border p-5">
             <InviteCodeSection />
           </section>
+
+          {/* LINE通知のON/OFFと、LINE/Appleの連携（機能フラグがすべてOFFなら何も出ない） */}
+          <LineNotifySection />
 
           <SectionHeading>{t("profileScreen.settings.app")}</SectionHeading>
           {/* ホーム画面に追加（PWA） */}
