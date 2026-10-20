@@ -22,21 +22,23 @@ export function SampleAccountBadge({ isSample, className }: SampleAccountBadgePr
 
   if (!isSample) return null;
 
-  const label = t("sampleAccount.tooltip");
+  const tooltip = t("sampleAccount.tooltip");
+  const label = t("sampleAccount.label");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {/* badge はカード／リンクの中に置かれることが多いので、button ではなく
-            role="button" の span にして、入れ子の interactive 要素を避ける */}
+            role="button" の span にして、入れ子の interactive 要素を避ける。
+            狭い場所でも崩れないよう、アイコン・文字ラベルとも shrink-0 + 折り返し無しにしている */}
         <span
           role="button"
           tabIndex={0}
           className={cn(
-            "inline-flex h-[1em] w-[1em] shrink-0 translate-y-[0.05em] cursor-pointer items-center justify-center align-middle",
+            "inline-flex shrink-0 translate-y-[0.05em] cursor-pointer items-center gap-0.5 align-middle",
             className
           )}
-          aria-label={label}
+          aria-label={tooltip}
           onClick={(e) => {
             e.stopPropagation();
             setOpen((v) => !v);
@@ -53,7 +55,15 @@ export function SampleAccountBadge({ isSample, className }: SampleAccountBadgePr
           onFocus={() => setOpen(true)}
           onBlur={() => setOpen(false)}
         >
-          <img src={pockeSrc("peek")} alt="" className="h-full w-full object-contain" draggable={false} />
+          <img
+            src={pockeSrc("peek")}
+            alt=""
+            className="h-[1em] w-[1em] shrink-0 object-contain"
+            draggable={false}
+          />
+          <span className="shrink-0 whitespace-nowrap text-[0.7em] leading-none text-muted-foreground">
+            {label}
+          </span>
         </span>
       </PopoverTrigger>
       <PopoverContent
@@ -62,7 +72,7 @@ export function SampleAccountBadge({ isSample, className }: SampleAccountBadgePr
         className="w-auto max-w-[240px] px-3 py-1.5 text-xs"
         onClick={(e) => e.stopPropagation()}
       >
-        {label}
+        {tooltip}
       </PopoverContent>
     </Popover>
   );

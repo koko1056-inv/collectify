@@ -195,6 +195,10 @@ export function ReportDialog({
                 />
               </div>
 
+              {(targetType === "message" || targetType === "room_message") && (
+                <p className="text-xs text-muted-foreground">{t("safety.report.messageReviewNote")}</p>
+              )}
+
               {canBlock && (
                 <label className="flex items-start gap-2 rounded-lg bg-muted/50 p-2.5">
                   <Checkbox

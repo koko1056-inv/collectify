@@ -5,8 +5,10 @@
 export const sampleAccount = {
   ja: {
     tooltip: "Collectify公式のサンプルアカウントです",
+    label: "公式サンプル",
   },
   en: {
     tooltip: "Official Collectify sample account",
+    label: "Official sample",
   },
 };
