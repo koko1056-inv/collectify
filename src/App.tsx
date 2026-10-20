@@ -56,6 +56,18 @@ const RouteReadyTracker: React.FC = () => {
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
   React.useEffect(() => {
+    // iOS Safari は、キーボード表示中の拡大/キーボードを閉じた拍子に
+    // visualViewport の offsetTop/scale が正規の状態（0 / 1）に戻らず残ることがある。
+    // SPA だと画面遷移してもレイアウトビューポート自体はリロードされないため、
+    // この「ズレた」状態が次の画面にも持ち越され、position: fixed の下タブが
+    // 画面中段に浮いて見える。フォーカスを外してから先頭へスクロールし直すと、
+    // ブラウザがこのズレを一緒に正規化してくれる。
+    const vv = window.visualViewport;
+    const hasLeftoverKeyboardOffset =
+      !!vv && (vv.offsetTop > 0 || vv.scale !== 1);
+    if (hasLeftoverKeyboardOffset && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;

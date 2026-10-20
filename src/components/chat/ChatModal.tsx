@@ -71,7 +71,9 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[480px] h-[85vh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden [&>button:last-child]:hidden">
+        {/* dvh: iOS のキーボード開閉やURLバーの表示切り替えで vh の基準（レイアウトビューポート）が
+            変わっても高さが飛ばないように、動的ビューポート基準の dvh を使う */}
+        <DialogContent className="sm:max-w-[480px] h-[85dvh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden [&>button:last-child]:hidden">
           <VisuallyHidden.Root>
             <DialogTitle>{t("social.chat.title")}</DialogTitle>
           </VisuallyHidden.Root>
