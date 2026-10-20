@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, User, Lock, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, User, Lock, Globe, HelpCircle } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -13,6 +14,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke } from "@/components/pocke/Pocke";
 import { InAppBrowserNotice } from "@/components/pwa/InAppBrowserNotice";
 import { readGuestPouch } from "@/utils/guestPouch";
+import { SECRET_QUESTION_IDS, type SecretQuestionId } from "@/config/secretQuestions";
+import { normalizeSecretAnswer } from "@/utils/secretAnswerNormalize";
 
 export default function Login() {
   const { t, language, setLanguage } = useLanguage();
@@ -29,11 +32,16 @@ export default function Login() {
     error,
     formData,
     setFormData,
+    secretQuestionId,
+    setSecretQuestionId,
+    secretAnswer,
+    setSecretAnswer,
     handleSubmit,
     toggleMode,
   } = useLoginForm();
 
   const needsAgreement = !isLogin && !agreed;
+  const needsSecretQuestion = !isLogin && (!secretQuestionId || normalizeSecretAnswer(secretAnswer).length < 2);
   // おためし（/try）から来たときは「新規登録」で開き、袋の中身がそのまま入ることを伝える
   const fromTry = searchParams.get("from") === "try";
   const [guestCount] = useState(() => readGuestPouch().owned.length);
@@ -46,7 +54,7 @@ export default function Login() {
   }, [fromTry, isLogin, toggleMode]);
 
   const onSubmit = (e: React.FormEvent) => {
-    if (needsAgreement) {
+    if (needsAgreement || needsSecretQuestion) {
       e.preventDefault();
       return;
     }
@@ -73,7 +81,13 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <PasswordReset onBack={() => setShowPasswordReset(false)} />
+            <PasswordReset
+              onBack={() => setShowPasswordReset(false)}
+              onSuccess={(username) => {
+                setFormData({ username, password: "" });
+                setShowPasswordReset(false);
+              }}
+            />
           </CardContent>
         </Card>
       </div>
@@ -152,6 +166,37 @@ export default function Login() {
               </div>
             </div>
             {!isLogin && (
+              <div className="space-y-2 rounded-lg bg-muted/50 p-3">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("chrome.secretQuestion.requiredNote")}
+                </div>
+                <Select
+                  value={secretQuestionId}
+                  onValueChange={(v) => setSecretQuestionId(v as SecretQuestionId)}
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder={t("chrome.secretQuestion.selectPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    {SECRET_QUESTION_IDS.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {t(`chrome.secretQuestion.questions.${id}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="text"
+                  value={secretAnswer}
+                  onChange={(e) => setSecretAnswer(e.target.value)}
+                  placeholder={t("chrome.secretQuestion.answerPlaceholder")}
+                  className="bg-background"
+                  required
+                />
+              </div>
+            )}
+            {!isLogin && (
               <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
                 <Checkbox
                   id="agree-terms"
@@ -179,7 +224,7 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || needsAgreement}
+              disabled={loading || needsAgreement || needsSecretQuestion}
               size="lg"
             >
               {loading ? t("screens.login.processing") : isLogin ? t("screens.login.loginButton") : t("screens.login.signupButton")}

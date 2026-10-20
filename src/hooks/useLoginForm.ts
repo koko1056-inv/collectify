@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { LoginFormData } from "@/types/auth";
 import { handleAdminLogin, handleUserLogin, handleUserSignup } from "@/utils/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { saveMySecretQuestion } from "@/utils/secretQuestion";
+import type { SecretQuestionId } from "@/config/secretQuestions";
 
 export function useLoginForm() {
   const [searchParams] = useSearchParams();
@@ -21,6 +23,9 @@ export function useLoginForm() {
     username: "",
     password: "",
   });
+  // 新規登録時だけ使う（秘密の質問。パスワードを忘れたときの再設定に使う）
+  const [secretQuestionId, setSecretQuestionId] = useState<SecretQuestionId | "">("");
+  const [secretAnswer, setSecretAnswer] = useState("");
 
   // セッションストレージに招待コードを保存（サインアップ完了後にredeem）
   useEffect(() => {
@@ -63,6 +68,14 @@ export function useLoginForm() {
         // signUp は自動確認設定ならそのままセッションが張られる（＝ログイン済み）。
         // その場合「ログインしてください」と出すと矛盾するため文言を分ける。
         const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+        if (session && secretQuestionId) {
+          // 保存に失敗しても登録自体は成功扱いにする（未設定バナーが後から再設定を促す）
+          try {
+            await saveMySecretQuestion(secretQuestionId, secretAnswer);
+          } catch (err) {
+            console.error("Failed to save secret question after signup:", err);
+          }
+        }
         if (session) {
           toast.success(t("notices.auth.signupDoneTitle"), {
             description: t("notices.auth.signupWelcomeDesc"),
@@ -90,6 +103,8 @@ export function useLoginForm() {
     setIsLogin(!isLogin);
     setError(null);
     setFormData({ username: "", password: "" });
+    setSecretQuestionId("");
+    setSecretAnswer("");
   };
 
   return {
@@ -98,6 +113,10 @@ export function useLoginForm() {
     error,
     formData,
     setFormData,
+    secretQuestionId,
+    setSecretQuestionId,
+    secretAnswer,
+    setSecretAnswer,
     handleSubmit,
     toggleMode,
     inviteCode,

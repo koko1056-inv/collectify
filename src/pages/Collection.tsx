@@ -17,6 +17,7 @@ import { PockeWelcomeBack } from "@/components/pocke/PockeWelcomeBack";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useCollectionPockeTips } from "@/components/pocke/usePockeTips";
 import { CollectionStarterOverlay } from "@/components/collection/CollectionStarterOverlay";
+import { SecretQuestionBanner } from "@/components/collection/SecretQuestionBanner";
 
 
 export default function Collection() {
@@ -90,6 +91,7 @@ export default function Collection() {
             {user && <PreorderArrivalBanner />}
             {user && <SlotUsageMeter type="collection" minPercent={80} />}
             {user && <OnboardingChecklist />}
+            {user && <SecretQuestionBanner />}
             {/* ひさしぶりに開いたときのポッケのあいさつ（下から出るシート） */}
             {user && <PockeWelcomeBack />}
 
