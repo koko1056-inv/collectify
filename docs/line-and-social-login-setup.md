@@ -7,8 +7,8 @@
 
 ## 0. 先に適用するもの
 
-- **DBマイグレーション**（`supabase/migrations/20261020160000_line_push_tables.sql` と
-  `20261020160100_social_login_profile_and_cron.sql`）は、このPRではファイルを作っただけで本番には
+- **DBマイグレーション**（`supabase/migrations/20261020180000_line_push_tables.sql` と
+  `20261020180100_social_login_profile_and_cron.sql`）は、このPRではファイルを作っただけで本番には
   **未適用**。Supabaseダッシュボードの「SQL Editor」か `supabase db push` で、内容を確認した上で適用すること。
 - **Edge Function**（`line-push`、`line-webhook`）もデプロイされていない。1と4で使う前にデプロイが必要。
   ```
