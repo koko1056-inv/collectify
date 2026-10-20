@@ -7,6 +7,7 @@ import { IconTile } from "@/components/ui/icon-tile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { isInAppBrowser } from "@/utils/inAppBrowser";
 
 const DISMISSED_KEY = "collectify.installPrompt.dismissedAt";
 const DISMISS_DAYS = 14;
@@ -19,9 +20,6 @@ function recentlyDismissed(): boolean {
     return false;
   }
 }
-
-// LINE・Instagram などのアプリ内ブラウザは、ホーム画面への追加ができない
-const inAppBrowser = () => /Line\/|FBAN|FBAV|Instagram|Twitter|MicroMessenger/i.test(navigator.userAgent);
 
 interface InstallAppCardProps {
   /** banner: 閉じられる案内（インストール済みなら出さない） / section: 設定画面の常設の行 */
@@ -119,7 +117,7 @@ export function InstallAppCard({ variant }: InstallAppCardProps) {
               {t("pwa.iosStep3")}
             </li>
           </ol>
-          {inAppBrowser() && <p className="text-xs text-muted-foreground">{t("pwa.iosInApp")}</p>}
+          {isInAppBrowser() && <p className="text-xs text-muted-foreground">{t("pwa.iosInApp")}</p>}
           <Button variant="outline" onClick={() => setIosOpen(false)}>
             {t("pwa.close")}
           </Button>

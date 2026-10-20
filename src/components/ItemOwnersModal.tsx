@@ -210,32 +210,38 @@ export function ItemOwnersModal({
                     </Badge>
                   </div>
                   {!isMe && user && (
-                    <div className="flex justify-end gap-2">
-                      {officialItemId && (
-                        <Button
+                    owner.profile?.is_sample ? (
+                      <p className="text-right text-2xs text-muted-foreground">
+                        {t("sampleAccount.actionDisabled")}
+                      </p>
+                    ) : (
+                      <div className="flex justify-end gap-2">
+                        {officialItemId && (
+                          <Button
+                            size="sm"
+                            variant={owner.for_trade ? "default" : "outline"}
+                            className="gap-1"
+                            onClick={() =>
+                              setTradeTarget({
+                                userId: owner.user_id,
+                                itemId: owner.item_id,
+                                name: owner.profile?.display_name || owner.profile?.username || null,
+                                offers: !!owner.for_trade,
+                              })
+                            }
+                          >
+                            <ArrowLeftRight className="h-3.5 w-3.5" />
+                            {owner.for_trade ? t("trade.holders.request") : t("trade.holders.consult")}
+                          </Button>
+                        )}
+                        <StampSendButton
+                          receiverId={owner.user_id}
+                          contextType="item"
                           size="sm"
-                          variant={owner.for_trade ? "default" : "outline"}
-                          className="gap-1"
-                          onClick={() =>
-                            setTradeTarget({
-                              userId: owner.user_id,
-                              itemId: owner.item_id,
-                              name: owner.profile?.display_name || owner.profile?.username || null,
-                              offers: !!owner.for_trade,
-                            })
-                          }
-                        >
-                          <ArrowLeftRight className="h-3.5 w-3.5" />
-                          {owner.for_trade ? t("trade.holders.request") : t("trade.holders.consult")}
-                        </Button>
-                      )}
-                      <StampSendButton
-                        receiverId={owner.user_id}
-                        contextType="item"
-                        size="sm"
-                        label={t("chrome.owners.greeting")}
-                      />
-                    </div>
+                          label={t("chrome.owners.greeting")}
+                        />
+                      </div>
+                    )
                   )}
                 </div>
               );

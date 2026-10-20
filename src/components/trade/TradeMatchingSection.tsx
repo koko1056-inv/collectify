@@ -93,14 +93,17 @@ export function TradeMatchingSection() {
   const { data: seriesPartners } = useTradeSeriesPartners();
   const { data: myOffers = [] } = useMyTradeOffers();
 
+  // サーバー側（find_trade_matches 等）もサンプルアカウントを除いているが、
+  // 公式サンプルは実ユーザーとやり取りしない運用ルールを画面側でも二重に守る。
+  const safeMatches = useMemo(() => (matches ?? []).filter((m) => !m.partner_is_sample), [matches]);
+
   const { mutual, theyHave, theyWant } = useMemo(() => {
-    const all = matches ?? [];
     return {
-      mutual: all.filter((m) => m.is_mutual),
-      theyHave: all.filter((m) => !m.is_mutual && m.their_items.length > 0),
-      theyWant: all.filter((m) => !m.is_mutual && m.my_items.length > 0),
+      mutual: safeMatches.filter((m) => m.is_mutual),
+      theyHave: safeMatches.filter((m) => !m.is_mutual && m.their_items.length > 0),
+      theyWant: safeMatches.filter((m) => !m.is_mutual && m.my_items.length > 0),
     };
-  }, [matches]);
+  }, [safeMatches]);
 
   // 「ほしがっている人」全員の、交換に出している品を1回でまとめて引く
   const theyWantIds = useMemo(() => theyWant.map((m) => m.partner_id), [theyWant]);
@@ -112,14 +115,14 @@ export function TradeMatchingSection() {
   } = useTradePartnerOffers(theyWantIds);
 
   const seriesOnly = useMemo(() => {
-    const already = new Set((matches ?? []).map((m) => m.partner_id));
-    return (seriesPartners ?? []).filter((p) => !already.has(p.partner_id));
-  }, [matches, seriesPartners]);
+    const already = new Set(safeMatches.map((m) => m.partner_id));
+    return (seriesPartners ?? []).filter((p) => !already.has(p.partner_id) && !p.partner_is_sample);
+  }, [safeMatches, seriesPartners]);
 
   // 注目中の相手（「注目」の印を付ける）。並びはサーバー側で注目中が先になっている
   const shownPartnerIds = useMemo(
-    () => [...(matches ?? []).map((m) => m.partner_id), ...seriesOnly.map((p) => p.partner_id)],
-    [matches, seriesOnly]
+    () => [...safeMatches.map((m) => m.partner_id), ...seriesOnly.map((p) => p.partner_id)],
+    [safeMatches, seriesOnly]
   );
   const { data: spotlightUsers } = useTradeSpotlightUsers(shownPartnerIds);
   const isSpotlight = (partnerId: string) => !!spotlightUsers?.has(partnerId);

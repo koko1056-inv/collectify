@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke } from "@/components/pocke/Pocke";
+import { InAppBrowserNotice } from "@/components/pwa/InAppBrowserNotice";
 import { readGuestPouch } from "@/utils/guestPouch";
 
 export default function Login() {
@@ -174,6 +175,7 @@ export default function Login() {
             )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
+            {!isLogin && <InAppBrowserNotice className="w-full text-left" />}
             <Button
               type="submit"
               className="w-full"

@@ -124,6 +124,10 @@ export const collectionScreen = {
       count: "{n}点",
       search: "グッズを検索",
     },
+    starterOverlay: {
+      title: "持っているグッズをタップ",
+      later: "あとで",
+    },
     shortcuts: {
       complete: "コンプ",
       room: "推しの部屋",
@@ -373,6 +377,10 @@ export const collectionScreen = {
       title: "Collection",
       count: "{n} items",
       search: "Search goods",
+    },
+    starterOverlay: {
+      title: "Tap the goods you own",
+      later: "Later",
     },
     shortcuts: {
       complete: "Complete",

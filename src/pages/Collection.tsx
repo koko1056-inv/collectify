@@ -16,6 +16,7 @@ import { useCollectionCount } from "@/hooks/useCollectionLimit";
 import { PockeWelcomeBack } from "@/components/pocke/PockeWelcomeBack";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useCollectionPockeTips } from "@/components/pocke/usePockeTips";
+import { CollectionStarterOverlay } from "@/components/collection/CollectionStarterOverlay";
 
 
 export default function Collection() {
@@ -50,6 +51,7 @@ export default function Collection() {
 
   return (
     <div className="min-h-screen bg-background pb-nav">
+      {user && <CollectionStarterOverlay />}
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
         {/* 上から「タイトル（検索・絞り込み）→ お知らせ1つ → 小さな入口の1行 → 持ってる/ほしい/予約中/手放した → グッズ」。

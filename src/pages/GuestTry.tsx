@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke, PockeBubble } from "@/components/pocke/Pocke";
 import { StarterGoodsStep } from "@/components/onboarding/StarterGoodsStep";
+import { InAppBrowserNotice } from "@/components/pwa/InAppBrowserNotice";
 import { readGuestPouch } from "@/utils/guestPouch";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 
@@ -43,6 +44,7 @@ export default function GuestTry() {
 
       {step === "intro" && (
         <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-6 pb-10 text-center">
+          <InAppBrowserNotice className="w-full text-left" />
           <PockeBubble tail="bottom" className="text-base font-bold leading-relaxed">
             {t("pocke.guest.intro")}
           </PockeBubble>

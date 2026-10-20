@@ -13,6 +13,7 @@ import { useGuestPouch } from "@/hooks/useGuestPouch";
 import { cn } from "@/lib/utils";
 import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts";
 import { PockeSays, type PockePose } from "@/components/pocke/Pocke";
+import { CatalogRequestButton } from "@/components/catalog/CatalogRequestButton";
 import type { OfficialItem } from "@/types";
 
 /** ここまで選ぶと「完成度が見える」と案内する数 */
@@ -185,7 +186,15 @@ export function StarterGoodsStep({ onDone, onPhoto, guest = false }: StarterGood
               ))}
             </div>
           ) : items.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">{t("misc.onboarding.starter.empty")}</p>
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <p className="text-sm text-muted-foreground">{t("misc.onboarding.starter.empty")}</p>
+              {deferredQuery.length >= 2 && (
+                <CatalogRequestButton
+                  query={deferredQuery}
+                  context={guest ? "guest_starter" : "starter"}
+                />
+              )}
+            </div>
           ) : (
             <div className="grid grid-cols-3 gap-2.5">
               {items.map((item) => {
