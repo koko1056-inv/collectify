@@ -526,8 +526,8 @@ function CollectionsTab({ searchQuery, excludeUserId }: { searchQuery: string; e
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="flex items-center gap-1 font-bold">
-              <span className="truncate">{c.display_name || c.username}</span>
+            <p className="flex min-w-0 items-center gap-1 font-bold">
+              <span className="min-w-0 truncate">{c.display_name || c.username}</span>
               <SampleAccountBadge isSample={c.is_sample} />
             </p>
             <p className="text-xs text-muted-foreground truncate">@{c.username}</p>
@@ -649,7 +649,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                   )}
                 </div>
                 <span className="flex max-w-full items-center gap-0.5 text-sm font-medium">
-                  <span className="truncate">{u.display_name || u.username}</span>
+                  <span className="min-w-0 truncate">{u.display_name || u.username}</span>
                   <SampleAccountBadge isSample={u.is_sample} />
                 </span>
                 <span className="text-3xs text-muted-foreground">

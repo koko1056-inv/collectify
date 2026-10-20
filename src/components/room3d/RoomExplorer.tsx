@@ -204,8 +204,8 @@ export function RoomExplorer() {
                   </div>
                 </div>
                 <span className="flex max-w-[80px] items-center gap-0.5 text-sm text-muted-foreground">
-                  <span className="truncate">{user.display_name || user.username}</span>
-                  <SampleAccountBadge isSample={user.is_sample} />
+                  <span className="min-w-0 truncate">{user.display_name || user.username}</span>
+                  <SampleAccountBadge isSample={user.is_sample} className="text-[9px]" />
                 </span>
               </button>
             ))}
@@ -283,7 +283,7 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
             </AvatarFallback>
           </Avatar>
           <span className="flex min-w-0 items-center gap-0.5 text-foreground/90 text-sm">
-            <span className="truncate">{room.profile?.display_name || room.profile?.username}</span>
+            <span className="min-w-0 truncate">{room.profile?.display_name || room.profile?.username}</span>
             <SampleAccountBadge isSample={room.profile?.is_sample} />
           </span>
         </div>

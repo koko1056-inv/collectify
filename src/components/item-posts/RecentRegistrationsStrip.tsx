@@ -53,7 +53,7 @@ export function RecentRegistrationsStrip() {
               onClick={() => navigate(`/user/${r.user_id}`)}
               className="flex w-full min-w-0 items-center gap-0.5 text-left text-3xs text-muted-foreground hover:text-foreground"
             >
-              <span className="truncate">{r.display_name || r.username}</span>
+              <span className="min-w-0 truncate">{r.display_name || r.username}</span>
               <SampleAccountBadge isSample={r.is_sample} />
               <span className="shrink-0">· {formatRelative(r.created_at)}</span>
             </button>
