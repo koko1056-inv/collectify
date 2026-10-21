@@ -3,6 +3,16 @@ import { md5Hex } from "@/utils/md5";
 
 const STORAGE_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
 const RENDER_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/render/image/public/`;
+const DIRECT_SERVE_PREFIX = `${STORAGE_PUBLIC_PREFIX}kuji_images/catalog-crops/`;
+
+/**
+ * カタログの切り出し画像（catalog-crops/）かどうか。
+ * render は元画像の枚数で課金される一方、切り出し画像は既に長辺800px以下に縮めてあるので、
+ * 画像変換を通さず Storage の CDN からそのまま返す。
+ */
+export function isDirectServeStorageUrl(url: string | null | undefined): boolean {
+  return !!url && url.startsWith(DIRECT_SERVE_PREFIX);
+}
 
 /**
  * カタログ画像のサムネ（サーバー側で 480px 以内の WebP に縮めたもの）の置き場所。
@@ -62,6 +72,7 @@ export function getOptimizedImageUrl(
   url: string,
   opts: { width: number; quality?: number }
 ): string {
+  if (isDirectServeStorageUrl(url)) return url;
   if (url && opts.width <= CATALOG_THUMB_MAX_WIDTH) {
     const thumb = getCatalogThumbUrl(url);
     if (thumb) return thumb;
@@ -79,6 +90,7 @@ export function getOptimizedImageUrl(
  * LazyImage の srcset 生成で使う。変換できない相手には null を返す。
  */
 export function toRenderUrl(src: string, width: number, quality: number): string | null {
+  if (isDirectServeStorageUrl(src)) return null;
   if (!src.includes("/storage/v1/object/")) return null;
   const rendered = src.replace("/storage/v1/object/", "/storage/v1/render/image/");
   const sep = rendered.includes("?") ? "&" : "?";
