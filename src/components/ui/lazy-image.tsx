@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Skeleton } from "./skeleton";
 import { cn } from "@/lib/utils";
+import { directCatalogCropUrl, isCatalogCropStorageUrl } from "@/utils/catalog-crop-url";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 import { toRenderUrl, toProxyUrl, getCatalogThumbUrl } from "@/utils/optimized-image";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -77,6 +79,16 @@ export function LazyImage({
   const { displaySrc, srcSet, sizesAttr } = useMemo(() => {
     if (!src || stage === 2) {
       return { displaySrc: fallbackSrc, srcSet: undefined, sizesAttr: undefined };
+    }
+
+    // 切り出し済み（catalog-crops/）は srcset も render も作らない。変換の枚数課金を避ける。
+    // stage 2（代わりの画像）は関数の先頭で処理済み。
+    if (isCatalogCropStorageUrl(src, SUPABASE_URL)) {
+      return {
+        displaySrc: directCatalogCropUrl(src, SUPABASE_URL),
+        srcSet: undefined,
+        sizesAttr: undefined,
+      };
     }
 
     // 1) Supabase Storage → render エンドポイントで縮小・圧縮 + srcset

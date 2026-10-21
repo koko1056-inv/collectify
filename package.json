@@ -18,7 +18,8 @@
     "test:companion": "node --experimental-strip-types scripts/test-companion.mjs",
     "test:oshi-room": "node --experimental-strip-types scripts/test-oshi-room.mjs",
     "test:preorders": "node --experimental-strip-types scripts/test-preorders.mjs",
-    "test:secret-question": "node --experimental-strip-types scripts/test-secret-question.mjs"
+    "test:secret-question": "node --experimental-strip-types scripts/test-secret-question.mjs",
+    "test:catalog-crop-url": "node --experimental-strip-types scripts/test-catalog-crop-url.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
