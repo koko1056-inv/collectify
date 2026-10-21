@@ -17,7 +17,6 @@ import { getInitial } from "@/utils/initial";
 import { IconTile } from "@/components/ui/icon-tile";
 import { OshiDiscoveryPanel } from "@/components/releases/OshiDiscoveryPanel";
 import { cn } from "@/lib/utils";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 const SORT_ICON = { new: Sparkles, popular: Heart, oshi: Users } as const;
 const SORT_LABEL = { new: "oshiRoom.social.explore.sortNew", popular: "oshiRoom.social.explore.sortPopular", oshi: "oshiRoom.social.explore.sortOshi" } as const;
@@ -61,7 +60,7 @@ export function OshiRoomsTab({ searchQuery }: { searchQuery: string }) {
     enabled: !!openId && !openCard && !list.isLoading,
     staleTime: 1000 * 60 * 5,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id, username, display_name, avatar_url, is_sample").eq("id", openId!).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id, username, display_name, avatar_url").eq("id", openId!).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -226,7 +225,6 @@ export const OshiRoomCardView = memo(function OshiRoomCardView({ room, time, onO
         </Avatar>
         <span className="flex min-w-0 flex-1 items-center gap-0.5 text-xs font-bold">
           <span className="truncate">{name}</span>
-          <SampleAccountBadge isSample={room.isSample} />
         </span>
         <span className={cn("inline-flex shrink-0 items-center gap-0.5 text-2xs font-bold tabular-nums", room.likedByMe ? "text-primary" : "text-muted-foreground")}>
           <Heart className={cn("h-3.5 w-3.5", room.likedByMe && "fill-primary")} />

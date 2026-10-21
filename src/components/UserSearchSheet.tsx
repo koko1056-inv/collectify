@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, ArrowLeft, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fallbackToOriginal, getAvatarImageUrl } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Profile {
   id: string;
@@ -124,7 +123,6 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
                   </div>
                   <span className="flex-1 flex items-center gap-1 text-left">
                     <span className="truncate">{profile.username}</span>
-                    <SampleAccountBadge isSample={profile.is_sample} />
                   </span>
                 </button>
               ))}

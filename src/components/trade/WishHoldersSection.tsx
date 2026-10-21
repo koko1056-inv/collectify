@@ -14,7 +14,6 @@ import {
   type WishWithHolders,
 } from "@/hooks/useTradeMatches";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 import { TradeSectionHeader } from "./TradeSectionHeader";
 import { SpotlightChip } from "./TradeSpotlight";
@@ -145,7 +144,6 @@ function WishRow({
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-sm">
                     <span className="truncate">{name}</span>
-                    <SampleAccountBadge isSample={holder.is_sample} />
                   </p>
                   <div className="flex items-center gap-1.5">
                     {/* 注目中の人はサーバー側で先頭に並んでいる */}

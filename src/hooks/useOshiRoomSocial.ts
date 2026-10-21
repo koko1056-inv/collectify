@@ -34,7 +34,6 @@ export interface OshiRoomCard {
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
-  isSample: boolean | null;
   state: RoomState;
   oshiColor: OshiColor;
   goods: OshiRoomGoods[];
@@ -123,7 +122,6 @@ export function useOshiRoomList(sort: OshiRoomSort, enabled = true) {
           username: r.username,
           displayName: r.display_name,
           avatarUrl: r.avatar_url,
-          isSample: r.is_sample,
           state: roomStateFrom(r.wallpaper_key, r.floor_key, parseLayout(r.layout), goods.map((g) => g.user_item_id)),
           oshiColor: resolveOshiColor(r.oshi_color),
           goods,
@@ -216,7 +214,6 @@ export interface OshiRoomLiker {
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
-  isSample: boolean | null;
   likedAt: string;
 }
 
@@ -235,7 +232,6 @@ export function useMyOshiRoomLikers(enabled: boolean) {
         username: r.username,
         displayName: r.display_name,
         avatarUrl: r.avatar_url,
-        isSample: r.is_sample,
         likedAt: r.liked_at,
       }));
     },

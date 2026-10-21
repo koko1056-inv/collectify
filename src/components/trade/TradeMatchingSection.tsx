@@ -38,7 +38,6 @@ import { useTradeSpotlightUsers } from "@/hooks/trade/useTradeSpotlight";
 import { TradePostDialog } from "./TradePostDialog";
 import { WishlistViewModal } from "@/components/WishlistViewModal";
 import { PockeSays } from "@/components/pocke/Pocke";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 交換相手の候補。
@@ -94,7 +93,7 @@ export function TradeMatchingSection() {
   const { data: myOffers = [] } = useMyTradeOffers();
 
   // サーバー側（find_trade_matches 等）もサンプルアカウントを除いているが、
-  // 公式サンプルは実ユーザーとやり取りしない運用ルールを画面側でも二重に守る。
+  // サンプルアカウントは実ユーザーとやり取りしない運用ルールを画面側でも二重に守る。
   const safeMatches = useMemo(() => (matches ?? []).filter((m) => !m.partner_is_sample), [matches]);
 
   const { mutual, theyHave, theyWant } = useMemo(() => {
@@ -591,7 +590,6 @@ function SeriesPartnerCard({
             className="tap-safe-y flex max-w-full items-center gap-1 text-left font-medium transition-colors hover:text-primary"
           >
             <span className="truncate">{name}</span>
-            <SampleAccountBadge isSample={partner.partner_is_sample} />
           </button>
           <div className="mt-0.5 flex flex-wrap items-center gap-1">
             {spotlight && <SpotlightChip />}
@@ -671,7 +669,6 @@ function PartnerHeader({
           className="tap-safe-y flex max-w-full items-center gap-1 text-left font-medium transition-colors hover:text-primary"
         >
           <span className="truncate">{name}</span>
-          <SampleAccountBadge isSample={match.partner_is_sample} />
         </button>
         <div className="flex flex-wrap items-center gap-1">
           {spotlight && <SpotlightChip />}

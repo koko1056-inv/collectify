@@ -15,7 +15,6 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemOwnersTabProps {
   officialItemId: string;
@@ -162,7 +161,6 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                         {owner.profile?.display_name || owner.profile?.username || t("itemDetails.common.user")}
                         {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
                       </span>
-                      <SampleAccountBadge isSample={owner.profile?.is_sample} />
                     </p>
                     {!isMe && score && (
                       <TrustBadge score={score} size="xs" showLabel={false} />

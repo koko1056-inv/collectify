@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface FeaturedRoom {
   id: string;
@@ -205,7 +204,6 @@ export function RoomExplorer() {
                 </div>
                 <span className="flex max-w-[80px] items-center gap-0.5 text-sm text-muted-foreground">
                   <span className="min-w-0 truncate">{user.display_name || user.username}</span>
-                  <SampleAccountBadge isSample={user.is_sample} className="text-[9px]" />
                 </span>
               </button>
             ))}
@@ -284,7 +282,6 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
           </Avatar>
           <span className="flex min-w-0 items-center gap-0.5 text-foreground/90 text-sm">
             <span className="min-w-0 truncate">{room.profile?.display_name || room.profile?.username}</span>
-            <SampleAccountBadge isSample={room.profile?.is_sample} />
           </span>
         </div>
         

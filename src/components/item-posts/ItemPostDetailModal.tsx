@@ -41,7 +41,6 @@ import { shareContent } from "@/utils/share";
 import { buildShareText } from "@/utils/shareLinks";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -198,7 +197,6 @@ export function ItemPostDetailModal({
                 <span className="truncate">
                   {post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector")}
                 </span>
-                <SampleAccountBadge isSample={post.profile?.is_sample} />
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatRelative(post.created_at)}
@@ -283,7 +281,6 @@ export function ItemPostDetailModal({
                       <span className="truncate">
                         {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
                       </span>
-                      <SampleAccountBadge isSample={c.profile?.is_sample} />
                     </p>
                     <p className="text-3xs text-muted-foreground shrink-0">
                       {formatRelative(c.created_at)}

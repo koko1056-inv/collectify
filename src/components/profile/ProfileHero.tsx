@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 import { useState } from "react";
 import { FollowList } from "./FollowList";
 import { FollowButton } from "./FollowButton";
@@ -308,7 +307,6 @@ export function ProfileHero({
           <div className={cn(compact ? "ml-[5.5rem] min-h-[2.75rem] text-left" : "text-center sm:text-left sm:ml-36")}>
             <div className={cn("flex items-center gap-2 flex-wrap", compact ? "justify-start" : "justify-center sm:justify-start")}>
               <h1 className={cn("font-bold leading-tight", compact ? "text-lg" : "text-xl sm:text-2xl")}>{displayName}</h1>
-              <SampleAccountBadge isSample={profile.is_sample} />
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <IconTile tone={rank.tone} size="xs">
                   <RankIcon />

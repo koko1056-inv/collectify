@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
 import { cn } from "@/lib/utils";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 設定: ブロックしたユーザーの一覧と解除。
@@ -67,7 +66,6 @@ function BlockedUsersList() {
                 <div className="flex-1 min-w-0">
                   <p className="flex items-center gap-1 text-sm font-medium">
                     <span className="truncate">{name}</span>
-                    <SampleAccountBadge isSample={b.profile?.is_sample} />
                   </p>
                   {b.profile?.username && (
                     <p className="text-xs text-muted-foreground truncate">@{b.profile.username}</p>

@@ -28,7 +28,6 @@ interface Profile {
   bio?: string | null;
   followers_count?: number;
   following_count?: number;
-  is_sample?: boolean | null;
 }
 
 export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
@@ -77,7 +76,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         const [profilesResponse, collectionsResponse] = await Promise.all([
           supabase
             .from("profiles")
-            .select("id, username, avatar_url, bio, followers_count, following_count, is_sample")
+            .select("id, username, avatar_url, bio, followers_count, following_count")
             .ilike("username", `%${searchQuery}%`)
             .limit(10),
           supabase
@@ -187,7 +186,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       if (searchResults.length > 0) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, avatar_url, bio, followers_count, following_count, is_sample")
+          .select("id, username, avatar_url, bio, followers_count, following_count")
           .in("id", searchResults.map(p => p.id))
           .limit(10);
 
@@ -255,7 +254,6 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                             followingCount={profile.following_count || 0}
                             collectionCount={collectionCounts[profile.id] || 0}
                             isFollowing={isFollowing}
-                            isSample={profile.is_sample}
                             onFollow={() => handleFollow(profile.id)}
                           />
                         );
