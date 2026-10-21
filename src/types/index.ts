@@ -60,7 +60,7 @@ export interface Profile {
   followers_count: number | null;
   following_count: number | null;
   is_admin: boolean | null;
-  /** 運営のシミュレーターが動かす公式サンプルアカウントかどうか */
+  /** 運営のシミュレーターが動かすサンプルアカウントかどうか */
   is_sample?: boolean | null;
   interests: string[] | null;
   x_username: string | null;

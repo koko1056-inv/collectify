@@ -8,7 +8,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { useMyOshiRoomLikers } from "@/hooks/useOshiRoomSocial";
 import { getInitial } from "@/utils/initial";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 自分の推しの部屋に、誰がいいねしたか（新しい順）。/oshi の「いいね n」と、いいねの通知から開く。
@@ -74,7 +73,6 @@ export function RoomLikersSheet({ open, onOpenChange }: { open: boolean; onOpenC
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1 text-sm font-bold">
                         <span className="truncate">{u.displayName || u.username}</span>
-                        <SampleAccountBadge isSample={u.isSample} />
                       </span>
                       <span className="block truncate text-2xs text-muted-foreground">@{u.username}</span>
                     </span>

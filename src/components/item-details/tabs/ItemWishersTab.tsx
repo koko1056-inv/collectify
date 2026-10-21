@@ -15,7 +15,6 @@ import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemWishersTabProps {
   officialItemId: string;
@@ -195,7 +194,6 @@ export function ItemWishersTab({
                           {w.profile?.display_name || w.profile?.username || t("itemDetails.common.user")}
                           {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
                         </p>
-                        <SampleAccountBadge isSample={w.profile?.is_sample} />
                         {!isMe && score && (
                           <TrustBadge score={score} size="xs" showLabel={false} />
                         )}

@@ -23,5 +23,5 @@ export const LEGAL_OPERATOR = {
   /** 問い合わせ用メールアドレス。空ならアプリ内のお問い合わせ窓口のみを案内する */
   email: "contact@mgc-global01.com",
   /** 文書の最終更新日（YYYY-MM-DD） */
-  updatedAt: "2026-10-20",
+  updatedAt: "2026-10-21",
 } as const;

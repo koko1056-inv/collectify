@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface WishlistUsersModalProps {
   isOpen: boolean;
@@ -266,7 +265,6 @@ export function WishlistUsersModal({
                          wishlistItem.profiles?.username ||
                          "Unknown User"}
                       </span>
-                      <SampleAccountBadge isSample={wishlistItem.profiles?.is_sample} />
                     </p>
                     <p className="text-xs text-muted-foreground">
                       @{wishlistItem.profiles?.username || "unknown"}

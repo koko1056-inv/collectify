@@ -25,7 +25,7 @@ export function PopularCollectors() {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("id, username, bio, avatar_url, followers_count, following_count, is_sample");
+        .select("id, username, bio, avatar_url, followers_count, following_count");
 
       if (selectedContent) {
         query = query.contains('interests', [selectedContent]);
@@ -180,7 +180,6 @@ export function PopularCollectors() {
                 followersCount={user.followers_count || 0}
                 followingCount={user.following_count || 0}
                 collectionCount={user.collectionCount}
-                isSample={user.is_sample}
               />
             ))
           ) : (

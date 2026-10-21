@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Props {
   userId?: string;
@@ -91,7 +90,6 @@ export function GalleryListView({ userId, enabled }: Props) {
                             {gallery.profiles.display_name ||
                               gallery.profiles.username}
                           </span>
-                          <SampleAccountBadge isSample={gallery.profiles.is_sample} />
                         </span>
                       </>
                     )}

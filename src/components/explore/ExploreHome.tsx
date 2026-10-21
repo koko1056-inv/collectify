@@ -15,7 +15,6 @@ import { getInitial } from "@/utils/initial";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { WeeklyPromptBanner } from "@/components/item-posts/WeeklyPromptBanner";
 import { OshiRoomCardView } from "./OshiRoomsTab";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 /**
  * 「みんな」の最初の画面。タブを並べず、お題・新着の投稿・推しの部屋・AI作品・人気のユーザー・グッズ探しを
@@ -168,7 +167,6 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
                   </Avatar>
                   <span className="flex w-full min-w-0 items-center justify-center gap-0.5 text-center text-2xs">
                     <span className="truncate">{name}</span>
-                    <SampleAccountBadge isSample={u.is_sample} />
                   </span>
                 </button>
               );

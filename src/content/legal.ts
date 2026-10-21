@@ -558,9 +558,9 @@ export const TERMS: Record<LegalLang, LegalDoc> = {
         ],
       },
       {
-        title: "第12条（公式サンプルアカウント）",
+        title: "第12条（運営アカウント）",
         paragraphs: [
-          "当社が運営する公式のサンプルアカウントがあり、バッジと「公式サンプル」の表示で示します。サンプルアカウントは、実在するユーザーとやりとりすることはありません。",
+          "当社は、本サービスの紹介や使い方の案内のために、当社が運営するアカウントを置くことがあります。これらのアカウントは、ユーザーとの交換、メッセージ、その他のやりとりを行いません。また、これらのアカウントに対しては、一部の機能を利用できません。",
         ],
       },
       {
@@ -717,9 +717,9 @@ export const TERMS: Record<LegalLang, LegalDoc> = {
         ],
       },
       {
-        title: "Article 12 (Official sample accounts)",
+        title: "Article 12 (Company-operated accounts)",
         paragraphs: [
-          "The Company operates official sample accounts, shown with a badge and the label “Official sample.” Sample accounts never interact with real users.",
+          "The Company may operate accounts to introduce the Service or explain how to use it. These accounts do not trade, message, or otherwise interact with users, and some features are unavailable to them.",
         ],
       },
       {

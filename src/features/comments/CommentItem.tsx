@@ -15,7 +15,6 @@ import {
 import type { ItemCommentNode } from "./types";
 import { cn } from "@/lib/utils";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface CommentItemProps {
   comment: ItemCommentNode;
@@ -62,7 +61,6 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
             className="inline-flex items-center gap-1 text-sm font-bold hover:underline"
           >
             <span className="truncate">{author?.display_name || author?.username || t("trade.comments.collectorFallback")}</span>
-            <SampleAccountBadge isSample={author?.is_sample} />
           </Link>
           <p className="text-sm text-foreground whitespace-pre-wrap break-words mt-0.5">
             {comment.content}

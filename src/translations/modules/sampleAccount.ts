@@ -1,16 +1,12 @@
 /**
  * 翻訳モジュール: sampleAccount
- * 対象: 公式サンプルアカウント（運営のシミュレーターが動かすデモ用アカウント）の説明バッジ
+ * 対象: 運営アカウント（サンプル）に対する操作制限のメッセージ
  */
 export const sampleAccount = {
   ja: {
-    tooltip: "Collectify公式のサンプルアカウントです",
-    label: "公式サンプル",
-    actionDisabled: "公式サンプルなので交換・メッセージはできません",
+    actionDisabled: "このアカウントとは交換・メッセージできません",
   },
   en: {
-    tooltip: "Official Collectify sample account",
-    label: "Official sample",
-    actionDisabled: "This is an official sample account — trading and messaging aren't available",
+    actionDisabled: "You can't trade or message this account",
   },
 };

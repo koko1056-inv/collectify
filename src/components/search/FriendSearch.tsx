@@ -15,7 +15,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fetchBlockedUserIds, toNotInList } from "@/hooks/useBlocks";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface Profile {
   id: string;
@@ -156,7 +155,6 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             <h4 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
               {profile.display_name || profile.username}
             </h4>
-            <SampleAccountBadge isSample={profile.is_sample} />
           </div>
           <p className="text-sm text-muted-foreground truncate">
             @{profile.username}

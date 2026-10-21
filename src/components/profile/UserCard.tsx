@@ -5,7 +5,6 @@ import { User, Package, Users, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface UserCardProps {
   id: string;
@@ -16,7 +15,6 @@ interface UserCardProps {
   followingCount: number;
   collectionCount: number;
   isFollowing?: boolean;
-  isSample?: boolean | null;
   onFollow?: () => void;
 }
 
@@ -29,7 +27,6 @@ export function UserCard({
   followingCount,
   collectionCount,
   isFollowing,
-  isSample,
   onFollow,
 }: UserCardProps) {
   const { t } = useLanguage();
@@ -53,7 +50,6 @@ export function UserCard({
         <Link to={`/user/${id}`} className="block group">
           <div className="font-bold text-foreground group-hover:text-primary transition-colors truncate flex items-center gap-1">
             <span className="truncate">{username}</span>
-            <SampleAccountBadge isSample={isSample} />
           </div>
           {bio ? (
             <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{bio}</p>

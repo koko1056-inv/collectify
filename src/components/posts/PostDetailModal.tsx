@@ -24,7 +24,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface PostDetailModalProps {
   post: GoodsPost | null;
@@ -136,7 +135,6 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 <div className="flex-1">
                   <p className="flex items-center gap-1 font-bold text-sm">
                     <span className="truncate">{post.profiles?.username}</span>
-                    <SampleAccountBadge isSample={post.profiles?.is_sample} />
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatRelative(post.created_at)}

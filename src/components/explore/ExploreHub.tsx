@@ -43,7 +43,6 @@ import { useMatches } from "@/features/matching/useMatches";
 import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useExplorePockeTips } from "@/components/pocke/usePockeTips";
 
@@ -528,7 +527,6 @@ function CollectionsTab({ searchQuery, excludeUserId }: { searchQuery: string; e
           <div className="flex-1 min-w-0">
             <p className="flex min-w-0 items-center gap-1 font-bold">
               <span className="min-w-0 truncate">{c.display_name || c.username}</span>
-              <SampleAccountBadge isSample={c.is_sample} />
             </p>
             <p className="text-xs text-muted-foreground truncate">@{c.username}</p>
             <div className="flex items-center gap-1 mt-1 text-xs text-primary">
@@ -650,7 +648,6 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                 </div>
                 <span className="flex max-w-full items-center gap-0.5 text-sm font-medium">
                   <span className="min-w-0 truncate">{u.display_name || u.username}</span>
-                  <SampleAccountBadge isSample={u.is_sample} />
                 </span>
                 <span className="text-3xs text-muted-foreground">
                   {t("chrome.explore.followers", { n: u.followers_count || 0 })}

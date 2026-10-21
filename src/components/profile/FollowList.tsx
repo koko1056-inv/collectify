@@ -18,7 +18,6 @@ interface Profile {
   bio: string | null;
   followers_count: number;
   following_count: number;
-  is_sample: boolean | null;
 }
 
 interface FollowListProps {
@@ -55,8 +54,8 @@ export function FollowList({ userId, type }: FollowListProps) {
         .from("follows")
         .select(
           type === "followers"
-            ? "follower:profiles!follows_follower_id_fkey(id, username, avatar_url, bio, followers_count, following_count, is_sample)"
-            : "following:profiles!follows_following_id_fkey(id, username, avatar_url, bio, followers_count, following_count, is_sample)"
+            ? "follower:profiles!follows_follower_id_fkey(id, username, avatar_url, bio, followers_count, following_count)"
+            : "following:profiles!follows_following_id_fkey(id, username, avatar_url, bio, followers_count, following_count)"
         )
         .eq(type === "followers" ? "following_id" : "follower_id", userId);
 
@@ -155,7 +154,7 @@ export function FollowList({ userId, type }: FollowListProps) {
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, bio, followers_count, following_count, is_sample")
+        .select("id, username, avatar_url, bio, followers_count, following_count")
         .in("id", profiles.map(p => p.id));
         
       if (!error && data) {
@@ -243,7 +242,6 @@ export function FollowList({ userId, type }: FollowListProps) {
                 followingCount={profile.following_count || 0}
                 collectionCount={collectionCounts[profile.id] || 0}
                 isFollowing={followState[profile.id]}
-                isSample={profile.is_sample}
                 onFollow={user && user.id !== profile.id ? () => handleFollow(profile.id) : undefined}
               />
             ))}

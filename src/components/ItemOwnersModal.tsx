@@ -16,7 +16,6 @@ import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
-import { SampleAccountBadge } from "@/components/SampleAccountBadge";
 
 interface ItemOwnersModalProps {
   isOpen: boolean;
@@ -192,7 +191,6 @@ export function ItemOwnersModal({
                               {owner.profile?.display_name || owner.profile?.username}
                               {isMe && <span className="text-primary ml-1">{t("chrome.owners.you")}</span>}
                             </span>
-                            <SampleAccountBadge isSample={owner.profile?.is_sample} />
                           </p>
                           {!isMe && score && (
                             <TrustBadge score={score} size="xs" showLabel={false} />
