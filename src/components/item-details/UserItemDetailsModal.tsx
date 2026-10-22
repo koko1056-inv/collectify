@@ -13,6 +13,7 @@ import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSect
 import { TradeAvailabilitySection } from "./TradeAvailabilitySection";
 import { PurchaseRecordSection } from "./PurchaseRecordSection";
 import { UserItemPostsSection } from "@/components/item-posts/UserItemPostsSection";
+import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
@@ -315,7 +316,7 @@ export function UserItemDetailsModal({
               <PersonalTagsSection userItemId={itemId} />
             </div>
 
-            {/* このグッズの投稿。以前の「思い出」と「みんなの投稿」をここにまとめた */}
+            {/* このグッズの投稿（自分がこのグッズについて書いたもの） */}
             <div className="pt-4 border-t border-border">
               <UserItemPostsSection
                 userItemId={itemId}
@@ -325,6 +326,17 @@ export function UserItemDetailsModal({
                 itemImage={itemDetails?.image || image}
               />
             </div>
+
+            {/* みんなの投稿（同じ公式グッズについて、他の人が書いたものも含む） */}
+            {itemDetails?.official_item_id && (
+              <div className="pt-4 border-t border-border">
+                <ItemPostsSection
+                  target={{ type: "official", id: itemDetails.official_item_id }}
+                  itemTitle={title}
+                  itemImage={itemDetails?.image || image}
+                />
+              </div>
+            )}
           </div>
         )}
       </DialogContent>
