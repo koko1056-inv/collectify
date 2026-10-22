@@ -13,6 +13,7 @@ import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { UserItemPostsSection } from "@/components/item-posts/UserItemPostsSection";
+import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
 interface PublicUserItemModalProps {
@@ -317,6 +318,17 @@ export function PublicUserItemModal({
                   isOwner={!!user?.id && user.id === (ownerId ?? itemDetails.user_id)}
                   itemTitle={title}
                   itemImage={itemDetails.image || image}
+                />
+              </div>
+            )}
+
+            {/* みんなの投稿（同じ公式グッズについて、他の人が書いたものも含む） */}
+            {officialItemId && (
+              <div className="border-t border-border pt-4">
+                <ItemPostsSection
+                  target={{ type: "official", id: officialItemId }}
+                  itemTitle={title}
+                  itemImage={itemDetails?.image || image}
                 />
               </div>
             )}
