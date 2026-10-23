@@ -46,7 +46,9 @@ export function OnboardingChecklist() {
   // 「推しグッズを飾る」は、もう何か持っている（user_items が1件以上ある）なら、選ぶ画面（/me）ではなく
   // 推しの部屋の模様替え（/oshi?decorate=1）へ直接送る。持っているものが無ければ、いつもの選ぶ画面へ
   const goGuide = (id: OnboardingStepId) => {
-    if (id === "favorites" && checklistData?.hasItem) {
+    // 持っているだけで推しグッズを1つも選んでいない人を模様替えへ送ると、置く物が無く詰まる。
+    // その場合は普段どおり選ぶ画面（/me）へ。選んでいる人だけ、もう選ぶボタンの無い模様替えへ直接送る
+    if (id === "favorites" && checklistData?.hasItem && checklistData?.hasFavoriteItems) {
       navigate("/oshi?guide=favorites&decorate=1");
       return;
     }
@@ -85,25 +87,35 @@ export function OnboardingChecklist() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [profileRes, itemsRes, tradeOfferRes, rewardsRes] = await Promise.all([
+      const [profileRes, itemsRes, tradeOfferRes, rewardsRes, roomRes] = await Promise.all([
         supabase.from('profiles').select('interests, favorite_item_ids').eq('id', user.id).single(),
         // 件数も使う（推しグッズの達成条件が「5つ、持っているのが5つ未満なら持っている数」なので）
         supabase.from('user_items').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('user_items').select('id').eq('user_id', user.id).eq('for_trade', true).limit(1),
         supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
+        // 推しの部屋に置いて保存した（選ぶ画面を経ずに「飾る」で達成した）かどうかも見る。サーバー（onboarding_step_done）と同じ判定
+        supabase.from('oshi_rooms').select('layout').eq('user_id', user.id).maybeSingle(),
       ]);
 
       const profile = profileRes.data;
       const favCount = (profile?.favorite_item_ids as string[] | null)?.length ?? 0;
       const itemCount = itemsRes.count ?? 0;
+      const roomGoods = (roomRes.data?.layout as { goods?: unknown[] } | null)?.goods;
+      const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
 
       return {
         hasInterests: ((profile?.interests as string[] | null)?.length ?? 0) > 0,
         hasItem: itemCount > 0,
-        // 5つ選ぶ。持っているグッズが5つ未満なら、持っている数だけ選べば達成（サーバーの判定と同じ）
-        hasFavorites5: favCount >= Math.max(1, Math.min(5, itemCount)),
+        // 「選ぶ」画面への案内か「模様替え」への案内かの分かれ道にだけ使う（達成の判定には使わない）
+        hasFavoriteItems: favCount > 0,
+        // 5つ選ぶ・持っているグッズが5つ未満なら持っている数だけ選ぶ・推しの部屋に1つ以上置いて保存した・
+        // すでに報酬を受け取った、のどれかで達成（サーバーの判定と同じ）
+        hasFavorites5:
+          favCount >= Math.max(1, Math.min(5, itemCount)) ||
+          (Array.isArray(roomGoods) && roomGoods.length > 0) ||
+          claimedSteps.has('favorites'),
         hasTradeOffer: (tradeOfferRes.data?.length ?? 0) > 0,
-        claimedSteps: new Set((rewardsRes.data ?? []).map((r) => r.step_id)),
+        claimedSteps,
       };
     },
     enabled: !!user?.id,
