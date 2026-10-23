@@ -9,10 +9,10 @@ UPDATE public.content_names c
 SET name_en = coalesce(nullif(btrim(c.name_en), ''), v.en)
 FROM (VALUES
   ('VOLTACTION', 'VOLTACTION'),
-  ('いれいす', 'Ireisu'),
-  ('まじめにヤバシティ', 'Majime ni Yabashiti'),
-  ('モノパス', 'Mono Pass'),
-  ('忍たま', 'Nintama Rantaro'),
+  ('いれいす', 'IRREGULAR DICE'),
+  ('まじめにヤバシティ', 'Mazimeni Yabacity'),
+  ('モノパス', 'Monopass'),
+  ('忍たま', 'Nintama Rantarō'),
   ('もちにゃみ', 'Mochinyami'),
   ('Mrs.GREEN APPLE', 'Mrs. GREEN APPLE')
 ) AS v(name, en)
@@ -28,11 +28,17 @@ SET aliases = (
   )
 )
 FROM (VALUES
-  ('ちいかわ', ARRAY['tiikawa', 'Chiikawa Pocket', 'なんか小さくてかわいいやつ']),
+  ('ちいかわ', ARRAY['tiikawa', 'Chiikawa Pocket', 'なんか小さくてかわいいやつ', 'ちぃかわ']),
   ('ホロライブ', ARRAY['Hololive Production', 'HoloPro', 'ホロプロ', 'ホロメン', 'COVER', 'cover corp', 'hololive production']),
   ('にじさんじ', ARRAY['ANYCOLOR', 'エニカラー', 'Nijisanji EN', 'にじさんじEN', 'niji']),
   ('ミセスグリーンアップル', ARRAY['Mrs.GREEN APPLE', 'Mrs. GREEN APPLE', 'Mrs GREEN APPLE', 'mrs green apple', 'ミセグリん']),
   ('サンリオ', ARRAY['Hello Kitty', 'サンリオキャラ']),
+  ('VOLTACTION', ARRAY['voltaction', 'ボルタク', 'ボルタクション']),
+  ('いれいす', ARRAY['ireisu', 'IRREGULAR DICE', 'イレギュラーダイス', 'irregular dice']),
+  ('まじめにヤバシティ', ARRAY['Mazimeni Yabacity', 'まじヤバ', 'yabacity', 'ヤバシティ', 'mazimeni yabacity']),
+  ('モノパス', ARRAY['monopass', 'ものぱす', 'Monopass']),
+  ('忍たま', ARRAY['nintama', '忍たま乱太郎', 'Nintama Rantaro', '乱太郎', 'rantaro']),
+  ('もちにゃみ', ARRAY['もちにゃみちゃん']),
   -- 重複行（0件、プロダクションでは未マージ）も同じ語で検索に引っかかるようにする
   ('Mrs.GREEN APPLE', ARRAY['ミセスグリーンアップル', 'ミセス', 'mga', 'ミセグリ', 'mrs', 'ミセスグリーン', 'Mrs. GREEN APPLE', 'Mrs GREEN APPLE', 'mrs green apple', 'ミセグリん'])
 ) AS v(name, new_arr)
@@ -60,11 +66,17 @@ INSERT INTO public.tag_aliases (alias_name, canonical_tag_id, created_by)
 SELECT a, t.id, NULL
 FROM public.tags t
 JOIN (VALUES
-  ('ちいかわ', ARRAY['tiikawa', 'Chiikawa Pocket', 'なんか小さくてかわいいやつ']),
+  ('ちいかわ', ARRAY['tiikawa', 'Chiikawa Pocket', 'なんか小さくてかわいいやつ', 'ちぃかわ']),
   ('ホロライブ', ARRAY['Hololive Production', 'HoloPro', 'ホロプロ', 'ホロメン', 'COVER', 'cover corp', 'hololive production']),
   ('にじさんじ', ARRAY['ANYCOLOR', 'エニカラー', 'Nijisanji EN', 'にじさんじEN', 'niji']),
   ('ミセスグリーンアップル', ARRAY['Mrs.GREEN APPLE', 'Mrs. GREEN APPLE', 'Mrs GREEN APPLE', 'mrs green apple', 'ミセグリん']),
   ('サンリオ', ARRAY['Hello Kitty', 'サンリオキャラ']),
+  ('VOLTACTION', ARRAY['voltaction', 'ボルタク', 'ボルタクション']),
+  ('いれいす', ARRAY['ireisu', 'IRREGULAR DICE', 'イレギュラーダイス', 'irregular dice']),
+  ('まじめにヤバシティ', ARRAY['Mazimeni Yabacity', 'まじヤバ', 'yabacity', 'ヤバシティ', 'mazimeni yabacity']),
+  ('モノパス', ARRAY['monopass', 'ものぱす', 'Monopass']),
+  ('忍たま', ARRAY['nintama', '忍たま乱太郎', 'Nintama Rantaro', '乱太郎', 'rantaro']),
+  ('もちにゃみ', ARRAY['もちにゃみちゃん']),
   ('ガンダム', ARRAY['gundam', 'モビルスーツガンダム', 'mobile suit gundam']),
   ('ポケモン', ARRAY['pokemon', 'ポケットモンスター', 'pocket monster', 'pokémon']),
   ('初音ミク', ARRAY['hatsune miku', 'miku', 'ミク', '初音みく']),
