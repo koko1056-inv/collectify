@@ -204,7 +204,9 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
     queryFn: () => fetchTargetsRpc(userId as string),
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
-    retry: false,
+    // RPCが無いケースは fetchTargetsRpc が throw せず null を返す（上の targetsRpcAvailable 判定）ので、
+    // ここに来る失敗は一時的な通信エラーのはず。retry:false だと一度の瞬断でも
+    // 「データの読み込みに失敗しました」が出てしまうため、既定のリトライ（App.tsx）に任せる。
   });
   const rpcRows = useMemo(() => {
     const map = new Map<string, RpcRow>();

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
+import { buildAppUrl } from "@/utils/shareLinks";
 
 interface EditingWishlist {
   id: string;
@@ -196,6 +197,6 @@ export function WishlistViewModal({
 
       {selectedItem && <ItemDetailsModal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem.title} image={selectedItem.image} price={selectedItem.price} releaseDate={selectedItem.releaseDate} description={selectedItem.description} itemId={selectedItem.id} />}
       
-      {isShareListOpen && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title={t("chrome.wishlistView.title")} url={window.location.href} image={wishlistItems?.[0]?.official_items?.image || ""} />}
+      {isShareListOpen && user && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title={t("chrome.wishlistView.title")} url={`${buildAppUrl({ type: "user", id: user.id })}?tab=wishlist`} image={wishlistItems?.[0]?.official_items?.image || ""} />}
     </>;
 }

@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ShareModal } from "@/components/ShareModal";
+import { buildWorkUrl } from "@/utils/share";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyAiRoomLikes, useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -351,7 +352,7 @@ export default function AiWorkDetail() {
           isOpen={shareOpen}
           onClose={() => setShareOpen(false)}
           title={`${room.title || t("screens.aiWorkDetail.shareFallbackTitle")} 🏠✨ #Collectify`}
-          url={typeof window !== "undefined" ? window.location.href : ""}
+          url={buildWorkUrl("ai-work", room.id)}
           image={room.image_url}
         />
       )}

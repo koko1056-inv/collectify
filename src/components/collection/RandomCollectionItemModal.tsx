@@ -10,6 +10,7 @@ import { RandomItemContent } from "./random-item/RandomItemContent";
 import { RandomItemActionButtons } from "./random-item/RandomItemActionButtons";
 import { useRandomItem } from "./random-item/useRandomItem";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { buildAppUrl } from "@/utils/shareLinks";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -82,13 +83,13 @@ export function RandomCollectionItemModal({
         </DialogContent>
       </Dialog>
       
-      {randomItem && (
+      {randomItem && effectiveUserId && (
         <>
           <ShareModal
             isOpen={isShareModalOpen}
             onClose={() => setIsShareModalOpen(false)}
             title={`${t("collectionScreen.random.sharePrefix")}${randomItem.title}`}
-            url={window.location.href}
+            url={`${buildAppUrl({ type: "user", id: effectiveUserId })}?itemId=${randomItem.id}`}
             image={randomItem.image}
           />
           {isOwnCollection && (
