@@ -17,6 +17,8 @@ import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts"
 import { GoodsFan } from "./OnboardingArt";
 import { OnboardingAiTry } from "./OnboardingAiTry";
 import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
+import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
+import { Users } from "lucide-react";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -85,6 +87,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [addedCount, setAddedCount] = useState(0);
   // 登録したグッズの写真（締めの画面で扇状に並べる）
   const [addedImages, setAddedImages] = useState<string[]>([]);
+  // 興味選択ステップで選んだ作品。次のはじめの1コレへ、取得し直さずそのまま渡す
+  const [confirmedInterests, setConfirmedInterests] = useState<string[] | null>(null);
 
   // 既存プロフィールの display_name をプリロード
   useEffect(() => {
@@ -229,13 +233,20 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
               {step === "interests" && (
                 <StepFrame key="interests" direction={direction}>
-                  <InterestsStep friendlyName={friendlyName} onDone={goNext} />
+                  <InterestsStep
+                    friendlyName={friendlyName}
+                    onDone={(interests) => {
+                      setConfirmedInterests(interests);
+                      goNext();
+                    }}
+                  />
                 </StepFrame>
               )}
 
               {step === "starter" && (
                 <StepFrame key="starter" direction={direction}>
                   <StarterGoodsStep
+                    initialInterests={confirmedInterests}
                     onDone={(count, images) => {
                       setAddedCount(count);
                       setAddedImages(images);
@@ -336,7 +347,7 @@ function WelcomeStep({
 
 // ==================== Step 2: 興味選択 ====================
 
-function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone: () => void }) {
+function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone: (interests: string[]) => void }) {
   const { t } = useLanguage();
   // 検索・一覧・下の「次へ」ボタンは InitialInterestSelection が持つ。見出しだけここから渡す
   return (
@@ -420,6 +431,23 @@ function CelebrateStep({
             <p className="shrink-0 text-xl font-bold tabular-nums text-points">
               +50<span className="ml-0.5 text-xs">pt</span>
             </p>
+          </motion.div>
+
+          {/* 招待のお誘い。スキップしても完了は進む（任意） */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.3 }}
+            className="mt-4 w-full rounded-2xl border bg-card p-4 text-left"
+          >
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Users className="h-4 w-4 text-primary" />
+              {t("misc.onboarding.inviteTitle")}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{t("misc.onboarding.inviteDesc")}</p>
+            <div className="mt-3">
+              <InviteCodeSection />
+            </div>
           </motion.div>
         </div>
       </div>

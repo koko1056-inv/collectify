@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "./ui/skeleton";
 import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
@@ -137,6 +138,8 @@ export function UserCollection({
   const [isUniverseOpen, setIsUniverseOpen] = useState(false);
   const [display, setDisplay] = useCollectionDisplay();
   const [isTargetsOpen, setIsTargetsOpen] = useState(false);
+  // PCなど広い画面では「コンプまであと少し」をシートの中に隠さず、そのまま並べて見せる
+  const isMobile = useIsMobile();
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
   const effectiveUserId = userId || user?.id;
@@ -742,7 +745,8 @@ export function UserCollection({
           />
         )}
 
-        {isOwnCollection && <CollectionShortcuts onOpenTargets={() => setIsTargetsOpen(true)} />}
+        {/* PCなどの広い画面では「コンプ」ショートカットを畳まず、下のコンプの的をそのまま出す */}
+        {isOwnCollection && <CollectionShortcuts onOpenTargets={isMobile ? () => setIsTargetsOpen(true) : undefined} />}
 
         {/* 持ってる / ほしい / 予約中 / 手放した のタブ。作品の札と並び替えは「持ってる」の中、一覧のすぐ上 */}
         <CollectionViewToggle
@@ -755,7 +759,8 @@ export function UserCollection({
                 onFacetChange={setFacet}
                 userId={effectiveUserId}
                 isOwn={isOwnCollection}
-                compact
+                onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+                compact={isMobile}
               />
               {toolbar}
             </>

@@ -4,6 +4,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveOshiColor, type OshiColor } from "@/lib/cosmetics";
 import { DEFAULT_FLOOR, DEFAULT_WALLPAPER, parseLayout, roomAsset, type RoomLayout } from "@/lib/oshiRoom";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 
 /** 推しの部屋（保存されている形）。layout が null なら、まだ保存していない（基本の部屋を描く） */
 export interface OshiRoomData {
@@ -69,6 +70,8 @@ export function useSaveOshiRoom() {
         oshiColor: prev?.oshiColor ?? "pink",
       }));
       void qc.invalidateQueries({ queryKey: ["oshi-room", user?.id] });
+      // 推しグッズを部屋に置いて保存したら、はじめてガイドの「推しグッズを飾る」も達成になりうる
+      requestOnboardingRewardCheck();
     },
   });
 }

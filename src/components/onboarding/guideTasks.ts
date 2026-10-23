@@ -14,6 +14,12 @@ export interface GuideTask {
   /** 移動先（クエリを含めてよい）。 */
   path: string;
   steps: TourStep[];
+  /**
+   * 状況によって行き先が変わる項目用の別経路（例: 推しグッズをもう持っている人は
+   * 選ぶ画面ではなく模様替えへ送る）。遷移そのものは呼び出し側が決め、ここは
+   * 「その画面に着いたときに何を指して案内するか」だけを持つ。
+   */
+  variants?: { path: string; steps: TourStep[] }[];
 }
 
 export const GUIDE_TASKS: Record<OnboardingStepId, GuideTask> = {
@@ -29,6 +35,15 @@ export const GUIDE_TASKS: Record<OnboardingStepId, GuideTask> = {
   favorites: {
     path: "/me",
     steps: [{ target: "me-oshi-goods", titleKey: "tour.guide.favorites.title", bodyKey: "tour.guide.favorites.body", advance: "click", waitMs: 3000 }],
+    // もう何か持っている人は /oshi?guide=favorites&decorate=1 へ送られる（OnboardingChecklist）。
+    // decorate=1 は模様替えをすぐ開く（Oshi.tsx）ので、「選ぶ」ボタンはもう無い。
+    // 置いたあとに押す「保存」を指して、模様替え→保存までを案内する
+    variants: [
+      {
+        path: "/oshi",
+        steps: [{ target: "oshi-room-save", titleKey: "tour.guide.favoritesDecorate.title", bodyKey: "tour.guide.favoritesDecorate.body", advance: "click", waitMs: 3000 }],
+      },
+    ],
   },
   // コンプの「集めるもの」。グッズが無くカードが出ていないときは、案内は自動で飛ばされる
   goal: {
@@ -56,5 +71,8 @@ export function guideForLocation(pathname: string, search: string): { id: string
   const task = (GUIDE_TASKS as Record<string, GuideTask | undefined>)[id];
   if (!task) return null;
   const targetPath = task.path.split("?")[0];
-  return pathname === targetPath ? { id, task } : null;
+  if (pathname === targetPath) return { id, task };
+  const variant = task.variants?.find((v) => pathname === v.path.split("?")[0]);
+  if (variant) return { id, task: { path: variant.path, steps: variant.steps } };
+  return null;
 }

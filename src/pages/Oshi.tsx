@@ -251,6 +251,20 @@ const Oshi = () => {
   };
 
   const loading = companions.isLoading || room.isLoading;
+
+  // ?decorate=1: チェックリストの「推しグッズを飾る」から来たとき、模様替えをすぐ開く。
+  // まだ推しグッズを選んでいなければ（list が空）、先に選ぶ画面を開く
+  const decorateParam = searchParams.get("decorate") === "1";
+  useEffect(() => {
+    if (!decorateParam || loading) return;
+    if (list.length > 0) startEditing();
+    else setEditorOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("decorate");
+    next.delete("guide");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decorateParam, loading]);
   const TimeIcon = time === "morning" ? Sunrise : time === "day" ? Sun : time === "evening" ? Sunset : Moon;
 
   return (
@@ -289,7 +303,13 @@ const Oshi = () => {
           )}
           {/* 模様替え中は、部屋のすぐ上にも保存を出す（下の道具の帯だけだと見落とされていた） */}
           {editing && draft && (
-            <Button size="sm" className="shrink-0 gap-1.5 rounded-xl" onClick={save} disabled={saveRoom.isPending}>
+            <Button
+              size="sm"
+              className="shrink-0 gap-1.5 rounded-xl"
+              onClick={save}
+              disabled={saveRoom.isPending}
+              data-tour="oshi-room-save"
+            >
               {saveRoom.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               {saveRoom.isPending ? t("oshiRoom.decorate.saving") : t("oshiRoom.decorate.save")}
             </Button>

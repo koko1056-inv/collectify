@@ -416,15 +416,21 @@ export function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
   // 推しの作品を先に出す。カタログが大きいと、新しい順だけでは特定の作品が何百件も先に埋もれてしまう。
   const { data: favoriteContents } = useFavoriteContents(user?.id);
-  // 初回だけ、好きな作品が登録されていればその作品を開く（なければ「すべて」）
+  // 初回だけ、好きな作品が登録されていればその作品を開く（なければ「すべて」）。
+  // 推しの作品がまだ0件・作品も未選択のときは確定させない。興味選択が少し遅れて
+  // キャッシュに届いた場合に拾えるようにする（確定前にユーザーが自分で作品を選んだら、それを優先して確定する）
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     if (initialized || favoriteContents === undefined || contents.length === 0) return;
-    setInitialized(true);
     const known = new Set(contents.map((c) => c.name));
     const first = favoriteContents.find((n) => known.has(n));
-    if (first) setFilter((f) => (f.content ? f : { ...f, content: first }));
-  }, [initialized, favoriteContents, contents]);
+    if (first) {
+      setInitialized(true);
+      setFilter((f) => (f.content ? f : { ...f, content: first }));
+    } else if (filter.content) {
+      setInitialized(true);
+    }
+  }, [initialized, favoriteContents, contents, filter.content]);
 
   const orderedItems = useMemo(() => {
     const fav = new Set(favoriteContents ?? []);

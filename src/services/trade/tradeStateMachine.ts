@@ -26,6 +26,7 @@ export type TradeActionReason =
   | "self_trade"
   | "blocked"
   | "private_profile"
+  | "sample_account"
   | "offered_committed"
   | "requested_committed"
   | "duplicate"

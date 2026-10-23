@@ -136,6 +136,18 @@ const Search = () => {
     [selectedContent, selectedTags]
   );
 
+  // 推しの作品（興味・推しグッズとして設定した作品）をチップ・一覧の先頭に出す。並べ替えのみで、他の作品は隠さない
+  const orderedContentNames = useMemo(() => {
+    const favorites = [...new Set([...(profile?.favorite_contents ?? []), ...(profile?.interests ?? [])])] as string[];
+    if (favorites.length === 0) return contentNames;
+    const rank = new Map(favorites.map((name, i) => [name, i]));
+    return [...contentNames].sort((a, b) => {
+      const ra = rank.get(a.name) ?? Number.POSITIVE_INFINITY;
+      const rb = rank.get(b.name) ?? Number.POSITIVE_INFINITY;
+      return ra !== rb ? ra - rb : a.name.localeCompare(b.name);
+    });
+  }, [contentNames, profile]);
+
   const clearAllFilters = useCallback(() => {
     setSelectedContent("all");
     setSelectedTags([]);
@@ -265,7 +277,7 @@ const Search = () => {
                         selectedContent={selectedContent}
                         onContentChange={setSelectedContent}
                         tags={allTags}
-                        contentNames={contentNames}
+                        contentNames={orderedContentNames}
                       />
                     </ScrollArea>
                   </div>

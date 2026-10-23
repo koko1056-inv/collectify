@@ -189,7 +189,7 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
               description={onlyOffering ? undefined : t("trade.picker.emptyDesc")}
             />
           ) : (
-            <div className="grid grid-cols-3 gap-2.5 pb-2 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2.5 pb-2 sm:grid-cols-4" data-tour="trade-offer-grid">
               {rows.map((row) => {
                 const on = overrides[row.id] ?? row.for_trade;
                 return (

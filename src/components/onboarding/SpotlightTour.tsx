@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Pocke, type PockePose } from "@/components/pocke/Pocke";
+import { useModalOpen } from "./useModalOpen";
 
 /**
  * 画面の「実物」を指して説明するスポットライト型ガイド。
@@ -141,6 +142,9 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
   const closedRef = useRef(false);
   /** 1歩でも見せたか（見せずに終わったら "unavailable" で閉じる） */
   const shownRef = useRef(false);
+  /** いまのステップの「押す」で自分からシート・ダイアログを開かせた直後か */
+  const selfOpenedModalRef = useRef(false);
+  const modalOpen = useModalOpen();
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
@@ -179,6 +183,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     let cancelled = false;
     setResolved(false);
     setRect(null);
+    selfOpenedModalRef.current = false;
 
     if (!step.target) {
       shownRef.current = true;
@@ -291,6 +296,8 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
         return;
       }
       // 押した結果（シートが開くなど）が描画されてから次のステップへ。
+      // これから開くシート・ダイアログは自分の操作の結果なので、下の「迷子判定」で閉じない。
+      selfOpenedModalRef.current = true;
       timer = window.setTimeout(goNext, 420);
     };
     el.addEventListener("click", onHit, { capture: true, once: true });
@@ -299,6 +306,14 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
       window.clearTimeout(timer);
     };
   }, [step, resolved, goNext, isLast, close]);
+
+  // 指していた対象とは関係ない経路でシート・ダイアログが開いたら、迷子のまま重ねずに閉じる。
+  // （交換の出品ピッカーは「出すものを選ぶ」CTA以外からも開けるため、その経路で開くと
+  // このツアーの「押した」待ちが永遠に発火せず、ダイアログの上に暗幕が乗ったままになっていた）
+  useEffect(() => {
+    if (!modalOpen || selfOpenedModalRef.current) return;
+    close("skipped");
+  }, [modalOpen, close]);
 
   // Escape でスキップ。
   useEffect(() => {
