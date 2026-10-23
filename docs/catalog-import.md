@@ -80,6 +80,15 @@
   - **スタダ便 ONLINE SHOP**（旧ストア `store.plusmember.jp/stardustch`）: robots.txt は無い（制限なし）。過去分を含めて M!LK が131件。カテゴリ一覧 `products/list.php?category_id=891` は **POST** でページ送りする（`mode=&pageno=N&disp_number=50&orderby=date&category_id=891`、ページ間は15秒）。ID は `sdstore:<product_id>`。画像は `https://storage-store.plusmember.jp/upload/save_image/` 以下。FC会員限定・チラシ・0円・チケット・写真集（書籍）は入れない。**発売日は載っていない**ので、画像ファイル名 `MMDDhhmm_<8桁16進>…` の16進が UNIX 時刻（アップロード日）なので、それを日本時間の日付にして使う（無ければ画像の `Last-Modified`）。
   - 新着は、PLUS GOODS STORE の商品（`published_at` が新しいもの）と、旧ストアの一覧の先頭（新着順）を見る。
 
+### ホロライブ・にじさんじのガチャ・くじ（公式ストア以外）
+
+ホロライブ・にじさんじは公式ストア（Shopify／にじさんじはSalesforce Commerce Cloudで `products.json` 的な公開APIが無く、未対応）以外に、ガチャ（カプセルトイ）とくじでも商品が出る。カードは対象外（本人の希望）。
+
+- **ガシャポン公式サイト**（`gashapon.jp`）: robots.txt は無い（404。制限の表明が無いので使ってよい）。キーワード検索 `https://gashapon.jp/products/result.php?free=<作品名>`（`free=ホロライブ` / `free=にじさんじ`）で、その作品のガシャポン商品が出る。商品詳細は `detail.php?jan_code=<JANコード>`。ID は `gashapon:<jan_code>`。並び替え・絞り込みはJavaScript側のため、キーワード検索結果をそのまま新着チェックに使う（既存と突き合わせて新規だけ入れる）。
+- **エニマイ（`anymy.jp`、エニマイくじ）**: robots.txt は `/wp/wp-admin/` 以外許可。くじ一覧 `https://anymy.jp/kuji/projects`（新着順かは不明。プロジェクト番号は概ね新しいものほど大きい）から、タイトルに作品名を含むものを拾う。商品ページは `https://anymy.jp/kuji/projects/<N>`。ID は `anymy:<N>`。入手方法タグは既存の `一番くじ` を使う（エニマイくじ独自の語彙は無いため）。
+- 2026年10月時点ではホロライブに `anymy.jp` 上で1件（プロジェクト29「スイーツパティシエ」）、`gashapon.jp` のキーワード検索で6件以上を確認済み。にじさんじは両サイトとも現時点で該当商品が見当たらなかった（今後出たときに拾えるよう、仕組みとしては組み込んでおく）。
+- `gacha-island.jp`（上の「ガチャ」の既存の見張り先）は、確認した範囲でホロライブ・にじさんじの取り扱いが無い（サンリオ・ディズニー・ちいかわ中心のサイト）。
+
 ### 取り込めない・見送った取得元
 
 - **STARTO ENTERTAINMENT**（Snow Man ほか）: `starto.jp` の robots.txt が ClaudeBot / Claude-SearchBot / GPTBot を名指しで禁止しているため、取得元に使わない。
@@ -97,7 +106,8 @@
 ### 定期実行の設定（ルーティン）
 
 - 毎朝 6:47（日本時間）に、Supabase のコネクタ付きで実行される。プロンプトはこの文書が無くても完結するように書いてある（リポジトリが無い環境で動くため）。見張り先を足したら、ルーティンのプロンプトにも足すこと。
-- 見張り先（Shopify の公式ストア）: BMSG SHOP（`bmsg:`）、ホロライブ `shop.hololivepro.com`（`hololivepro:`）、ちいかわ `chiikawamarket.jp`（`chiikawamarket:`）、M!LK の PLUS GOODS STORE（`plusstore:`）と旧ストア（`sdstore:`）。いずれも robots.txt は許可。`products.json` の `published_at` が直近14日のものを送る。
+- 見張り先（Shopify の公式ストア）: BMSG SHOP（`bmsg:`）、ホロライブ `shop.hololivepro.com`（`hololivepro:`）、ちいかわ `chiikawamarket.jp`（`chiikawamarket:`）、M!LK の PLUS GOODS STORE（`plusstore:`）と旧ストア（`sdstore:`）。いずれも robots.txt は許可。`products.json` の `published_at` が直近14日のものを送る。にじさんじの公式ストア（`shop.nijisanji.jp`）はSalesforce Commerce Cloud製で同様の公開APIが無く、未対応（別途HTML解析などの調査が必要・2026年10月時点）。
+- 見張り先（ガチャ・くじ、上の「ホロライブ・にじさんじのガチャ・くじ」参照）: ホロライブ・にじさんじを対象に `gashapon.jp`（キーワード検索 `free=ホロライブ` / `free=にじさんじ`、ID `gashapon:`）と `anymy.jp`（くじ一覧 `/kuji/projects`、ID `anymy:`）を見る。カードは対象外。
 - 取り込みは `import_official_batch()` を使う。同じ ID に加えて、同じ作品の同じタイトル・同じ画像（`?` 以降を除く）の商品も自動で弾く（ホロライブは過去の取り込みと ID の形式が違うため。マイグレーション `20261010860000`）。結果は `catalog_import_log` に毎回1行残る（管理者だけが読める）: `select run_at, added, summary from catalog_import_log order by id desc limit 10;`
 - 実行環境からは、Cloudflare の確認画面で止まるサイトがある（例: STARDUST PLUS GOODS STORE）。その場合は飛ばし、別の取得元（M!LK なら旧ストア）を使う。確認画面を突破・回避はしない。
 
