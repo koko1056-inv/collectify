@@ -144,7 +144,8 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
     try {
       const saved = await upload.mutateAsync(aiUrl ? { imageUrl: aiUrl, isAi: true, itemId, caption } : { file, itemId, caption });
       // ミッションのグッズで撮ったら達成（サーバーが撮った写真で決める）。ポッケが喜ぶ
-      if (missionItem && itemId === missionItem.id) {
+      const missionJustDone = !!(missionItem && itemId === missionItem.id);
+      if (missionJustDone) {
         pockeCheer("missionDone", mission?.bonus ?? 0);
       }
       void queryClient.invalidateQueries({ queryKey: [DAILY_MISSION_KEY] });
@@ -158,10 +159,13 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null, onS
           toast.error(t("engage.oshi.publishFailed"));
         }
       }
-      toast.success(
-        todayDone ? t("engage.oshi.savedFirst") : streak > 0 ? t("engage.oshi.saved", { n: streak + 1 }) : t("engage.oshi.savedFirst"),
-        { description: todayDone ? undefined : t("engage.oshi.savedPoints") }
-      );
+      // ミッション達成はポッケが伝えるので、同じ保存で二重にやったね言わない
+      if (!missionJustDone) {
+        toast.success(
+          todayDone ? t("engage.oshi.savedFirst") : streak > 0 ? t("engage.oshi.saved", { n: streak + 1 }) : t("engage.oshi.savedFirst"),
+          { description: todayDone ? undefined : t("engage.oshi.savedPoints") }
+        );
+      }
       if (shared) toast.success(t("engage.oshi.published"));
       reset();
       onOpenChange(false);

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface FollowButtonProps {
   userId: string;
@@ -45,18 +46,14 @@ export function FollowButton({ userId }: FollowButtonProps) {
           .eq("follower_id", user.id)
           .eq("following_id", userId);
 
-        toast.success(t("profileScreen.follow.unfollowedTitle"), {
-          description: t("profileScreen.follow.unfollowedDesc"),
-        });
+        pockeCheer("unfollowed");
       } else {
         await supabase.from("follows").insert({
           follower_id: user.id,
           following_id: userId,
         });
 
-        toast.success(t("profileScreen.follow.followedTitle"), {
-          description: t("profileScreen.follow.followedDesc"),
-        });
+        pockeCheer("followed");
       }
 
       queryClient.invalidateQueries({

@@ -88,9 +88,6 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
       await invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: officialItem.id });
 
-      toast.success(t("collectionScreen.common.success"), {
-        description: t("collectionScreen.wishlist.addedToCollection"),
-      });
       pockeCheer("added");
     } catch (error) {
       console.error("Error adding to collection:", error);
@@ -105,9 +102,6 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       const { error } = await supabase.from("wishlists").delete().eq("id", wishlistId);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      toast.success(t("collectionScreen.common.success"), {
-        description: t("collectionScreen.wishlist.removed"),
-      });
     } catch (error) {
       console.error("Error removing from wishlist:", error);
       toast.error(t("collectionScreen.common.error"), {

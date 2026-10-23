@@ -110,6 +110,10 @@ export const pocke = {
       listedForTrade: "交換に出したよ！ 見つかる人がいるといいね",
       unlistedForTrade: "交換を下げたよ",
       guideDone: "「{label}」やったね！ +{n}pt",
+      decorated: "お部屋、かっこよくなったね！",
+      followed: "フォローしたよ！",
+      unfollowed: "フォローやめたよ",
+      levelUp: "「{label}」が Lv.{n} になったよ！",
       close: "とじる",
     },
     ring: {
@@ -358,6 +362,10 @@ export const pocke = {
       listedForTrade: "Offered it for trade! Hope you find a match",
       unlistedForTrade: "Took it off trade",
       guideDone: "“{label}” done! +{n}pt",
+      decorated: "Your room looks great!",
+      followed: "Followed!",
+      unfollowed: "Unfollowed",
+      levelUp: "“{label}” reached Lv.{n}!",
       close: "Close",
     },
     ring: {

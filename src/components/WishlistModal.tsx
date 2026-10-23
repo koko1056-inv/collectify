@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -61,9 +62,7 @@ export function WishlistModal({
 
         if (error) throw error;
 
-        toast.success(t("chrome.wishlist.updatedTitle"), {
-          description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
-        });
+        pockeCheer("wishlisted");
       } else {
         // 既に追加されているか確認
         const { data: existingItem, error: checkError } = await supabase
@@ -83,10 +82,8 @@ export function WishlistModal({
             .eq("id", existingItem.id);
             
           if (updateError) throw updateError;
-          
-          toast.success(t("chrome.wishlist.updatedTitle"), {
-            description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
-          });
+
+          pockeCheer("wishlisted");
         } else {
           // 新規追加
           const { error: insertError } = await supabase
@@ -104,9 +101,7 @@ export function WishlistModal({
           // 効果音を再生
           playWishlistSound();
 
-          toast.success(t("chrome.wishlist.addedTitle"), {
-            description: t("chrome.wishlist.addedDesc", { title: itemTitle }),
-          });
+          pockeCheer("wishlisted");
         }
       }
 

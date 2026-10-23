@@ -1,9 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { addManyToCollection } from "@/utils/collection-actions";
 import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { clearGuestPouch, readGuestPouch } from "@/utils/guestPouch";
@@ -16,7 +14,6 @@ import { pockeCheer } from "@/components/pocke/pockeCheer";
  */
 export function GuestPouchImporter() {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const running = useRef(false);
 
@@ -60,7 +57,6 @@ export function GuestPouchImporter() {
         queryClient.invalidateQueries({ queryKey: ["wishlist"] });
         if (added > 0) {
           pockeCheer("addedMany", added);
-          toast.success(t("pocke.guest.imported", { n: added }));
         }
       } catch (e) {
         console.error("guest pouch import failed", e);
@@ -68,7 +64,7 @@ export function GuestPouchImporter() {
         running.current = false;
       }
     })();
-  }, [user, queryClient, t]);
+  }, [user, queryClient]);
 
   return null;
 }
