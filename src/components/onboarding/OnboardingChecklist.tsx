@@ -42,8 +42,14 @@ export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  // 項目を押したら、その操作をする画面へ移り、押す場所を光らせて案内する（GuideHost）
+  // 項目を押したら、その操作をする画面へ移り、押す場所を光らせて案内する（GuideHost）。
+  // 「推しグッズを飾る」は、もう何か持っている（user_items が1件以上ある）なら、選ぶ画面（/me）ではなく
+  // 推しの部屋の模様替え（/oshi?decorate=1）へ直接送る。持っているものが無ければ、いつもの選ぶ画面へ
   const goGuide = (id: OnboardingStepId) => {
+    if (id === "favorites" && checklistData?.hasItem) {
+      navigate("/oshi?guide=favorites&decorate=1");
+      return;
+    }
     const href = guideHref(id);
     if (href) navigate(href);
   };

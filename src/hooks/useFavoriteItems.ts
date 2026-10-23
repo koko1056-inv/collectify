@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { MAX_OSHI_GOODS } from "@/utils/companion";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 
 /** 推しグッズの数。以前の「お気に入りTOP5」と同じ5つ（相棒グッズとまとめた） */
 export const FAVORITE_ITEMS_LIMIT = MAX_OSHI_GOODS;
@@ -79,6 +80,8 @@ export function useUpdateFavoriteItems(userId?: string | null) {
       // 推しグッズは推しフォトの画面（育てる）とプロフィールにも出る。保存するとサーバーが育ち具合の行も用意する
       queryClient.invalidateQueries({ queryKey: ["companions", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile-oshi-goods", userId] });
+      // 推しグッズを選んだら、はじめてガイドの「推しグッズを飾る」も達成になりうる
+      requestOnboardingRewardCheck();
       toast.success(t("notices.favorites.updated"));
     },
     onError: (err) => {

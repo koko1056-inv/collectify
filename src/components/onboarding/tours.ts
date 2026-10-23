@@ -112,10 +112,20 @@ export const PAGE_TOURS: PageTour[] = [
       },
       {
         target: "trade-offer-cta",
+        titleKey: "tour.trade.openOffer.title",
+        bodyKey: "tour.trade.openOffer.body",
+        advance: "click",
+        waitMs: 2500,
+      },
+      // ダイアログの中の実物（グッズの一覧）を指す。ここまで来てようやく「出すものはここで選ぶよ」が実物と合う。
+      // 対象がダイアログの外（例: 上の「出しているもの」札）のままだと、ダイアログが開いたあとも
+      // そのままの位置に暗幕と枠が居座り、開いたダイアログの上に重なって見えていた（PCの広い画面で特に目立った）
+      {
+        target: "trade-offer-grid",
         titleKey: "tour.trade.offer.title",
         bodyKey: "tour.trade.offer.body",
         advance: "click",
-        waitMs: 2500,
+        waitMs: 1200,
       },
     ],
   },

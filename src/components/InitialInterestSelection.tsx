@@ -31,7 +31,7 @@ const POPULAR_COUNT = 6;
 interface InitialInterestSelectionProps {
   isOpen?: boolean;
   onClose?: () => void;
-  onComplete?: () => void;
+  onComplete?: (interests: string[]) => void;
   standalone?: boolean;
   /** standalone のとき、一覧の上（一緒にスクロールする位置）に置く見出し */
   header?: ReactNode;
@@ -135,6 +135,15 @@ export function InitialInterestSelection({
 
       if (error) throw error;
 
+      // すぐ後ろの画面（はじめの1コレ・推しグッズの一覧）が同じキーで読むため、
+      // 再取得を待たずにキャッシュへ反映する（でないと一瞬「人気」で出てから推しの作品に切り替わってしまう）
+      queryClient.setQueryData(["onboarding-interests", user.id], interestsToSave);
+      queryClient.setQueryData<string[]>(["favorite-contents", user.id], (prev) => [
+        ...new Set([...(prev ?? []), ...interestsToSave]),
+      ]);
+      queryClient.invalidateQueries({ queryKey: ["onboarding-interests", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["favorite-contents", user.id] });
+
       // オンボーディングを完了としてマーク
       completeWalkthrough();
 
@@ -145,9 +154,9 @@ export function InitialInterestSelection({
           description: selectedContents.length > 0 ? t("chrome.interests.savedDesc") : t("chrome.interests.skippedDesc"),
         });
       }
-      
+
       if (onComplete) {
-        onComplete();
+        onComplete(interestsToSave);
       } else if (onClose) {
         onClose();
       }

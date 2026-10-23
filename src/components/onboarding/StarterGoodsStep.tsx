@@ -28,6 +28,8 @@ interface StarterGoodsStepProps {
   onPhoto?: () => void;
   /** ログインせずに試すとき。選んだものはおためしの袋（この端末）に入れ、登録したらコレクションへ移す */
   guest?: boolean;
+  /** 直前の興味選択ステップで選んだ作品。渡せば取得し直さず、最初から推しの作品を先頭に出せる */
+  initialInterests?: string[] | null;
 }
 
 /**
@@ -38,7 +40,7 @@ interface StarterGoodsStepProps {
  * 持っているものをタップするだけで、数秒で自分のコレクションが立ち上がる。
  * 選んだ数が増えるにつれ「完成度が見える」までの距離を見せ、最初の価値を早く届ける。
  */
-export function StarterGoodsStep({ onDone, onPhoto, guest = false }: StarterGoodsStepProps) {
+export function StarterGoodsStep({ onDone, onPhoto, guest = false, initialInterests = null }: StarterGoodsStepProps) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
 
@@ -58,10 +60,12 @@ export function StarterGoodsStep({ onDone, onPhoto, guest = false }: StarterGood
     [add]
   );
 
-  // 推しの作品（ウェルカムの「興味」で選んだもの）。無ければ、グッズの多い作品から
+  // 推しの作品（ウェルカムの「興味」で選んだもの）。無ければ、グッズの多い作品から。
+  // initialInterests があれば（直前の興味選択ステップから）、取得を待たずに最初から使う
   const { data: interests } = useQuery({
     queryKey: ["onboarding-interests", user?.id],
     enabled: !!user?.id,
+    initialData: initialInterests ?? undefined,
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles").select("interests").eq("id", user!.id).maybeSingle();
       if (error) throw error;

@@ -54,6 +54,10 @@ export const tour = {
         title: "交換は2つそろうと始まるよ",
         body: "「ほしいもの」と「交換に出せるもの」の両方があると相手が見つかるんだ。ダブってるグッズを1つ出すだけで十分だよ。",
       },
+      openOffer: {
+        title: "まずはここを押してみて",
+        body: "押すと、持ってるグッズが並ぶ画面が開くよ。",
+      },
       offer: {
         title: "出すものはここで選ぶよ",
         body: "持ってるグッズが写真つきで並ぶから、交換に出すものをタップして選んでね。押してみて！",
@@ -97,6 +101,7 @@ export const tour = {
       profile: { title: "プロフィールを整えよう", body: "ここからアイコン・名前・自己紹介を設定できるよ。押してみて！" },
       firstItem: { title: "最初のグッズを入れよう！", body: "この＋から、写真を撮るか一覧から選んで登録できるよ。" },
       favorites: { title: "推しグッズを選ぼう", body: "ここを押して、いちばん好きなグッズを5つまで選んでね。順位つきでマイページに飾られて、推しの部屋で育てられるよ。" },
+      favoritesDecorate: { title: "置いたら保存しよう", body: "グッズを部屋にドラッグして置いたら、ここを押して保存してね。保存すれば達成だよ。" },
       wishlist: { title: "ほしいものを追加しよう", body: "気になるグッズを開いて「ほしい」を押すと、ほしいものリストに入るよ。交換相手も見つかりやすくなるんだ。" },
       aiRoom: { title: "AIで推しルームを作ろう", body: "ここから、コレクションのグッズを並べた部屋をAIが描くよ。はじめては無料！" },
       avatar: { title: "AIアバターを作ろう", body: "ここから、写真や好きなイメージをもとにAIがアバターを作るよ。はじめては無料！" },
@@ -187,6 +192,10 @@ export const tour = {
         title: "A trade needs two halves",
         body: "You'll find partners once you have both something you want and something you can offer. One spare item is enough.",
       },
+      openOffer: {
+        title: "Tap here first",
+        body: "This opens the screen where your goods are listed.",
+      },
       offer: {
         title: "Choose what you offer here",
         body: "Your goods are shown with photos, so you can tap the ones you want to put up for trade. Give it a tap.",
@@ -230,6 +239,7 @@ export const tour = {
       profile: { title: "Set up your profile", body: "Set your icon, name and bio here. Give it a tap." },
       firstItem: { title: "Add your first goods", body: "Tap + to take a photo or pick from the catalog." },
       favorites: { title: "Choose your oshi goods", body: "Tap here and choose up to 5 goods you love most. They're shown ranked on your page, and you can raise them in your Oshi Room." },
+      favoritesDecorate: { title: "Save once you've placed one", body: "Drag a goods item into the room, then tap here to save. Saving completes this step." },
       wishlist: { title: "Add to your wishlist", body: "Open a goods item you like and tap \"Want\". It also helps you find trade partners." },
       aiRoom: { title: "Make an AI room", body: "Start here and AI draws a room filled with your goods. Your first one is free." },
       avatar: { title: "Make an AI avatar", body: "Start here and AI creates an avatar from your photo or an idea. Your first one is free." },
