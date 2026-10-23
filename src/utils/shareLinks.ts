@@ -78,5 +78,5 @@ export function buildInviteUrl(code: string): string {
 
 /** 招待用のシェア文言 */
 export function buildInviteShareText(code: string): string {
-  return `Collectifyで一緒に推しグッズを管理しよう！\n登録するとお互い50ポイントもらえる🎁\n${buildInviteUrl(code)}`;
+  return `Collectifyで一緒に推しグッズを管理しよう！\n登録するとお互い100ポイントもらえる🎁\n${buildInviteUrl(code)}`;
 }

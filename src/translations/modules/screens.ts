@@ -80,7 +80,7 @@ export const screens = {
     },
     invite: {
       checking: "招待を確認しています…",
-      welcome: "Collectifyへようこそ！登録すると50ポイントもらえます",
+      welcome: "Collectifyへようこそ！登録すると100ポイントもらえます",
     },
     login: {
       resetTitle: "ログインできないとき",
@@ -508,7 +508,7 @@ export const screens = {
     },
     invite: {
       checking: "Checking your invite…",
-      welcome: "Welcome to Collectify! Sign up and get 50 points",
+      welcome: "Welcome to Collectify! Sign up and get 100 points",
     },
     login: {
       tagline: "Your fave-merch catalog: add it, admire it, complete sets, trade spares",
