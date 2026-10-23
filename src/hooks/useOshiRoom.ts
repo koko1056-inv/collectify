@@ -70,7 +70,9 @@ export function useSaveOshiRoom() {
         oshiColor: prev?.oshiColor ?? "pink",
       }));
       void qc.invalidateQueries({ queryKey: ["oshi-room", user?.id] });
-      // 推しグッズを部屋に置いて保存したら、はじめてガイドの「推しグッズを飾る」も達成になりうる
+      // 推しグッズを部屋に置いて保存したら、はじめてガイドの「推しグッズを飾る」も達成になりうる。
+      // チェックリストの達成判定は layout.goods も見るので、報酬の確認を待たずに読み直してすぐ✓を付ける
+      void qc.invalidateQueries({ queryKey: ["onboarding-checklist", user?.id] });
       requestOnboardingRewardCheck();
     },
   });

@@ -80,7 +80,8 @@ export function useUpdateFavoriteItems(userId?: string | null) {
       // 推しグッズは推しフォトの画面（育てる）とプロフィールにも出る。保存するとサーバーが育ち具合の行も用意する
       queryClient.invalidateQueries({ queryKey: ["companions", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile-oshi-goods", userId] });
-      // 推しグッズを選んだら、はじめてガイドの「推しグッズを飾る」も達成になりうる
+      // 推しグッズを選んだら、はじめてガイドの「推しグッズを飾る」も達成になりうる。すぐ✓を付ける
+      queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", userId] });
       requestOnboardingRewardCheck();
       toast.success(t("notices.favorites.updated"));
     },
