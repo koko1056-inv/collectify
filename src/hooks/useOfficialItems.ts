@@ -235,3 +235,49 @@ export function useContentNamesEn() {
     },
   });
 }
+
+export interface ContentNameAliasRow {
+  name: string;
+  aliases: string[] | null;
+}
+
+/**
+ * 作品名と別名の一覧（content_names の全行）。
+ * aliases は生成済みの型定義にまだ反映されていないため "*" で取って手元で読む（InitialInterestSelection と同じやり方）。
+ */
+export function useContentNameAliases() {
+  return useQuery<ContentNameAliasRow[]>({
+    queryKey: ["content-name-aliases"],
+    staleTime: 1000 * 60 * 60,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("content_names").select("*");
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        name: r.name as string,
+        aliases: (r as { aliases?: string[] | null }).aliases ?? null,
+      }));
+    },
+  });
+}
+
+/**
+ * 推しとして選んだ作品名を、実際にグッズのある作品名に解決する。
+ *
+ * 同じ作品でも表記が割れて別の content_names 行になっていることがある
+ * （例: 「Mrs.GREEN APPLE」はグッズ 0 件で、同じアーティストの「ミセスグリーンアップル」側にグッズが入っている）。
+ * 別名（aliases）にその名前を持つ、グッズのある作品を探す。見つからなければ null（＝そのままでは出せない）。
+ */
+export function resolveStockedContentName(
+  name: string,
+  withItems: ReadonlySet<string>,
+  aliasRows: ContentNameAliasRow[]
+): string | null {
+  if (withItems.has(name)) return name;
+  const normalized = name.trim().toLowerCase();
+  if (!normalized) return null;
+  for (const row of aliasRows) {
+    if (!withItems.has(row.name)) continue;
+    if ((row.aliases ?? []).some((alias) => alias.trim().toLowerCase() === normalized)) return row.name;
+  }
+  return null;
+}

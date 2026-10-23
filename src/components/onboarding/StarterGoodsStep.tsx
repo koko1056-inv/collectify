@@ -7,7 +7,13 @@ import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useCatalogContents, useCatalogFeed, useContentNamesEn } from "@/hooks/useOfficialItems";
+import {
+  resolveStockedContentName,
+  useCatalogContents,
+  useCatalogFeed,
+  useContentNameAliases,
+  useContentNamesEn,
+} from "@/hooks/useOfficialItems";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
 import { useGuestPouch } from "@/hooks/useGuestPouch";
 import { cn } from "@/lib/utils";
@@ -74,18 +80,38 @@ export function StarterGoodsStep({ onDone, onPhoto, guest = false, initialIntere
   });
   const { data: contents = [] } = useCatalogContents();
   const { data: namesEn } = useContentNamesEn();
+  const { data: aliasRows = [] } = useContentNameAliases();
   const label = useCallback(
     (name: string) => (language === "en" ? namesEn?.get(name) ?? name : name),
     [language, namesEn]
   );
 
-  const chips = useMemo(() => {
-    const known = new Set(contents.map((c) => c.name));
-    const mine = (interests ?? []).filter((n) => known.has(n));
-    const rest = contents.filter((c) => c.name !== "なし" && !mine.includes(c.name)).map((c) => c.name);
-    return [...mine, ...rest].slice(0, 8);
-  }, [contents, interests]);
-  const activeContent = content ?? chips[0] ?? null;
+  // チップの並びと、最初に開く作品。
+  // 推しの作品を先頭に（別名・重複名はグッズのある表記に揃える。例: 「Mrs.GREEN APPLE」→「ミセスグリーンアップル」）、
+  // 続けてグッズの多い作品。推しの作品がグッズ0件でも、選んだことは分かるようチップ自体は出す（タップすると空の案内になる）。
+  // 最初に開くのは、推しの作品の中でグッズがある最初の1つ。どれも0件なら、グッズの多い作品から（推しを選んでいないときと同じ）。
+  const { chips, defaultActive } = useMemo(() => {
+    const withItems = new Set(contents.map((c) => c.name));
+    const seen = new Set<string>();
+    const list: string[] = [];
+    let firstStocked: string | null = null;
+    for (const interest of interests ?? []) {
+      const resolved = resolveStockedContentName(interest, withItems, aliasRows);
+      const name = resolved ?? interest;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      list.push(name);
+      if (!firstStocked && resolved) firstStocked = resolved;
+    }
+    for (const c of contents) {
+      if (c.name === "なし" || seen.has(c.name)) continue;
+      seen.add(c.name);
+      list.push(c.name);
+    }
+    const fallback = contents.find((c) => c.name !== "なし")?.name ?? null;
+    return { chips: list, defaultActive: firstStocked ?? fallback };
+  }, [contents, interests, aliasRows]);
+  const activeContent = content ?? defaultActive;
 
   // 作品を選んでいるとき: その作品の新しいグッズ（写真があるもの）
   const starter = useQuery({
@@ -209,7 +235,7 @@ export function StarterGoodsStep({ onDone, onPhoto, guest = false, initialIntere
                     <GoodsPickTile
                       image={item.image}
                       title={item.title}
-                      subtitle={item.content_name ? label(item.content_name) : null}
+                      subtitle={item.content_name ? label(item.content_name) : activeContent ? label(activeContent) : null}
                       selected={owned}
                       busy={busyId === item.id}
                       disabled={owned}
