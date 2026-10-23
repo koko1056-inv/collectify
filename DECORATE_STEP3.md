@@ -26,6 +26,6 @@
 - `npx eslint` on changed files — warning/error なし
 
 ## PR / 状態
-- PR: (本文末尾に追記)
-- マージ: (本文末尾に追記)
+- PR: https://github.com/koko1056-inv/collectify/pull/177
+- マージ: 済み（main へ merge, 2026-10-23T11:52:47Z）
 - 本番反映: クライアントは main への merge を Vercel が検知して自動デプロイ（新規 SQL なし。既存の prod migration をそのまま使う）
