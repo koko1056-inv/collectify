@@ -49,9 +49,9 @@ INSERT INTO public.content_names (name, type, name_en, aliases)
 SELECT v.name, v.type, v.name_en, v.aliases
 FROM (VALUES
   ('ガンダム', 'anime', 'Mobile Suit Gundam', ARRAY['gundam', 'モビルスーツガンダム', 'mobile suit gundam']),
-  ('ポケモン', 'game', 'Pokémon', ARRAY['pokemon', 'ポケットモンスター', 'pocket monster', 'pokémon']),
-  ('初音ミク', 'music', 'Hatsune Miku', ARRAY['hatsune miku', 'miku', 'ミク', '初音みく']),
-  ('原神', 'game', 'Genshin Impact', ARRAY['genshin impact', 'genshin', 'げんしん'])
+  ('ポケモン', 'anime', 'Pokémon', ARRAY['pokemon', 'ポケットモンスター', 'pocket monster', 'pokémon']),
+  ('初音ミク', 'anime', 'Hatsune Miku', ARRAY['hatsune miku', 'miku', 'ミク', '初音みく']),
+  ('原神', 'anime', 'Genshin Impact', ARRAY['genshin impact', 'genshin', 'げんしん'])
 ) AS v(name, type, name_en, aliases)
 WHERE NOT EXISTS (SELECT 1 FROM public.content_names c WHERE c.name = v.name);
 
