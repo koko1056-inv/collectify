@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowDownUp, ArrowLeftRight, ChevronRight, Gift, Heart, ImageIcon, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
+import { ArrowDownUp, ArrowLeftRight, ChevronRight, Gift, Heart, ImageIcon, Layers, MessageCircle, PackageOpen, Search, X } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -25,6 +25,7 @@ import {
   type TradeSeriesPartner,
 } from "@/hooks/useTradeMatches";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { useToggleForTrade } from "@/hooks/trade/useToggleForTrade";
 import { cn } from "@/lib/utils";
 
 import { TradeOfferPicker } from "./TradeOfferPicker";
@@ -91,6 +92,7 @@ export function TradeMatchingSection() {
   const { data: readiness } = useTradeReadiness();
   const { data: seriesPartners } = useTradeSeriesPartners();
   const { data: myOffers = [] } = useMyTradeOffers();
+  const toggleForTrade = useToggleForTrade();
 
   // サーバー側（find_trade_matches 等）もサンプルアカウントを除いているが、
   // サンプルアカウントは実ユーザーとやり取りしない運用ルールを画面側でも二重に守る。
@@ -170,37 +172,54 @@ export function TradeMatchingSection() {
           以前は「4つの手順の札・交換に出すボタン・出しているグッズの帯」が並び（約330px）、同じ件数が3か所に出ていた。
           あなたの番の取引と受信箱は「進行中」のタブへ移した */}
       <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
+        <div
           data-tour="trade-offer-cta"
-          onClick={() => setIsOfferPickerOpen(true)}
-          aria-label={t("trade.summary.offerAria", { n: readiness?.offerCount ?? myOffers.length })}
           className={cn(
-            "flex min-h-[3.75rem] items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+            "flex min-h-[3.75rem] items-center gap-2 rounded-xl border bg-card px-3 py-2 transition-colors",
             (readiness?.offerCount ?? myOffers.length) === 0 ? "border-primary/50 bg-primary/5" : "border-border"
           )}
         >
-          <span className="min-w-0 flex-1">
-            <span className="block text-2xs text-muted-foreground">{t("trade.summary.offering")}</span>
-            <span className="block text-base font-bold tabular-nums">
-              {t("trade.summary.count", { n: readiness?.offerCount ?? myOffers.length })}
+          <button
+            type="button"
+            onClick={() => setIsOfferPickerOpen(true)}
+            aria-label={t("trade.summary.offerAria", { n: readiness?.offerCount ?? myOffers.length })}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left -m-1 p-1 transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-2xs text-muted-foreground">{t("trade.summary.offering")}</span>
+              <span className="block text-base font-bold tabular-nums">
+                {t("trade.summary.count", { n: readiness?.offerCount ?? myOffers.length })}
+              </span>
             </span>
-          </span>
+          </button>
           {myOffers.length > 0 && (
-            <span className="flex shrink-0 -space-x-3" aria-hidden="true">
+            <span className="flex shrink-0 -space-x-2">
               {myOffers.slice(0, 3).map((o) => (
-                <img
+                <button
                   key={o.id}
-                  src={getOptimizedImageUrl(o.image, { width: 96 })}
-                  onError={fallbackToOriginal(o.image)}
-                  alt=""
-                  loading="lazy"
-                  className="h-9 w-9 rounded-lg border-2 border-card bg-muted object-cover"
-                />
+                  type="button"
+                  disabled={toggleForTrade.isPending}
+                  onClick={() => toggleForTrade.mutate({ itemId: o.id, forTrade: false })}
+                  aria-label={t("trade.picker.withdrawAria", { title: o.title })}
+                  title={t("trade.picker.withdrawAria", { title: o.title })}
+                  className="group relative h-9 w-9 rounded-lg border-2 border-card disabled:opacity-60"
+                >
+                  <img
+                    src={getOptimizedImageUrl(o.image, { width: 96 })}
+                    onError={fallbackToOriginal(o.image)}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full rounded-lg bg-muted object-cover"
+                  />
+                  {/* 小さい × は常時出す（ホバーが無いタッチ端末が中心のため） */}
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-foreground/85 text-background">
+                    <X className="h-2.5 w-2.5" aria-hidden="true" />
+                  </span>
+                </button>
               ))}
             </span>
           )}
-        </button>
+        </div>
         <button
           type="button"
           onClick={() => ((readiness?.wishCount ?? 0) > 0 ? setIsWishlistOpen(true) : navigate("/search?tab=goods"))}

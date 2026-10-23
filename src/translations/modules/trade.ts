@@ -362,6 +362,10 @@ export const trade = {
       emptyDesc: "コレクションに登録すると、ここから交換に出せます。",
       openTitle: "交換に出すグッズを選ぶ",
       openDesc: "いま{n}件を交換に出しています",
+      // 「すぐ取り下げる」用。出品の解除はすぐ確定（確認なし）で、トーストで結果を伝える
+      withdrawAria: "{title}を取り下げる",
+      withdrawShort: "取り下げる",
+      withdrawnToast: "「{title}」を取り下げました",
     },
     spotlight: {
       chip: "注目",
@@ -876,6 +880,9 @@ export const trade = {
       emptyDesc: "Register goods in your collection and you can offer them from here.",
       openTitle: "Pick what you'll trade",
       openDesc: "Offering {n} right now",
+      withdrawAria: "Withdraw {title}",
+      withdrawShort: "Withdraw",
+      withdrawnToast: "Withdrew \"{title}\" from trade",
     },
     spotlight: {
       chip: "Featured",

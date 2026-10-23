@@ -132,7 +132,8 @@ export function OnboardingChecklist() {
       favorites: checklistData.hasFavorites5,
       // 集めるもの（目標）は collection_goals（useCollectionGoals）。ピン留めした直後から完了にする
       goal: goals.length > 0,
-      'trade-offer': checklistData.hasTradeOffer,
+      // 一度でも出品して報酬を受け取っていれば、後で取り下げても完了のまま（はじめてガイドが戻ってこない）
+      'trade-offer': checklistData.hasTradeOffer || checklistData.claimedSteps.has('trade-offer'),
     };
     return ONBOARDING_STEPS.map((s) => ({
       id: s.id,
