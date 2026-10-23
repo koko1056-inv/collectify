@@ -2217,6 +2217,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          exclude_from_lists: boolean
+          exclude_reason: string | null
           id: string
           image: string
           item_type: string
@@ -2231,6 +2233,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          exclude_from_lists?: boolean
+          exclude_reason?: string | null
           id?: string
           image: string
           item_type?: string
@@ -2245,6 +2249,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          exclude_from_lists?: boolean
+          exclude_reason?: string | null
           id?: string
           image?: string
           item_type?: string

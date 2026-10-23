@@ -124,6 +124,7 @@ export function StarterGoodsStep({ onDone, onPhoto, guest = false, initialIntere
         .select("id, title, image, price, release_date, content_name, created_at")
         .eq("content_name", activeContent!)
         .is("merged_into", null)
+        .eq("exclude_from_lists", false)
         .neq("image", "/placeholder.svg")
         .order("release_date", { ascending: false })
         .limit(PER_CONTENT);

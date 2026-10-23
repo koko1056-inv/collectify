@@ -122,18 +122,20 @@ async function countTarget(spec: TargetSpec, ids: TagIds): Promise<number | null
     if (lists.length === 1) {
       const { count, error } = await supabase
         .from("item_tags")
-        .select("official_item_id, official_items!inner(merged_into)", { count: "exact", head: true })
+        .select("official_item_id, official_items!inner(merged_into, exclude_from_lists)", { count: "exact", head: true })
         .in("tag_id", lists[0])
-        .is("official_items.merged_into", null);
+        .is("official_items.merged_into", null)
+        .eq("official_items.exclude_from_lists", false);
       if (error) throw error;
       return count ?? 0;
     }
     const { count, error } = await supabase
       .from("item_tags")
-      .select("official_item_id, official_items!inner(merged_into, item_tags!inner(tag_id))", { count: "exact", head: true })
+      .select("official_item_id, official_items!inner(merged_into, exclude_from_lists, item_tags!inner(tag_id))", { count: "exact", head: true })
       .in("tag_id", lists[0])
       .in("official_items.item_tags.tag_id", lists[1])
-      .is("official_items.merged_into", null);
+      .is("official_items.merged_into", null)
+      .eq("official_items.exclude_from_lists", false);
     if (error) throw error;
     return count ?? 0;
   });
@@ -148,9 +150,10 @@ async function fetchTargetMembers(spec: TargetSpec, ids: TagIds): Promise<Missin
     const inner = lists.length === 1 ? "" : ", item_tags!inner(tag_id)";
     let q = supabase
       .from("item_tags")
-      .select(`official_items!inner(id, title, image, merged_into${inner})`)
+      .select(`official_items!inner(id, title, image, merged_into, exclude_from_lists${inner})`)
       .in("tag_id", lists[0])
       .is("official_items.merged_into", null)
+      .eq("official_items.exclude_from_lists", false)
       .limit(80);
     if (lists.length > 1) q = q.in("official_items.item_tags.tag_id", lists[1]);
     const { data, error } = await q;
