@@ -11,6 +11,7 @@ import {
 import { Loader2, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SITE_URL } from "@/config/site";
 
 interface Props {
   generatedImage: string;
@@ -48,9 +49,10 @@ export function GeneratedResultView({
   };
 
   const handleShareToFacebook = () => {
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-      window.location.href
-    )}`;
+    // 生成した画像はこの時点では保存されておらず、自分専用のURLを持たない。
+    // window.location.href だとVercelのプレビュー/本番どちらのオリジンもそのまま漏れてしまうので、
+    // 正規のアプリURL（SITE_URL）を配る。
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE_URL)}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
     toast.success(t("homeScreen.result.facebookOpened"));
   };

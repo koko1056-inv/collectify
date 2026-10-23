@@ -25,6 +25,7 @@ import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { useBlockedUserIds, useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
+import { buildAppUrl } from "@/utils/shareLinks";
 
 type Tab = "collection" | "posts" | "wishlist" | "trust";
 
@@ -246,7 +247,7 @@ export default function UserProfile() {
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
         title={profile.display_name || profile.username || ""}
-        url={typeof window !== "undefined" ? window.location.href : ""}
+        url={buildAppUrl({ type: "user", id: profile.id })}
         image={profile.avatar_url || "/placeholder.svg"}
         showInviteCode={isOwnProfile}
       />

@@ -27,6 +27,7 @@ import { ProfileBadges } from "@/components/badges/ProfileBadges";
 import { EnjoySection } from "./EnjoySection";
 import { PockeCorner } from "@/components/pocke/PockeCorner";
 import { useMePockeTips } from "@/components/pocke/usePockeTips";
+import { buildAppUrl } from "@/utils/shareLinks";
 
 // 自分のコレクションは下タブ①が持つので、マイページには置かない（以前は3か所に同じ一覧が出ていた）。
 // 以前の「マイルーム」の AI スタジオは「AI作品」タブに入れた。
@@ -186,7 +187,7 @@ export function ProfilePage() {
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
         title={profile.display_name || profile.username || ""}
-        url={typeof window !== "undefined" ? window.location.href : ""}
+        url={buildAppUrl({ type: "user", id: user.id })}
         image={profile.avatar_url || "/placeholder.svg"}
         showInviteCode
       />
