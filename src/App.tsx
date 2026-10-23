@@ -14,6 +14,7 @@ import { GuideHost } from "@/components/onboarding/GuideHost";
 import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewardWatcher";
 import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
+import { PockeLoadingHost } from "@/components/pocke/PockeLoadingHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
 import { DailyLoginRewardHost } from "@/components/daily/DailyLoginRewardHost";
 import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
@@ -250,6 +251,8 @@ const App: React.FC = () => {
                   <PockeCheerHost />
                   {/* 作品・シリーズがそろった瞬間のお祝い */}
                   <PockeCompletionHost />
+                  {/* 読み込みが長引いたときだけ、画面のすみで考え中のポッケを出す */}
+                  <PockeLoadingHost />
                   <DailyRingHost />
                   <DailyLoginRewardHost />
                   <BadgeUnlockHost />
