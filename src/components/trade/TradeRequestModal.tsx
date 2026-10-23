@@ -209,9 +209,6 @@ export function TradeRequestModal({
       }
 
       pockeCheer("tradeSent");
-      toast.success(t("trade.request.sentTitle"), {
-        description: t("trade.request.sentDesc"),
-      });
       await Promise.all([
         invalidateTrades(queryClient, user.id),
         queryClient.invalidateQueries({ queryKey: ["trade-exists", user.id, requestedItemId] }),

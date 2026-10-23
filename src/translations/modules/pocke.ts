@@ -106,6 +106,10 @@ export const pocke = {
       wishlisted: "ほしいものに入れたよ！ 見つけたら教えるね",
       preordered: "予約、メモしたよ！ 届くの楽しみだね",
       liked: "いいね、ありがとう！",
+      addedPoints: "袋に入った！ +{n}pt ももらったよ",
+      listedForTrade: "交換に出したよ！ 見つかる人がいるといいね",
+      unlistedForTrade: "交換を下げたよ",
+      guideDone: "「{label}」やったね！ +{n}pt",
       close: "とじる",
     },
     ring: {
@@ -350,6 +354,10 @@ export const pocke = {
       wishlisted: "Added to your wishlist! I'll keep an eye out for it",
       preordered: "Preorder noted! Can't wait for it to arrive",
       liked: "Thanks for the like!",
+      addedPoints: "In the pouch! You also got +{n} pt",
+      listedForTrade: "Offered it for trade! Hope you find a match",
+      unlistedForTrade: "Took it off trade",
+      guideDone: "“{label}” done! +{n}pt",
       close: "Close",
     },
     ring: {

@@ -638,11 +638,8 @@ export function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       });
 
       if (result.success) {
-        pockeCheer("added");
-        // 「追加したよ」はポッケが伝えるので、トーストはポイント獲得があるときだけ出す
-        if (result.pointsAwarded) {
-          toast.success(t("notices.adminItem.pointsEarnedDesc", { n: result.pointsAwarded }));
-        }
+        // 「追加したよ」もポイント獲得も、ポッケの吹き出しが伝える（トーストは重ねて出さない）
+        pockeCheer("added", result.pointsAwarded || undefined);
         // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
         await Promise.all([
           invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id }),

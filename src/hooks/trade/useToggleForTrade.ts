@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 type Snapshot = Array<[readonly unknown[], unknown]>;
 
@@ -72,24 +73,21 @@ export function useToggleForTrade() {
       toast.error(t("itemDetails.trade.saveFailed"));
     },
     onSuccess: (_data, { forTrade }) => {
+      pockeCheer(forTrade ? "listedForTrade" : "unlistedForTrade");
       if (forTrade) {
         // invalidate だけでは、関係する一覧がどこもキャッシュされていないと
         // OnboardingRewardWatcher の確認が走らず、「はじめてガイド」が完了しない。直接頼んで確実に確かめてもらう
         requestOnboardingRewardCheck();
       }
       // 初めて交換に出したときは、アプリの中の相手を待つだけでなく、X で募集できることを案内する。
-      // 交換相手はまだアプリの中に少なく、推し活の交換は X の「譲・求」投稿が中心のため
+      // 交換相手はまだアプリの中に少なく、推し活の交換は X の「譲・求」投稿が中心のため。
+      // 「やったね」はポッケが伝えるので、ここに残すのは案内＋CTA だけの実用トースト。
       if (forTrade && takeFirstTradeHint()) {
-        toast.success(t("itemDetails.trade.enabled"), {
-          description: t("discover.tradePost.firstHintDesc"),
+        toast(t("discover.tradePost.firstHintDesc"), {
           duration: 10000,
           action: { label: t("discover.tradePost.firstHintAction"), onClick: () => navigate("/trade?post=1") },
         });
-        return;
       }
-      toast.success(forTrade ? t("itemDetails.trade.enabled") : t("itemDetails.trade.disabled"), {
-        description: forTrade ? t("itemDetails.trade.enabledDesc") : undefined,
-      });
     },
     onSettled: (_data, _error, { itemId }) =>
       Promise.all([
