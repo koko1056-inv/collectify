@@ -72,6 +72,7 @@ export function FeaturedCollections() {
           )
         `)
         .is("merged_into", null)
+        .eq("exclude_from_lists", false)
         .order("created_at", { ascending: false })
         .limit(12);
 
@@ -113,11 +114,12 @@ export function FeaturedCollections() {
           )
         `)
         .is("merged_into", null)
+        .eq("exclude_from_lists", false)
         .order("created_at", { ascending: false })
         .limit(12);
 
       if (error) throw error;
-      
+
       return data.map(item => ({
         ...item,
         artist: null,

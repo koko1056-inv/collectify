@@ -48,6 +48,7 @@ function catalog(contents: string[], withCount = false) {
     .from("official_items")
     .select(COLS, withCount ? { count: "exact" } : undefined)
     .is("merged_into", null)
+    .eq("exclude_from_lists", false)
     .neq("image", "/placeholder.svg");
   if (contents.length) q = q.in("content_name", contents);
   return q;
@@ -198,6 +199,7 @@ export function useOshiNewBadge() {
         .select("id", { count: "exact", head: true })
         .in("content_name", names)
         .is("merged_into", null)
+        .eq("exclude_from_lists", false)
         .neq("image", "/placeholder.svg")
         .gt("created_at", since);
       if (error) throw error;

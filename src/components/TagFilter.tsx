@@ -37,7 +37,8 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
         const { data: items, error: itemsError } = await supabase
           .from('official_items')
           .select('id')
-          .eq('content_name', selectedContent);
+          .eq('content_name', selectedContent)
+          .eq('exclude_from_lists', false);
 
         if (itemsError) throw itemsError;
         

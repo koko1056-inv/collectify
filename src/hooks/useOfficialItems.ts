@@ -36,7 +36,7 @@ interface PageFilter {
 
 /** 重複として統合されたグッズは出さない。作品が指定されていればその作品だけ。 */
 function baseQuery(filter: PageFilter) {
-  let q = supabase.from("official_items").select(SELECT).is("merged_into", null);
+  let q = supabase.from("official_items").select(SELECT).is("merged_into", null).eq("exclude_from_lists", false);
   if (filter.content) q = q.eq("content_name", filter.content);
   return q;
 }
@@ -84,7 +84,11 @@ export function useOfficialItems(options: UseOfficialItemsOptions = {}) {
     // 作品を切り替えている間、前の一覧を出したままにして、画面が空にならないようにする
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      let countQuery = supabase.from("official_items").select("id", { count: "exact", head: true }).is("merged_into", null);
+      let countQuery = supabase
+        .from("official_items")
+        .select("id", { count: "exact", head: true })
+        .is("merged_into", null)
+        .eq("exclude_from_lists", false);
       if (content) countQuery = countQuery.eq("content_name", content);
       const { count, error: countError } = await countQuery;
       if (countError) throw countError;
@@ -206,6 +210,7 @@ export function useCatalogFeed(term: string, enabled = true) {
         .from("official_items")
         .select(SELECT, pageParam === 0 ? { count: "exact" } : undefined)
         .is("merged_into", null)
+        .eq("exclude_from_lists", false)
         .order("release_date", { ascending: false })
         .order("created_at", { ascending: false })
         .order("id", { ascending: true })

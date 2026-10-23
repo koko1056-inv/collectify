@@ -30,6 +30,7 @@ export function useSearchSuggestions(searchQuery: string) {
           .select("id, title, image, price, description, release_date, content_name")
           .or(`title.ilike.%${searchQuery}%,content_name.ilike.%${searchQuery}%`)
           .is("merged_into", null)
+          .eq("exclude_from_lists", false)
           .order("title")
           .limit(8);
 
