@@ -88,10 +88,14 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
         await invalidateTrades(queryClient, user?.id);
         return;
       }
-      if (successKey) toast.success(t(successKey));
-      // 交換が進んだときはポッケも喜ぶ（受けた・受け取った）
-      if (key === "accept") pockeCheer("tradeAccepted");
-      if (key === "receive") pockeCheer("tradeDone");
+      // 交換が進んだときはポッケも喜ぶ（受けた・受け取った）。その2つはポッケと二重にならないよう、トーストは出さない
+      if (key === "accept") {
+        pockeCheer("tradeAccepted");
+      } else if (key === "receive") {
+        pockeCheer("tradeDone");
+      } else if (successKey) {
+        toast.success(t(successKey));
+      }
       await invalidateTrades(queryClient, user?.id);
     } finally {
       setBusy(null);

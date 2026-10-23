@@ -21,6 +21,7 @@ import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 import { cn } from "@/lib/utils";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 /**
  * 交換に出すグッズをまとめて選ぶ。
@@ -111,26 +112,18 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
     }
 
     if (next) {
-      // トーストから、出した直後にそのまま取り下げられるように（すぐ取り下げたい誤タップ対策）
-      toast.success(t("trade.picker.offeredToast", { title: row.title }), {
+      // 「出したよ」はポッケが伝える。はじめてガイドの交換ステップの報酬は、
+      // OnboardingRewardWatcher が確かめて付与・通知する（ここでは claim しない＝二重のやったね防止）。
+      // ただし invalidate だけでは確認が走らないことがあるので、直接頼んで確実に確かめてもらう。
+      pockeCheer("listedForTrade");
+      // トーストから、出した直後にそのまま取り下げられるように（すぐ取り下げたい誤タップ対策）。
+      // 「やったね」はポッケ側なので、ここは取り下げ CTA 付きの実用トーストだけ。
+      toast(t("trade.picker.offeredToast", { title: row.title }), {
         action: { label: t("trade.picker.withdrawShort"), onClick: () => toggle(row, false) },
       });
-      // 「はじめてガイド」の交換ステップの報酬。付与はチェックリスト画面を開いたときだけだと、
-      // 出した瞬間にポイントが増えず「完了しない」ように見える。ここで受け取る。
-      // サーバー側で1回限り（2回目以降は false が返るだけ）なので、何度呼んでも二重付与にならない。
-      void supabase.rpc("claim_onboarding_reward", { _step_id: "trade-offer" }).then(({ data }) => {
-        if (data === true) {
-          toast.success(t("trade.picker.rewardToast"));
-          queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-          queryClient.invalidateQueries({ queryKey: ["user-points"] });
-          queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-        }
-      });
-      // invalidate だけでは、関係する一覧がどこもキャッシュされていないと
-      // OnboardingRewardWatcher の確認が走らないことがある。直接頼んで確実に確かめてもらう
       requestOnboardingRewardCheck();
     } else {
-      toast.success(t("trade.picker.withdrawnToast", { title: row.title }));
+      pockeCheer("unlistedForTrade");
     }
 
     // マッチングと準備状況をすぐ描き替える。
