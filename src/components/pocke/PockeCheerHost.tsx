@@ -8,7 +8,10 @@ import { POCKE_CHEER_EVENT, type PockeCheerDetail, type PockeCheerKind } from ".
 const SHOW_MS = 2400;
 
 /** 毎回同じ言葉だと飽きるので、いくつかから選ぶ（直前と同じものは避ける） */
-const LINES: Record<Exclude<PockeCheerKind, "addedMany" | "guideDone">, { pose: PockePose; key: string }[]> = {
+const LINES: Record<
+  Exclude<PockeCheerKind, "addedMany" | "guideDone" | "levelUp">,
+  { pose: PockePose; key: string }[]
+> = {
   added: [
     { pose: "wink", key: "pocke.cheer.added1" },
     { pose: "pouch", key: "pocke.cheer.added2" },
@@ -30,6 +33,9 @@ const LINES: Record<Exclude<PockeCheerKind, "addedMany" | "guideDone">, { pose: 
   liked: [{ pose: "love", key: "pocke.cheer.liked" }],
   listedForTrade: [{ pose: "cheer", key: "pocke.cheer.listedForTrade" }],
   unlistedForTrade: [{ pose: "think", key: "pocke.cheer.unlistedForTrade" }],
+  decorated: [{ pose: "wink", key: "pocke.cheer.decorated" }],
+  followed: [{ pose: "wave", key: "pocke.cheer.followed" }],
+  unfollowed: [{ pose: "think", key: "pocke.cheer.unfollowed" }],
 };
 
 /**
@@ -54,6 +60,8 @@ export function PockeCheerHost() {
         next = { pose: "wink", text: t("pocke.cheer.addedPoints", { n }) };
       } else if (kind === "guideDone") {
         next = { pose: "celebrate", text: t("pocke.cheer.guideDone", { label: title ?? "", n: n ?? 0 }) };
+      } else if (kind === "levelUp") {
+        next = { pose: "celebrate", text: t("pocke.cheer.levelUp", { label: title ?? "", n: n ?? 0 }) };
       } else {
         const list = LINES[kind] ?? LINES.added;
         let i = Math.floor(Math.random() * list.length);

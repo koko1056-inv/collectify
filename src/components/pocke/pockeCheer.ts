@@ -19,7 +19,11 @@ export type PockeCheerKind =
   | "liked" // いいねした
   | "listedForTrade" // グッズを交換に出した
   | "unlistedForTrade" // グッズを交換から下げた
-  | "guideDone"; // はじめてガイドの手順を達成した（n = もらったポイント、title = 手順名）
+  | "guideDone" // はじめてガイドの手順を達成した（n = もらったポイント、title = 手順名）
+  | "decorated" // 推しの部屋を飾って保存した
+  | "followed" // フォローした
+  | "unfollowed" // フォローをやめた
+  | "levelUp"; // 推しがレベルアップした（n = レベル、title = 推しの名前）
 
 export interface PockeCheerDetail {
   kind: PockeCheerKind;

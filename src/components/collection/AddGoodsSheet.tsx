@@ -453,7 +453,7 @@ export function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     try {
       // 引き直すキーは、コンプの「あと1個」からの追加と共通にしてある
       await addOfficialItemToWishlist(queryClient, user.id, item.id);
-      toast.success(t("collectionScreen.addSheet.wishedToast", { title: item.title }));
+      pockeCheer("wishlisted");
     } catch (e) {
       console.error("Failed to add to wishlist:", e);
       toast.error(t("collectionScreen.addSheet.wishFailed"));

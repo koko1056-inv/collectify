@@ -115,12 +115,8 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
       // 「出したよ」はポッケが伝える。はじめてガイドの交換ステップの報酬は、
       // OnboardingRewardWatcher が確かめて付与・通知する（ここでは claim しない＝二重のやったね防止）。
       // ただし invalidate だけでは確認が走らないことがあるので、直接頼んで確実に確かめてもらう。
+      // 取り下げは、このピッカー内の帯チップ・マッチング画面にすでにあるので、トーストでは出さない。
       pockeCheer("listedForTrade");
-      // トーストから、出した直後にそのまま取り下げられるように（すぐ取り下げたい誤タップ対策）。
-      // 「やったね」はポッケ側なので、ここは取り下げ CTA 付きの実用トーストだけ。
-      toast(t("trade.picker.offeredToast", { title: row.title }), {
-        action: { label: t("trade.picker.withdrawShort"), onClick: () => toggle(row, false) },
-      });
       requestOnboardingRewardCheck();
     } else {
       pockeCheer("unlistedForTrade");

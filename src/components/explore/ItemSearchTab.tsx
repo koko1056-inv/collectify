@@ -120,7 +120,6 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
         return;
       }
       if (result.userItemId) await copyTagsFromOfficialItem(r.id, result.userItemId);
-      toast.success(t("collectionScreen.official.added"));
       pockeCheer("added");
       // 「持ってる」表示・コンプ進捗・登録数などをまとめて引き直す
       await invalidateCollectionChanged(qc, { userId: user.id, officialItemId: r.id });

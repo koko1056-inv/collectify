@@ -341,7 +341,7 @@ function AlmostCard({ target, label, pinned, onPin }: { target: CollectionTarget
     setBusy(`wish:${m.id}`);
     try {
       await addOfficialItemToWishlist(queryClient, user.id, m.id);
-      toast.success(t("collectionScreen.addSheet.wishedToast", { title: m.title }));
+      pockeCheer("wishlisted");
     } catch (e) {
       console.error("Failed to add to wishlist:", e);
       toast.error(t("collectionScreen.addSheet.wishFailed"));
@@ -356,7 +356,6 @@ function AlmostCard({ target, label, pinned, onPin }: { target: CollectionTarget
     try {
       const result = await addToCollection({ userId: user.id, title: m.title, image: m.image ?? "", officialItemId: m.id });
       if (result.success) {
-        toast.success(t("collectionScreen.official.added"), { description: m.title });
         pockeCheer("added");
         await invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: m.id });
       } else if (result.isAtLimit) {

@@ -306,13 +306,6 @@ export function useItemSubmit({
         resetForm();
       } else if (collectionResult.success) {
         pockeCheer("added");
-        toast.success(t("notices.adminItem.addedToCollectionTitle"), {
-          description: totalPointsAwarded
-            ? t("notices.adminItem.pointsEarnedDesc", { n: totalPointsAwarded })
-            : shareToCatalog
-              ? t("notices.adminItem.alsoInCatalogDesc")
-              : t("notices.adminItem.collectionOnlyDesc"),
-        });
         resetForm();
       } else if (collectionResult.isAtLimit) {
         toast.error(t("notices.adminItem.limitTitle"), {

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface InlineFollowButtonProps {
   userId: string;
@@ -46,18 +47,14 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
           .eq("follower_id", user.id)
           .eq("following_id", userId);
 
-        toast.success(t("trade.follow.unfollowedTitle"), {
-          description: t("trade.follow.unfollowedDesc"),
-        });
+        pockeCheer("unfollowed");
       } else {
         await supabase.from("follows").insert({
           follower_id: user.id,
           following_id: userId,
         });
 
-        toast.success(t("trade.follow.followedTitle"), {
-          description: t("trade.follow.followedDesc"),
-        });
+        pockeCheer("followed");
       }
 
       queryClient.invalidateQueries({

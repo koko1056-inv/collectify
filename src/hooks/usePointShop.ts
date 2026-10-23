@@ -193,9 +193,6 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["daily-ring"] });
       
       pockeCheer("purchased");
-      toast.success(t("notices.shop.purchasedTitle"), {
-        description: t("notices.shop.purchasedDesc", { name: data.item.name }),
-      });
     },
     onError: (error: Error) => {
       toast.error(t("notices.shop.purchaseErrorTitle"), {

@@ -18,6 +18,7 @@ import { GoodsCarePanel } from "@/components/oshi/room/GoodsCarePanel";
 import { DecoratePanel } from "@/components/oshi/room/DecoratePanel";
 import { LockedSetSheet } from "@/components/oshi/room/LockedSetSheet";
 import { RoomLikersSheet } from "@/components/oshi/room/RoomLikersSheet";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 import { useOshiRoomLikes } from "@/hooks/useOshiRoomSocial";
 import { FX_DURATION, LEVELUP_WITH_REWARDS_MS, type RoomFxEvent } from "@/components/oshi/room/fx";
 import { TIER_START, expectedRewards, pickLine, reactionTier, type ServerRewards } from "@/lib/oshiLevel";
@@ -37,7 +38,6 @@ import {
   defaultLayout,
   layoutForSave,
   mergeGoods,
-  roomI18nId,
   timeOfDayJst,
   type RoomSet,
   type RoomState,
@@ -172,16 +172,10 @@ const Oshi = () => {
       addFx({ kind: "levelup", level, name: c.title, points: got.points, unlocks, tierUp, duration: hasRewards ? LEVELUP_WITH_REWARDS_MS : undefined });
       setCelebrating(c.user_item_id);
       window.setTimeout(() => setCelebrating(null), 2800);
-      const extras = [
-        got.points > 0 ? t("oshiRoom.fx.points", { n: got.points }) : null,
-        unlocks.length > 0 ? t("oshiRoom.fx.unlocked", { names: unlocks.map((k) => t(`oshiRoom.assets.${roomI18nId(k)}`)).join(t("oshiRoom.fx.listSep")) }) : null,
-      ].filter(Boolean);
-      toast.success(t("engage.oshi.levelUp", { name: c.title, level }), {
-        description: [t(`engage.oshi.levelTitle.${level}`), ...extras].join(" ・ "),
-        duration: hasRewards ? 8000 : 6000,
-      });
+      // ポイント・解放はルーム内の LevelUpFx が見せるので、ポッケは一言だけ
+      pockeCheer("levelUp", level, c.title);
     },
-    [addFx, owned, t]
+    [addFx, owned]
   );
 
   // ?mission=1: 今日のミッションの「撮る」から来たとき、そのグッズを選んで撮る画面を開く
@@ -240,7 +234,7 @@ const Oshi = () => {
     if (!draft) return;
     try {
       await saveRoom.mutateAsync({ wallpaper: draft.wallpaper, floor: draft.floor, layout: layoutForSave(draft.layout, goodsIds) });
-      toast.success(t("oshiRoom.decorate.saved"));
+      pockeCheer("decorated");
       setEditing(false);
       setDraft(null);
       setEditTarget(null);
