@@ -104,3 +104,19 @@
 ### 報告
 
 追加した件数（取得元・作品別）、スキップした理由（robots.txt で不可、画像が取れない、規約が不明など）、翌日に回した件数を短くまとめて返す。新商品が無い日は「新着なし」だけでよい。コードやマイグレーションは変えない。
+
+## ラインナップ画像の切り分け（ガチャ・一番くじなど・取り込み後必須）
+
+ガチャ / ガシャポン / カプセル / 一番くじ / トレーディング / ウエハース / ブラインド / 食玩では、複数の `official_items` 行が同じ「全部まとめて1枚」のラインナップ画像を指すことがある。**新しく取り込んだ**行については、ちいかわの取り込みと同じ品質で、キャラクター・バリエーションごとに1枚へ切り分けること。シート全体の画像を各行にそのまま残したままにしない。
+
+- **見つけ方**: `split_part(image, '?', 1)` が同じ（クエリ文字列を除いた同一画像）行が2件以上あるものを対象にする。次は除外する: `/placeholder.svg`、すでに `kuji_images/catalog-crops/` 配下にある画像、bandai-a の `/xl/<id>_<n>.jpg`（すでに1件1画像）。
+- **見送り（分割しない）**: 箱ver／袋verの違いだけのもの、CDの初回限定盤／通常盤で同じジャケットのもの、お届け月違いだけのもの。
+- **保留**: PR TIMES・ニュースの OGP 画像の使い回しは、実際に正しいラインナップ画像であると目で確認できるまで保留する。
+- **手順**: `/workspace/collectify-crop-agents/` を作業ディレクトリとして、3つの役割の Claude Code（`~/.local/bin/claude` のみを使う）を順番に走らせる。
+  1. データ確認 — 対象を洗い出し `queue/ELIGIBLE.json` に書く
+  2. きりわけ — `chiikawa-import/crops/split_lineup.py` を再利用して画像を切り分ける
+  3. 最終チェック — 問題なければ `queue/APPLY.json`、問題があれば `held/` へ
+  - 実行は `scripts/run_agent.sh data_check|split|final_check` で行う。
+- **反映**: 最終チェックが通った分だけ反映する（staging 経由で `catalog-crop-upload` / `catalog_crop_jobs` を使い、検証してから `official_items.image` を更新・バックアップを残す）。件数の大きいバッチを安全確認なしに一括反映しない。
+- ホロライブの一括改善は 2026年10月23日にプロダクトオーナーの指示で停止中。再開の判断なしに続行しない。`/workspace/holo-split/improve/` 配下の FORCE_HOLD・既知の失敗例は尊重する。
+- 参考: `/workspace/chiikawa-import/crops/README.md`、`/workspace/holo-split/improve/PROCEDURE_SERIES.md`、`/workspace/collectify-crop-agents/README.md`
