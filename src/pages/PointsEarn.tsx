@@ -65,7 +65,7 @@ const RULES: { reason: string; group: Group; labelKey: string; icon: LucideIcon;
 ];
 
 /** 招待のボーナス。額は redeem_invite_code の中の定数（point_rewards の表には無い） */
-const REFERRAL_BONUS = 50;
+const REFERRAL_BONUS = 100;
 
 interface Line {
   key: string;
