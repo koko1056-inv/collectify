@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 
 type Snapshot = Array<[readonly unknown[], unknown]>;
 
@@ -71,6 +72,11 @@ export function useToggleForTrade() {
       toast.error(t("itemDetails.trade.saveFailed"));
     },
     onSuccess: (_data, { forTrade }) => {
+      if (forTrade) {
+        // invalidate だけでは、関係する一覧がどこもキャッシュされていないと
+        // OnboardingRewardWatcher の確認が走らず、「はじめてガイド」が完了しない。直接頼んで確実に確かめてもらう
+        requestOnboardingRewardCheck();
+      }
       // 初めて交換に出したときは、アプリの中の相手を待つだけでなく、X で募集できることを案内する。
       // 交換相手はまだアプリの中に少なく、推し活の交換は X の「譲・求」投稿が中心のため
       if (forTrade && takeFirstTradeHint()) {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, Search } from "lucide-react";
+import { ArrowLeftRight, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -18,6 +18,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 import { cn } from "@/lib/utils";
 
 /**
@@ -109,7 +111,10 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
     }
 
     if (next) {
-      toast.success(t("trade.picker.offeredToast", { title: row.title }));
+      // トーストから、出した直後にそのまま取り下げられるように（すぐ取り下げたい誤タップ対策）
+      toast.success(t("trade.picker.offeredToast", { title: row.title }), {
+        action: { label: t("trade.picker.withdrawShort"), onClick: () => toggle(row, false) },
+      });
       // 「はじめてガイド」の交換ステップの報酬。付与はチェックリスト画面を開いたときだけだと、
       // 出した瞬間にポイントが増えず「完了しない」ように見える。ここで受け取る。
       // サーバー側で1回限り（2回目以降は false が返るだけ）なので、何度呼んでも二重付与にならない。
@@ -121,6 +126,11 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
           queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
         }
       });
+      // invalidate だけでは、関係する一覧がどこもキャッシュされていないと
+      // OnboardingRewardWatcher の確認が走らないことがある。直接頼んで確実に確かめてもらう
+      requestOnboardingRewardCheck();
+    } else {
+      toast.success(t("trade.picker.withdrawnToast", { title: row.title }));
     }
 
     // マッチングと準備状況をすぐ描き替える。
@@ -146,7 +156,44 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-4 pb-3">
+        {/* 出しているものを、この場で一発で取り下げられる帯。
+            以前はここから下げるのに「もう一度探して、もう一度タップ」の手間が要った */}
+        {offerCount > 0 && (
+          <div className="border-b border-border bg-muted/30 px-4 py-3">
+            <p className="mb-1.5 text-2xs font-medium text-muted-foreground">
+              {t("trade.picker.mineTitle", { n: offerCount })}
+            </p>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+              {(items ?? [])
+                .filter((row) => overrides[row.id] ?? row.for_trade)
+                .map((row) => (
+                  <button
+                    key={row.id}
+                    type="button"
+                    onClick={() => toggle(row, false)}
+                    disabled={savingId === row.id}
+                    aria-label={t("trade.picker.withdrawAria", { title: row.title })}
+                    title={t("trade.picker.withdrawAria", { title: row.title })}
+                    className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-background disabled:opacity-60"
+                  >
+                    <img
+                      src={getOptimizedImageUrl(row.image, { width: 128 })}
+                      onError={fallbackToOriginal(row.image)}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-contain"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-foreground/80 py-0.5 text-3xs font-bold text-background">
+                      <X className="h-2.5 w-2.5" aria-hidden="true" />
+                      {t("trade.picker.withdrawShort")}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </div>
+        )}
+
+        <div className="px-4 pb-3 pt-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
