@@ -13,6 +13,8 @@ import { PageTourHost } from "@/components/onboarding/PageTourHost";
 import { GuideHost } from "@/components/onboarding/GuideHost";
 import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewardWatcher";
 import { PockeCheerHost } from "@/components/pocke/PockeCheerHost";
+import { PockeLoadHost } from "@/components/pocke/PockeLoadHost";
+import { shouldRetryQuery, queryRetryDelay } from "@/utils/queryRetry";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
 import { DailyLoginRewardHost } from "@/components/daily/DailyLoginRewardHost";
@@ -140,12 +142,9 @@ const currentLanguage = (): Language => {
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
-      console.error("Query error:", error);
-      // キャッシュが無い＝画面にデータを出せない初回ロード失敗時のみユーザーに通知
-      // meta.silentError のクエリは画面側で失敗を表示するので、ここでは出さない
-      if (query.state.data === undefined && !query.meta?.silentError) {
-        toast.error(getTranslation(currentLanguage(), "system.loadFailed"), { id: "query-error" });
-      }
+      console.error("Query error:", query.queryKey, error);
+      // 読み込み失敗の知らせは、赤いトーストではなく PockeLoadHost（ポッケの「もう一度読み込む」）が出す。
+      // キャッシュが無い＝画面にデータを出せないときだけ・meta.silentError のクエリは出さない、は同じ
     },
   }),
   mutationCache: new MutationCache({
@@ -161,7 +160,10 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 10, // 10分間はキャッシュを使用
       gcTime: 1000 * 60 * 60, // 1時間キャッシュを保持
-      retry: 2, // 2回まで再試行
+      // 一時的な失敗（通信・5xx・時間切れ）だけ、1秒→2秒（ゆらぎ付き）あけて2回まで再試行する。
+      // 権限なし・見つからない等は何度やっても同じなので再試行しない（utils/queryRetry）
+      retry: shouldRetryQuery,
+      retryDelay: (attemptIndex) => queryRetryDelay(attemptIndex),
       refetchOnWindowFocus: false,
       refetchOnMount: false, // マウント時の再取得を防ぐ
       refetchOnReconnect: false, // ネット復帰時の再取得も抑制（必要時は明示的に invalidate）
@@ -248,6 +250,8 @@ const App: React.FC = () => {
                   <OnboardingRewardWatcher />
                   {/* グッズを入れたときに画面のすみで跳ねるポッケ（どの画面から登録しても出す） */}
                   <PockeCheerHost />
+                  {/* 読み込みに時間がかかる・うまくいかないときのポッケ（左下） */}
+                  <PockeLoadHost />
                   {/* 作品・シリーズがそろった瞬間のお祝い */}
                   <PockeCompletionHost />
                   <DailyRingHost />

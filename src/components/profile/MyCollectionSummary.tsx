@@ -27,7 +27,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function MyCollectionSummary({ userId, compact = false }: { userId: string; compact?: boolean }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { data: progress, isLoading: progressLoading } = useCollectionProgress(userId);
+  const { data: progress, isLoading: progressQueryLoading, isError: progressError } = useCollectionProgress(userId);
+  // 進捗が読めなかったときは「0」と見せず、「…」のままにする（他の札はそのまま使える）
+  const progressLoading = progressQueryLoading || (progressError && !progress);
   const { goals } = useCollectionGoals(userId);
   const companions = useCompanions();
 

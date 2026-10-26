@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isTransientError, shouldRetryQuery } from "@/utils/queryRetry";
 import {
   buildTargets,
   dedupeTargets,
@@ -207,7 +208,10 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
     queryFn: () => fetchTargetsRpc(userId as string),
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
-    retry: false,
+    // 時間切れなどの一時的な失敗だけ、間をあけて再試行する（無い・権限なし はすぐ REST に切り替える）
+    retry: shouldRetryQuery,
+    // コンプの的は添えもの。失敗しても分母なしのまま出すだけにして、全体の知らせは出さない
+    meta: { silentError: true },
   });
   const rpcRows = useMemo(() => {
     const map = new Map<string, RpcRow>();
@@ -223,8 +227,9 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
     }
     return map;
   }, [rpc.data]);
-  // RPC の答えを待つ（あるかどうか分かるまでは、REST で数えに行かない）
-  const rpcSettled = !rpcEnabled || rpc.isFetched || rpc.isError;
+  // RPC の答えを待つ（あるかどうか分かるまでは、REST で数えに行かない）。
+  // DB が混んでいて時間切れになったときは、REST で的の数だけ数えに行くとさらに混むので、数えに行かない
+  const rpcSettled = !rpcEnabled || rpc.isSuccess || (rpc.isError && !isTransientError(rpc.error));
 
   // 2) RPC で分母が埋まらなかった的は、件数だけを数える
   const needCount = useMemo(
@@ -249,6 +254,7 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
     staleTime: DAY,
     gcTime: DAY,
     placeholderData: keepPreviousData,
+    meta: { silentError: true },
   });
   const tagIds = tagIdsQuery.data;
 
@@ -261,6 +267,7 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
       staleTime: 1000 * 60 * 60,
       gcTime: DAY,
       retry: 1,
+      meta: { silentError: true },
     })),
   });
   const countMap = new Map<string, number | null>();
@@ -288,6 +295,7 @@ export function useCollectionTargets({ userId, items, progress, pinned, isOwn }:
       staleTime: 1000 * 60 * 60,
       gcTime: DAY,
       retry: 1,
+      meta: { silentError: true },
     })),
   });
   const memberMap = new Map<string, MissingGoods[]>();

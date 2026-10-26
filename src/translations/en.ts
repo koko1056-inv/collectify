@@ -3,7 +3,7 @@ export const enTranslations = {
     offline: "You're offline. We'll resume automatically when reconnected",
     backOnline: "Back online",
     requestFailed: "Request failed. Please try again later",
-    loadFailed: "Failed to load data",
+    loadFailed: "Hmm, that didn't load… please try again",
   },
   nav: {
     login: "Login",
