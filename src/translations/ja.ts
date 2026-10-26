@@ -3,7 +3,7 @@ export const jaTranslations = {
     offline: "オフラインです。接続が回復すると自動で再開します",
     backOnline: "オンラインに戻りました",
     requestFailed: "通信に失敗しました。時間をおいて再度お試しください",
-    loadFailed: "データの読み込みに失敗しました",
+    loadFailed: "うまく読み込めなかったみたい…もう一度ためしてみてね",
   },
   nav: {
     login: "ログイン",

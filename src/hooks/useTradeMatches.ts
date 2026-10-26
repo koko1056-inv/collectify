@@ -45,6 +45,8 @@ export function useTradeMatches() {
     queryKey: ["trade-matches", user?.id],
     enabled: !!user?.id,
     staleTime: 60 * 1000,
+    // 失敗したときは交換タブ（TradeMatchingSection）がその場でポッケの「もう一度読み込む」を出すので、全体の知らせは出さない
+    meta: { silentError: true },
     queryFn: async (): Promise<TradeMatch[]> => {
       const { data, error } = await supabase.rpc("find_trade_matches", { _limit: 30 });
       if (error) throw error;
@@ -133,6 +135,8 @@ export function useTradeSeriesPartners() {
     queryKey: ["trade-series-partners", user?.id],
     enabled: !!user?.id,
     staleTime: 60 * 1000,
+    // マッチの下に出すおまけの枠。重いときに失敗しても、枠ごと出さないだけにする（全体の知らせは出さない）
+    meta: { silentError: true },
     queryFn: async (): Promise<TradeSeriesPartner[]> => {
       const { data, error } = await supabase.rpc("find_trade_series_partners", { _limit: 20 });
       if (error) throw error;

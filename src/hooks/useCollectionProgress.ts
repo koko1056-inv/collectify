@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface SeriesProgress {
   series_label: string;
@@ -25,6 +26,8 @@ export const collectionProgressKey = (userId: string | null | undefined) =>
  * 見せてはいけない相手のときは空配列が返る。
  */
 export function useCollectionProgress(userId: string | null | undefined) {
+  // RPC はログインユーザーだけが呼べる。セッションの復元中・未ログインで投げると権限エラーになるので待つ
+  const { user } = useAuth();
   return useQuery({
     queryKey: collectionProgressKey(userId),
     queryFn: async (): Promise<SeriesProgress[]> => {
@@ -34,7 +37,9 @@ export function useCollectionProgress(userId: string | null | undefined) {
       if (error) throw error;
       return (data ?? []) as SeriesProgress[];
     },
-    enabled: !!userId,
+    enabled: !!userId && !!user,
+    // 進捗は棚・マイページの添えもの。失敗しても前のデータのまま／出さないだけにして、全体の知らせは出さない
+    meta: { silentError: true },
     staleTime: 1000 * 60 * 5,
     // アプリ全体の既定は refetchOnMount: false。画面に出ていない間に invalidate（stale 化）された
     // 進捗も、次にコレクションを開いたときに引き直されるようにする。

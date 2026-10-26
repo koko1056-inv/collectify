@@ -116,6 +116,13 @@ export const pocke = {
       levelUp: "「{label}」が Lv.{n} になったよ！",
       close: "とじる",
     },
+    load: {
+      waiting: "ちょっと待ってね…いま取ってくるよ",
+      failed: "うまく読み込めなかったみたい…もう一回やってみるね？",
+      failedHint: "電波のよいところで、もう一度ためしてみてね",
+      retry: "もう一度読み込む",
+      close: "とじる",
+    },
     ring: {
       title: "今日のポッケリング",
       chip: "{n}日",
@@ -366,6 +373,13 @@ export const pocke = {
       followed: "Followed!",
       unfollowed: "Unfollowed",
       levelUp: "“{label}” reached Lv.{n}!",
+      close: "Close",
+    },
+    load: {
+      waiting: "Hang on a sec… I'm fetching it",
+      failed: "Hmm, that didn't load… shall I try again?",
+      failedHint: "Try again somewhere with a better signal",
+      retry: "Try again",
       close: "Close",
     },
     ring: {
