@@ -15,6 +15,8 @@ export type PockeCheerKind =
   | "freezeUsed" // お休みの日を使って連続を守った（n）
   | "missionDone" // 今日のミッションを達成した（n = もらったポイント）
   | "wishlisted" // ほしいものに追加した
+  | "wished" // カタログカードの「ほしい」を押した
+  | "unwished" // カタログカードの「ほしい」を外した
   | "preordered" // 予約した
   | "liked" // いいねした
   | "listedForTrade" // グッズを交換に出した

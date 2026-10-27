@@ -28,6 +28,8 @@ export function useCatalogCompletion(
     enabled: !!content,
     staleTime: 1000 * 60,
     retry: false,
+    // 失敗しても手元で数え直すので、画面の「読み込めなかった」ポッケは出さない
+    meta: { silentError: true },
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_catalog_completion", { _content: content! });
       if (error) throw error;

@@ -2,7 +2,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { ModalHeader } from "./item-details/ModalHeader";
 import { ItemStatistics } from "./item-details/ItemStatistics";
@@ -192,6 +193,22 @@ export function ItemDetailsModal({
       setIsEditing(false);
     }
   }, [isOpen]);
+
+  // キャラのタグ（キャラページへのリンク）などで画面を移ったら閉じる。
+  // キャラページから同じキャラ・別のキャラのページへ移ると同じカードが残ることがあり、開いたままになってしまうため、
+  // パスではなく移動ごとに変わる location.key で見る
+  const { key: locationKey } = useLocation();
+  const openedAt = useRef(locationKey);
+  useEffect(() => {
+    if (!isOpen) {
+      openedAt.current = locationKey;
+      return;
+    }
+    if (openedAt.current !== locationKey) {
+      openedAt.current = locationKey;
+      onClose();
+    }
+  }, [locationKey, isOpen, onClose]);
 
   useEffect(() => {
     if (isUserItem && userId === user?.id) {

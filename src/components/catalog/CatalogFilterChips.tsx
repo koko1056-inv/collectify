@@ -35,6 +35,8 @@ interface CatalogFilterChipsProps {
   /** 何か絞り込んでいるか（リセットを出すかどうか） */
   canReset: boolean;
   onReset: () => void;
+  /** リセットの段の左側に置くもの（キャラを選んだときの「キャラページ」への入口など） */
+  footerStart?: ReactNode;
 }
 
 /**
@@ -52,6 +54,7 @@ export function CatalogFilterChips({
   countsComplete,
   canReset,
   onReset,
+  footerStart,
 }: CatalogFilterChipsProps) {
   const { t } = useLanguage();
   const activeContent = selectedContent && selectedContent !== "all" ? selectedContent : null;
@@ -184,16 +187,19 @@ export function CatalogFilterChips({
         ))}
       </ChipRow>
 
-      {canReset && (
-        <div className="-mt-0.5 flex justify-end px-1">
-          <button
-            type="button"
-            onClick={onReset}
-            className="tap-safe-y inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("catalogFilters.reset")}
-          </button>
+      {(canReset || footerStart) && (
+        <div className="-mt-0.5 flex min-w-0 items-center justify-between gap-2 px-1">
+          <div className="min-w-0 flex-1">{footerStart}</div>
+          {canReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="tap-safe-y inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("catalogFilters.reset")}
+            </button>
+          )}
         </div>
       )}
     </div>

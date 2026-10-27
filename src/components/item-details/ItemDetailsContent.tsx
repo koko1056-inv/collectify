@@ -12,6 +12,9 @@ import { ItemDetailInfo } from "./ItemDetailInfo";
 import { ItemPostsSection } from "./ItemPostsSection";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
+import { ChevronRight, UserRound } from "lucide-react";
+import { characterPath } from "@/utils/characterPage";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -113,9 +116,16 @@ export function ItemDetailsContent({
             <h3 className="text-sm font-medium">{t("itemDetails.common.tags")}</h3>
             <div className="space-y-1">
               {Object.entries(groupedTags).map(([category, categoryTags]) => categoryTags.length > 0 && <div key={category} className="flex flex-wrap gap-1">
-                    {categoryTags.map((tag, idx) => tag.tags && <Badge key={idx} variant="secondary" className="text-xs">
+                    {categoryTags.map((tag, idx) => tag.tags && (category === "character" && tag.tags.id ? (
+                        // キャラのタグはキャラページへの入口にする
+                        <Link key={idx} to={characterPath(tag.tags.id)} aria-label={t("characterPage.openAria", { name: tag.tags.name })} className="inline-flex min-h-8 items-center gap-0.5 rounded-full bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/15" data-character-link>
+                          <UserRound className="h-3 w-3" aria-hidden="true" />
                           {tag.tags.name}
-                        </Badge>)}
+                          <ChevronRight className="h-3 w-3" aria-hidden="true" />
+                        </Link>
+                      ) : <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag.tags.name}
+                        </Badge>))}
                   </div>)}
             </div>
           </div>}

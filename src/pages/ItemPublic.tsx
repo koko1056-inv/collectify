@@ -2,7 +2,7 @@ import { BackButton } from "@/components/navigation/BackButton";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Heart, History, Loader2, Plus, Share2 } from "lucide-react";
+import { Check, ChevronRight, Heart, History, Loader2, Plus, Share2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Navbar } from "@/components/Navbar";
@@ -22,6 +22,7 @@ import { buildShareUrl } from "@/utils/shareLinks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
 import { CatalogItemRequestMenu } from "@/components/catalog/CatalogItemRequestMenu";
+import { characterPath } from "@/utils/characterPage";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -272,11 +273,26 @@ export default function ItemPublic() {
 
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <span key={tag.id} className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                      #{tag.name}
-                    </span>
-                  ))}
+                  {tags.map((tag) =>
+                    tag.category === "character" ? (
+                      // キャラのタグはキャラページへの入口にする
+                      <Link
+                        key={tag.id}
+                        to={characterPath(tag.id)}
+                        aria-label={t("characterPage.openAria", { name: tag.name })}
+                        className="inline-flex min-h-8 items-center gap-0.5 rounded-full bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/15"
+                        data-character-link
+                      >
+                        <UserRound className="h-3 w-3" aria-hidden="true" />
+                        {tag.name}
+                        <ChevronRight className="h-3 w-3" aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <span key={tag.id} className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                        #{tag.name}
+                      </span>
+                    )
+                  )}
                 </div>
               )}
 

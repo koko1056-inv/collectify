@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { addOfficialItemToWishlist } from "@/utils/wishlist-actions";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface MemoizedOfficialGoodsCardProps {
   id: string;
@@ -87,25 +89,12 @@ const OfficialGoodsCardWithSwipe = ({
       // 以前は user_items に quantity: 0 で入れていたが、コレクション一覧が
       // それを持ち物として並べてしまううえ、交換のマッチングは wishlists しか
       // 見ないので、欲しいと言った事実がマッチングに届いていなかった。
-      const { error } = await supabase.from("wishlists").insert({
-        user_id: user.id,
-        official_item_id: id,
-      });
+      // 追加と引き直すキーはカードの「ほしい」ボタンと同じ（addOfficialItemToWishlist）にそろえる
+      await addOfficialItemToWishlist(queryClient, user.id, id);
+      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
-      if (error) throw error;
-
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] }),
-        queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", id, user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["trade-matches", user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["trade-readiness", user.id] }),
-        queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" }),
-      ]);
-
-      toast.success(t("collectionScreen.official.wishlistAdded"), {
-        description: t("collectionScreen.official.wishlistAddedDesc"),
-      });
+      // 「入れたよ」はポッケが伝える（トーストは重ねて出さない）
+      pockeCheer("wished");
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       toast.error(t("collectionScreen.common.error"), {
