@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Check, CopyX, ImagePlus, Loader2, PencilLine, Search, Send, Trash2, type LucideIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -156,7 +155,8 @@ export function CatalogItemRequestSheet({
       pockeCheer("catalogRequestSent");
     } catch (e) {
       console.error("catalog item request failed:", e);
-      toast.error(t(`catalogItemRequest.sheet.failed.${requestErrorKey(e)}`));
+      // 失敗もポッケが一言で伝える（トーストは出さない）
+      pockeCheer("catalogRequestFailed", undefined, requestErrorKey(e));
     }
   };
 
@@ -519,7 +519,7 @@ function EditFields({
       setDraft((d) => ({ ...d, image: data.publicUrl }));
     } catch (err) {
       console.error("catalog request image upload failed:", err);
-      toast.error(t("catalogItemRequest.sheet.edit.imageUploadFailed"));
+      pockeCheer("catalogPhotoFailed");
     } finally {
       setUploading(false);
     }

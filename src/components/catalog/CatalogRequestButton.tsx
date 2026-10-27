@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Camera, Check, Megaphone } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -11,6 +10,7 @@ import {
   type CatalogRequestKind,
 } from "@/hooks/useCatalogRequests";
 import { cn } from "@/lib/utils";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
 
 interface CatalogRequestButtonProps {
   /** 検索語。空ならボタンを出さない */
@@ -39,10 +39,11 @@ export function CatalogRequestButton({ query, context, kind = "content", onPhoto
     try {
       await submit.mutateAsync({ query: trimmed, kind, context });
       setSent(true);
-      toast.success(t("catalogRequest.toastTitle"), { description: t("catalogRequest.toastDesc") });
+      // 送れた・送れなかったはポッケが一言で伝える（トーストは出さない）
+      pockeCheer("catalogAddRequested");
     } catch (e) {
       console.error("catalog request failed:", e);
-      toast.error(t("catalogRequest.failed"));
+      pockeCheer("catalogRequestFailed", undefined, "failed");
     }
   };
 

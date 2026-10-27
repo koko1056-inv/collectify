@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Pocke, PockeBubble } from "./Pocke";
 import type { PockePose } from "./pockeAssets";
@@ -6,10 +7,21 @@ import { POCKE_CHEER_EVENT, type PockeCheerDetail, type PockeCheerKind } from ".
 
 /** 出している時間 */
 const SHOW_MS = 2400;
+/** 登録のおすすめ（wishGuest）は読んでタップする時間がいるので長めに出す */
+const NUDGE_MS = 5000;
+
+/** catalogRequestFailed の理由（requestErrorKey）ごとの顔。混んでいる・もう出ている、は困り顔にしない */
+const REQUEST_FAILED_POSE: Record<string, PockePose> = {
+  rateLimited: "sleepy",
+  duplicatePending: "think",
+  notPending: "think",
+  itemNotFound: "think",
+};
+const REQUEST_FAILED_KEYS = new Set(["rateLimited", "duplicatePending", "itemNotFound", "invalid", "notPending", "mergeForbidden", "failed"]);
 
 /** 毎回同じ言葉だと飽きるので、いくつかから選ぶ（直前と同じものは避ける） */
 const LINES: Record<
-  Exclude<PockeCheerKind, "addedMany" | "guideDone" | "levelUp">,
+  Exclude<PockeCheerKind, "addedMany" | "guideDone" | "levelUp" | "catalogRequestFailed">,
   { pose: PockePose; key: string }[]
 > = {
   added: [
@@ -48,6 +60,11 @@ const LINES: Record<
     { pose: "love", key: "pocke.cheer.catalogRequestSent2" },
   ],
   catalogRequestWithdrawn: [{ pose: "think", key: "pocke.cheer.catalogRequestWithdrawn" }],
+  catalogPhotoFailed: [{ pose: "sad", key: "pocke.cheer.catalogPhotoFailed" }],
+  catalogAddRequested: [{ pose: "wink", key: "pocke.cheer.catalogAddRequested" }],
+  alreadyInCollection: [{ pose: "pouch", key: "pocke.cheer.alreadyInCollection" }],
+  alreadyWished: [{ pose: "wink", key: "pocke.cheer.alreadyWished" }],
+  wishGuest: [{ pose: "wave", key: "pocke.cheer.wishGuest" }],
 };
 
 /**
@@ -57,15 +74,20 @@ const LINES: Record<
  */
 export function PockeCheerHost() {
   const { t } = useLanguage();
-  const [shown, setShown] = useState<{ id: number; pose: PockePose; text: string } | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [shown, setShown] = useState<{ id: number; pose: PockePose; text: string; signup?: boolean } | null>(null);
   const last = useRef(-1);
   const timer = useRef<number>();
 
   useEffect(() => {
     const onCheer = (e: Event) => {
       const { kind, n, title } = (e as CustomEvent<PockeCheerDetail>).detail ?? { kind: "added" };
-      let next: { pose: PockePose; text: string };
-      if (kind === "addedMany") {
+      let next: { pose: PockePose; text: string; signup?: boolean };
+      if (kind === "catalogRequestFailed") {
+        const reason = title && REQUEST_FAILED_KEYS.has(title) ? title : "failed";
+        next = { pose: REQUEST_FAILED_POSE[reason] ?? "sad", text: t(`pocke.cheer.requestFailed.${reason}`) };
+      } else if (kind === "addedMany") {
         next = { pose: "celebrate", text: t("pocke.cheer.addedMany", { n: n ?? 0 }) };
       } else if (kind === "added" && n) {
         // ポイントももらったときは、ランダムな一言のかわりに獲得ポイントを伝える
@@ -79,11 +101,11 @@ export function PockeCheerHost() {
         let i = Math.floor(Math.random() * list.length);
         if (list.length > 1 && i === last.current) i = (i + 1) % list.length;
         last.current = i;
-        next = { pose: list[i].pose, text: t(list[i].key, { n: n ?? 0 }) };
+        next = { pose: list[i].pose, text: t(list[i].key, { n: n ?? 0 }), signup: kind === "wishGuest" };
       }
       setShown({ id: Date.now(), ...next });
       window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setShown(null), SHOW_MS);
+      timer.current = window.setTimeout(() => setShown(null), next.signup ? NUDGE_MS : SHOW_MS);
     };
     window.addEventListener(POCKE_CHEER_EVENT, onCheer);
     return () => {
@@ -96,6 +118,12 @@ export function PockeCheerHost() {
   const hide = () => {
     window.clearTimeout(timer.current);
     setShown(null);
+  };
+  // ゲストへの登録のおすすめは、タップで登録（ログイン）画面へ。戻ってきたら今の画面に戻す
+  const onTap = () => {
+    const signup = shown.signup;
+    hide();
+    if (signup) navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
   };
   return (
     <>
@@ -112,13 +140,18 @@ export function PockeCheerHost() {
       >
         <button
           type="button"
-          onClick={hide}
-          aria-label={t("pocke.cheer.close")}
+          onClick={onTap}
+          aria-label={shown.signup ? t("pocke.cheer.signupCta") : t("pocke.cheer.close")}
           className="pointer-events-auto flex items-end gap-1.5 rounded-2xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         >
           <Pocke pose={shown.pose} height={88} motion="pop" />
           <PockeBubble tail="left" className="mb-5 max-w-[12rem] py-2 text-sm font-bold motion-safe:animate-fade-in">
             <span aria-hidden="true">{shown.text}</span>
+            {shown.signup && (
+              <span aria-hidden="true" className="mt-1 block text-xs text-primary underline underline-offset-2">
+                {t("pocke.cheer.signupCta")}
+              </span>
+            )}
           </PockeBubble>
         </button>
       </div>

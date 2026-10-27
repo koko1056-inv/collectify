@@ -30,6 +30,8 @@ export function useSubmitCatalogRequest() {
       });
       if (error) throw error;
     },
+    // 失敗は呼び出し側がポッケの一言で伝える。ここで受けておき、全体の「通信に失敗しました」トーストを重ねない
+    onError: () => {},
   });
 }
 
