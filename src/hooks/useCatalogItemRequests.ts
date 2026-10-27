@@ -78,6 +78,8 @@ export function useSubmitCatalogItemRequest() {
       });
       if (error) throw error;
     },
+    // 失敗は呼び出し側がポッケの一言で伝える。ここで受けておき、全体の「通信に失敗しました」トーストを重ねない
+    onError: () => {},
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [MY_KEY] });
     },
@@ -111,6 +113,8 @@ export function useWithdrawCatalogItemRequest() {
       const { error } = await supabase.rpc("withdraw_catalog_item_request", { _request_id: requestId });
       if (error) throw error;
     },
+    // 失敗は呼び出し側がポッケの一言で伝える。ここで受けておき、全体の「通信に失敗しました」トーストを重ねない
+    onError: () => {},
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [MY_KEY] });
     },
