@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isMyTurn, type TradeRequest } from "@/components/trade/types";
+import { createRefCountedRegistry } from "@/lib/realtime/refCountedChannels";
 
 const TRADE_SELECT = `
   id,
@@ -51,6 +52,52 @@ function normalizeTrade(raw: RawTrade): TradeRequest {
   };
 }
 
+type RealtimeChannel = ReturnType<typeof supabase.channel>;
+
+// 取引の購読はユーザーごとに1本だけ開く（下の acquireTradesChannel）
+const tradesChannels = createRefCountedRegistry<RealtimeChannel>();
+let tradesChannelSeq = 0;
+
+/**
+ * 自分あての取引の変化を聞くチャンネルを借りる。戻り値を呼ぶと返す。
+ *
+ * useMyTrades は Navbar の受信箱・下タブのバッジ・ポッケのひとことなど、1画面で何か所からも呼ばれる。
+ * 以前は呼ぶたびに「trade_requests の全部の変化」を聞くチャンネルを開いていて、
+ * 誰かの取引が動くたびに、オンラインの全員 × 3本ぶんの RLS 確認が DB で走っていた。
+ * いまはユーザーごとに1本だけ開き、自分が送った側（sender_id）・受けた側（receiver_id）の2つに絞って聞く。
+ */
+export function acquireTradesChannel(
+  userId: string,
+  queryClient: ReturnType<typeof useQueryClient>
+) {
+  return tradesChannels.acquire(
+    userId,
+    () => {
+      const refresh = () => {
+        void invalidateTrades(queryClient, userId);
+      };
+      // 閉じた直後に開き直すと（画面の切り替えなど）同じ名前が重なるので、開くたびに番号を変える
+      tradesChannelSeq += 1;
+      return supabase
+        .channel(`my-trades-${userId}-${tradesChannelSeq}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "trade_requests", filter: `sender_id=eq.${userId}` },
+          refresh
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "trade_requests", filter: `receiver_id=eq.${userId}` },
+          refresh
+        )
+        .subscribe();
+    },
+    (channel) => {
+      void supabase.removeChannel(channel);
+    }
+  );
+}
+
 /**
  * 自分が関わる取引をまとめて取る。
  *
@@ -82,22 +129,7 @@ export function useMyTrades(enabled = true) {
   // 相手が承認や発送を報告したら、こちらの画面もそのまま追いつくようにする
   useEffect(() => {
     if (!user?.id || !enabled) return;
-    // 画面のあちこち（受信箱・交換タブ・下タブのバッジ）から呼ばれるので、チャンネル名は呼び出しごとに変える
-    const channel = supabase
-      .channel(`my-trades-${user.id}-${Math.random().toString(36).slice(2, 8)}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "trade_requests" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["my-trades", user.id] });
-          queryClient.invalidateQueries({ queryKey: ["trade-matches", user.id] });
-          queryClient.invalidateQueries({ queryKey: ["trade-holders", user.id] });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return acquireTradesChannel(user.id, queryClient);
   }, [user?.id, enabled, queryClient]);
 
   const groups = useMemo(() => {
