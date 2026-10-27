@@ -245,28 +245,6 @@ export function ItemDetailsModal({
     }
   }, [image, title, price, description, quantity, isUserItem, userId, user?.id, itemId, contentName]);
 
-  useEffect(() => {
-    if (!user || isUserItem || !itemId) return;
-    const channel = supabase.channel('user-items-changes').on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'user_items',
-      filter: `user_id=eq.${user.id} and official_item_id=eq.${itemId}`
-    }, async () => {
-      await refetchIsInCollection();
-      await refetchOwnersCount();
-      await queryClient.invalidateQueries({
-        queryKey: ["user-items", user.id]
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["item-owners-count", itemId]
-      });
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [itemId, user?.id, isUserItem, queryClient, refetchIsInCollection, refetchOwnersCount]);
-
   const handleSaveUserItemFields = async () => {
     if (!isUserItem || !itemId) return;
     setIsSaving(true);

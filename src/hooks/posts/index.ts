@@ -1,7 +1,5 @@
 
 // 投稿関連のフックをまとめてエクスポート
-export { usePosts, usePostsForItem } from './usePostsQuery';
-export { usePostsWithPagination } from './usePostsWithPagination';
 export { useToggleLike } from './usePostMutations';
 export { usePostComments, useAddComment, useToggleCommentLike } from './useComments';
 export { useDeletePost } from './useDeletePost';

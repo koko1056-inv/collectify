@@ -151,14 +151,6 @@ export function WishlistUsersModal({
         playWishlistSound();
       }
 
-      // 即座にリアルタイム更新をトリガー
-      const channel = supabase.channel('wishlist-update-trigger');
-      channel.send({
-        type: 'broadcast',
-        event: 'wishlist-changed',
-        payload: { itemId, userId: user?.id, immediate: true }
-      });
-      
       // 関連クエリを無効化して再フェッチ
       queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-users", itemId] });

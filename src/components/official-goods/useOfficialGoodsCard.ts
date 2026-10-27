@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
@@ -66,29 +66,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     },
   });
 
-  useEffect(() => {
-    const channel = supabase
-      .channel('user-items-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_items',
-          filter: `user_id=eq.${user?.id} and official_item_id=eq.${id}`
-        },
-        async () => {
-          await refetchIsInCollection();
-          await queryClient.invalidateQueries({ queryKey: ["user-items", user?.id] });
-          await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [id, user?.id, queryClient, refetchIsInCollection]);
+  // 以前はここでカード1枚ごとに user_items の Realtime チャンネルを開いていた（ゲストも含めて）。
+  // user_items は Realtime の公開に入っておらず一度も届かないうえ、60枚の一覧なら60本の購読が DB に残っていた。
+  // 追加・削除の直後の表示は、下の追加処理や invalidateCollectionChanged のクエリ更新で追いつく。
 
   // 既に持っているグッズの所持数を +1 する（2個目以降を記録する導線）。
   // ポイントは付与しない（同じ official_item への2回目はサーバー側が弾くため呼ばない）。

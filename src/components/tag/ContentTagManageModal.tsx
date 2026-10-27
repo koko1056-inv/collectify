@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,9 @@ interface ContentTagManageModalProps {
   onClose: () => void;
 }
 
+// キャッシュの楽観的更新で触るタグの行（id 以外はそのまま持ち回す）
+type CachedTag = { id: string; [key: string]: unknown };
+
 export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModalProps) {
   const [selectedContent, setSelectedContent] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<"character" | "series">("character");
@@ -29,49 +32,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const [selectedUnlinkedTags, setSelectedUnlinkedTags] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const { t } = useLanguage();
-
-  // Supabase Realtimeでtagsとitem_tagsの変更を監視
-  useEffect(() => {
-    const tagsChannel = supabase
-      .channel('content-tags-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // INSERT, UPDATE, DELETEすべてを監視
-          schema: 'public',
-          table: 'tags'
-        },
-        (payload) => {
-          console.log('[ContentTagManageModal] tags changed:', payload);
-          // タグ関連のクエリを無効化して再フェッチ
-          queryClient.invalidateQueries({ queryKey: ["content-tags"] });
-          queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
-          queryClient.invalidateQueries({ queryKey: ["tags"] });
-          queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
-          queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'item_tags'
-        },
-        (payload) => {
-          console.log('[ContentTagManageModal] item_tags changed:', payload);
-          // アイテムタグの変更も反映
-          queryClient.invalidateQueries({ queryKey: ["content-tags"] });
-          queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
-          queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(tagsChannel);
-    };
-  }, [queryClient]);
 
   // コンテンツ一覧を取得
   const { data: contentNames = [] } = useQuery({
@@ -155,7 +115,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       setNewTagName("");
       toast.success(t("tagManage.toast.tagAdded"));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(t("tagManage.toast.addFailedPrefix") + error.message);
     },
   });
@@ -210,21 +170,21 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       const previousTagsWithCount = queryClient.getQueryData(["tags-with-count", selectedContent]);
 
       // UIから即座に削除（楽観的更新）
-      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["content-tags", selectedContent, selectedCategory], (old) => 
         old ? old.filter(t => t.id !== tagId) : old
       );
-      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["unlinked-tags"], (old) => 
         old ? old.filter(t => t.id !== tagId) : old
       );
-      queryClient.setQueryData<any[]>(["tags"], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["tags"], (old) => 
         old ? old.filter(t => t.id !== tagId) : old
       );
       if (contentId) {
-        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], (old) => 
+        queryClient.setQueryData<CachedTag[]>(["tags-by-category", selectedCategory, contentId], (old) => 
           old ? old.filter(t => t.id !== tagId) : old
         );
       }
-      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["tags-with-count", selectedContent], (old) => 
         old ? old.filter(t => t.id !== tagId) : old
       );
 
@@ -314,7 +274,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       const previousTagsWithCount = queryClient.getQueryData(["tags-with-count", selectedContent]);
 
       // UIから即座に削除
-      const filterOut = (old?: any[]) => old ? old.filter(t => !tagIds.includes(t.id)) : old;
+      const filterOut = (old?: CachedTag[]) => old ? old.filter(t => !tagIds.includes(t.id)) : old;
       queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], filterOut);
       queryClient.setQueryData(["unlinked-tags"], filterOut);
       queryClient.setQueryData(["tags"], filterOut);
@@ -385,19 +345,19 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
       // 現在のキャッシュを保存
       const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
-      const previousUnlinkedTags = queryClient.getQueryData<any[]>(["unlinked-tags"]);
+      const previousUnlinkedTags = queryClient.getQueryData<CachedTag[]>(["unlinked-tags"]);
 
       // 紐づけるタグを取得
       const tagToLink = previousUnlinkedTags?.find(t => t.id === tagId);
       
       // 楽観的更新: 未紐づけタグから削除
-      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["unlinked-tags"], (old) => 
         old ? old.filter(t => t.id !== tagId) : old
       );
       
       // 楽観的更新: コンテンツタグに追加
       if (tagToLink) {
-        queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => 
+        queryClient.setQueryData<CachedTag[]>(["content-tags", selectedContent, selectedCategory], (old) => 
           old ? [...old, { ...tagToLink, category: selectedCategory }] : [{ ...tagToLink, category: selectedCategory }]
         );
       }
@@ -447,18 +407,18 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       await queryClient.cancelQueries({ queryKey: ["unlinked-tags"] });
 
       const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
-      const previousUnlinkedTags = queryClient.getQueryData<any[]>(["unlinked-tags"]);
+      const previousUnlinkedTags = queryClient.getQueryData<CachedTag[]>(["unlinked-tags"]);
 
       // 紐づけるタグを取得
       const tagsToLink = previousUnlinkedTags?.filter(t => tagIds.includes(t.id)) || [];
       
       // 楽観的更新: 未紐づけタグから削除
-      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+      queryClient.setQueryData<CachedTag[]>(["unlinked-tags"], (old) => 
         old ? old.filter(t => !tagIds.includes(t.id)) : old
       );
       
       // 楽観的更新: コンテンツタグに追加
-      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => {
+      queryClient.setQueryData<CachedTag[]>(["content-tags", selectedContent, selectedCategory], (old) => {
         const updatedTags = tagsToLink.map(t => ({ ...t, category: selectedCategory }));
         return old ? [...old, ...updatedTags] : updatedTags;
       });
@@ -509,7 +469,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       setEditingTagName("");
       toast.success(t("tagManage.toast.tagUpdated"));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(t("tagManage.toast.updateFailedPrefix") + error.message);
     },
   });
