@@ -21,6 +21,7 @@ import { SimpleItemTag } from "@/utils/tag/types";
 import { ItemPostsSection } from "./item-posts/ItemPostsSection";
 import { ScrollArea } from "./ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CatalogItemRequestMenu } from "./catalog/CatalogItemRequestMenu";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -290,11 +291,17 @@ export function ItemDetailsModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
-          <ModalHeader onClose={
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
-          } />
+          <ModalHeader
+            start={
+              // カタログのグッズなら、修正申請・重複を報告・削除申請を出す
+              !isUserItem ? <CatalogItemRequestMenu itemId={itemId} itemTitle={title} itemImage={image} align="start" /> : undefined
+            }
+            onClose={
+              <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+                <X className="h-4 w-4" />
+              </Button>
+            }
+          />
 
           <ScrollArea className="flex-1">
           {/* メインコンテンツ - itemIdを追加 */}

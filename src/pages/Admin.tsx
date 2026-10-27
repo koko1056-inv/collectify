@@ -7,11 +7,13 @@ import { DuplicateItemsManager } from "@/components/admin/DuplicateItemsManager"
 import { ReportsManager } from "@/components/admin/ReportsManager";
 import { FeedbackManager } from "@/components/admin/FeedbackManager";
 import { CatalogRequestsManager } from "@/components/admin/CatalogRequestsManager";
+import { CatalogItemRequestsManager } from "@/components/admin/CatalogItemRequestsManager";
 import { SeriesBackfillManager } from "@/components/admin/SeriesBackfillManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearchParams } from "react-router-dom";
 import { useOpenReportCount } from "@/hooks/useOpenReportCount";
+import { usePendingCatalogItemRequestCount } from "@/hooks/useCatalogItemRequests";
 
 // 管理者判定とリダイレクトは ProtectedRoute（requiredRole="admin"）が担当する。
 // ここで再度判定すると遷移が二重になり、ブラウザバックで往復してしまうため行わない。
@@ -21,6 +23,7 @@ const Admin = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") ?? "items";
   const { data: openReports = 0 } = useOpenReportCount();
+  const { data: pendingItemRequests = 0 } = usePendingCatalogItemRequestCount();
   return (
     <div className="min-h-screen bg-accent">
       <Navbar />
@@ -46,6 +49,15 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="feedback">{t("screens.admin.feedbackTab")}</TabsTrigger>
             <TabsTrigger value="catalogRequests">{t("screens.admin.catalogRequestsTab")}</TabsTrigger>
+            {/* グッズ1件ごとの削除申請・修正申請・重複の報告 */}
+            <TabsTrigger value="itemRequests" className="gap-1.5">
+              {t("catalogItemRequest.admin.tab")}
+              {pendingItemRequests > 0 && (
+                <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center text-2xs font-bold leading-5 text-destructive-foreground">
+                  {pendingItemRequests}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="items" className="space-y-8">
@@ -75,6 +87,10 @@ const Admin = () => {
 
           <TabsContent value="catalogRequests">
             <CatalogRequestsManager />
+          </TabsContent>
+
+          <TabsContent value="itemRequests">
+            <CatalogItemRequestsManager />
           </TabsContent>
         </Tabs>
       </main>

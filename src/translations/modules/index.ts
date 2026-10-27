@@ -30,6 +30,7 @@ import { badges } from './badges';
 import { sampleAccount } from './sampleAccount';
 import { inAppBrowser } from './inAppBrowser';
 import { catalogRequest } from './catalogRequest';
+import { catalogItemRequest } from './catalogItemRequest';
 
 export const moduleTranslations = {
   ja: {
@@ -63,6 +64,7 @@ export const moduleTranslations = {
     sampleAccount: sampleAccount.ja,
     inAppBrowser: inAppBrowser.ja,
     catalogRequest: catalogRequest.ja,
+    catalogItemRequest: catalogItemRequest.ja,
   },
   en: {
     admin: admin.en,
@@ -95,5 +97,6 @@ export const moduleTranslations = {
     sampleAccount: sampleAccount.en,
     inAppBrowser: inAppBrowser.en,
     catalogRequest: catalogRequest.en,
+    catalogItemRequest: catalogItemRequest.en,
   },
 };

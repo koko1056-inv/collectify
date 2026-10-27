@@ -3,7 +3,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message?: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'new_item' | 'comment' | 'reply' | 'like' | 'new_item_tag' | 'greeting_stamp' | 'match_success' | 'item_post_comment' | 'item_post_like' | 'trade_request' | 'trade_accepted' | 'trade_rejected' | 'trade_cancelled' | 'trade_unavailable' | 'trade_shipped' | 'trade_received' | 'trade_completed' | 'trade_nudge' | 'admin_report' | 'oshi_room_like' | 'oshi_new_items' | 'preorder_release';
+  type: 'info' | 'success' | 'warning' | 'error' | 'new_item' | 'comment' | 'reply' | 'like' | 'new_item_tag' | 'greeting_stamp' | 'match_success' | 'item_post_comment' | 'item_post_like' | 'trade_request' | 'trade_accepted' | 'trade_rejected' | 'trade_cancelled' | 'trade_unavailable' | 'trade_shipped' | 'trade_received' | 'trade_completed' | 'trade_nudge' | 'admin_report' | 'oshi_room_like' | 'oshi_new_items' | 'preorder_release' | 'catalog_item_request';
   data: Record<string, any>;
   is_read: boolean;
   created_at: string;
@@ -39,4 +39,8 @@ export interface NotificationData {
   context_id?: string;
   // Match
   matched_user_id?: string;
+  // カタログへの申請の結果（catalog_item_request）
+  request_id?: string;
+  status?: string;
+  kind?: string;
 }

@@ -4,7 +4,7 @@ import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { PointIcon } from "@/components/ui/point-icon";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, ChevronRight } from "lucide-react";
+import { LogOut, MessageSquarePlus, ClipboardList, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,6 +14,7 @@ import { useState } from "react";
 import { InstallAppCard } from "@/components/pwa/InstallAppCard";
 import { AccountSection } from "./AccountSection";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
+import { MyCatalogItemRequestsSheet } from "@/components/catalog/MyCatalogItemRequestsSheet";
 import { BlockedUsersSection } from "@/components/safety/BlockedUsersSection";
 
 interface ProfileSettingsSheetProps {
@@ -28,6 +29,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
   const { themeColor, setThemeColor } = useThemeColor();
   const { data: userPoints } = useUserPoints();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [catalogRequestsOpen, setCatalogRequestsOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -170,6 +172,13 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
               onClick={() => setFeedbackOpen(true)}
               chevron
             />
+            {/* カタログのグッズへの削除申請・修正申請・重複の報告の状況（本人と運営だけが見られる） */}
+            <SettingRow
+              icon={<ClipboardList className="w-4 h-4" />}
+              label={t("catalogItemRequest.status.settingsRow")}
+              onClick={() => setCatalogRequestsOpen(true)}
+              chevron
+            />
           </section>
 
           {/* ブロックしたユーザー（一覧と解除） */}
@@ -190,6 +199,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
         </div>
       </SheetContent>
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+      <MyCatalogItemRequestsSheet open={catalogRequestsOpen} onOpenChange={setCatalogRequestsOpen} />
     </Sheet>
   );
 }

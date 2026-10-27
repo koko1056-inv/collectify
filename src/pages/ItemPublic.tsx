@@ -21,6 +21,7 @@ import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
+import { CatalogItemRequestMenu } from "@/components/catalog/CatalogItemRequestMenu";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -241,9 +242,13 @@ export default function ItemPublic() {
             </div>
 
             <div className="min-w-0 space-y-4">
-              <div className="space-y-1">
-                {item.content_name && <p className="text-sm font-medium text-primary">{item.content_name}</p>}
-                <h1 className="text-xl font-bold leading-snug text-foreground break-words">{item.title}</h1>
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1 space-y-1">
+                  {item.content_name && <p className="text-sm font-medium text-primary">{item.content_name}</p>}
+                  <h1 className="text-xl font-bold leading-snug text-foreground break-words">{item.title}</h1>
+                </div>
+                {/* 修正申請・重複を報告・削除申請（運営に届く。ほかの人には見えない） */}
+                <CatalogItemRequestMenu itemId={item.id} itemTitle={item.title} itemImage={item.image} className="-mr-2 -mt-1" />
               </div>
 
               {(item.release_date || item.price) && (

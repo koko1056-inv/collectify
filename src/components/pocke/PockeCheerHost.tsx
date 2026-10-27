@@ -36,6 +36,11 @@ const LINES: Record<
   decorated: [{ pose: "wink", key: "pocke.cheer.decorated" }],
   followed: [{ pose: "wave", key: "pocke.cheer.followed" }],
   unfollowed: [{ pose: "think", key: "pocke.cheer.unfollowed" }],
+  catalogRequestSent: [
+    { pose: "wink", key: "pocke.cheer.catalogRequestSent1" },
+    { pose: "love", key: "pocke.cheer.catalogRequestSent2" },
+  ],
+  catalogRequestWithdrawn: [{ pose: "think", key: "pocke.cheer.catalogRequestWithdrawn" }],
 };
 
 /**

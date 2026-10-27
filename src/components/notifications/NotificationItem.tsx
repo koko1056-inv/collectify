@@ -1,4 +1,4 @@
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, CalendarCheck, ArrowLeftRight, Flag, type LucideIcon } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, CalendarCheck, ArrowLeftRight, Flag, ClipboardList, type LucideIcon } from 'lucide-react';
 import { IconTile, type IconTileTone } from '@/components/ui/icon-tile';
 import { Button } from '@/components/ui/button';
 import { Notification, NotificationData } from '@/types/notification';
@@ -61,6 +61,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         return { icon: ArrowLeftRight, tone: 'muted' };
       case 'admin_report':
         return { icon: Flag, tone: 'destructive' };
+      case 'catalog_item_request':
+        // カタログへの申請の結果（反映した / 見送った）
+        return { icon: ClipboardList, tone: notification.data?.status === 'approved' ? 'success' : 'muted' };
       case 'success':
         return { icon: CheckCircle, tone: 'success' };
       case 'warning':
@@ -110,6 +113,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     } else if (notification.type === 'oshi_room_like') {
       // 推しの部屋へのいいね: 自分の部屋で、誰がいいねしたかを開く
       navigate('/oshi?likes=1');
+    } else if (notification.type === 'catalog_item_request') {
+      // カタログへの申請の結果: そのグッズのページへ（重複で統合したときは統合先）
+      navigate(notification.data.url || (notification.data.item_id ? `/item/${notification.data.item_id}` : '/collection'));
     } else if (notification.type === 'admin_report') {
       // 通報の通知は、管理画面の通報タブへ
       navigate(notification.data.url || '/admin?tab=reports');
@@ -134,7 +140,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const data = notification.data as NotificationData;
 
   // 推しの部屋へのいいねは、サーバーが日本語で書いた文言ではなく、いまの言語で出し直す（名前は data.actor_name）
-  const title = notification.type === 'oshi_room_like' ? t("oshiRoom.social.notify.title") : notification.title;
+  // カタログへの申請の結果も、いまの言語で見出しを出し直す（本文はグッズ名と運営のひとこと）
+  const title =
+    notification.type === 'oshi_room_like'
+      ? t("oshiRoom.social.notify.title")
+      : notification.type === 'catalog_item_request' && (data.status === 'approved' || data.status === 'rejected')
+        ? t(`catalogItemRequest.notify.${data.status}`)
+        : notification.title;
   const message =
     notification.type === 'oshi_room_like'
       ? t("oshiRoom.social.notify.message", { name: data.actor_name || t("oshiRoom.social.notify.someone") })
