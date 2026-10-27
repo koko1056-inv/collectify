@@ -17,6 +17,8 @@ export type PockeCheerKind =
   | "wishlisted" // ほしいものに追加した
   | "wished" // カタログカードの「ほしい」を押した
   | "unwished" // カタログカードの「ほしい」を外した
+  | "wishFailed" // 「ほしい」に入れられなかった（トーストのかわり）
+  | "unwishFailed" // 「ほしい」から外せなかった（トーストのかわり）
   | "preordered" // 予約した
   | "liked" // いいねした
   | "listedForTrade" // グッズを交換に出した

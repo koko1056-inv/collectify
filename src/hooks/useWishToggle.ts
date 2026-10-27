@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
 import {
   addOfficialItemToWishlist,
@@ -34,14 +32,13 @@ const pending = new Set<string>();
 
 /**
  * カタログカードの「ほしい」ボタン。押した瞬間に見た目を切り替え（楽観的更新）、失敗したら元に戻す。
- * うまくいったらポッケが一言（トーストは出さない）。失敗だけはトーストで知らせる。
+ * うまくいっても失敗してもポッケが一言（トーストは出さない）。
  * ほしいものは本人だけのもの: 自分の行だけを足す・消す。他人のほしいものは読まない。
  */
 export function useWishToggle() {
   const { user } = useAuth();
   const uid = user?.id ?? null;
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
   const { wishedIds, isGuest } = useWishedOfficialIds();
   const [, rerender] = useState(0);
 
@@ -63,13 +60,14 @@ export function useWishToggle() {
       } catch (error) {
         console.error("wish toggle failed:", error);
         queryClient.setQueryData<Set<string>>(key, (prev) => withWish(prev, officialItemId, !on));
-        toast.error(on ? t("catalogWish.addFailed") : t("catalogWish.removeFailed"));
+        // 失敗もトーストではなくポッケが一言で伝える
+        pockeCheer(on ? "wishFailed" : "unwishFailed");
       } finally {
         pending.delete(officialItemId);
         rerender((n) => n + 1);
       }
     },
-    [uid, queryClient, t]
+    [uid, queryClient]
   );
 
   return { wishedIds, isGuest, toggle, isPending: (id: string) => pending.has(id) };

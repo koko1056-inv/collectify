@@ -97,9 +97,8 @@ const OfficialGoodsCardWithSwipe = ({
       pockeCheer("wished");
     } catch (error) {
       console.error("Error adding to wishlist:", error);
-      toast.error(t("collectionScreen.common.error"), {
-        description: t("collectionScreen.official.wishlistAddFailed"),
-      });
+      // 失敗もポッケが一言で伝える（カードの「ほしい」ボタンと同じ）
+      pockeCheer("wishFailed");
     }
   };
 
