@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
+import { isAdminUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +10,18 @@ const corsHeaders = {
 };
 
 const POINT_COST = 50;
+
+// 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
+// 取得に失敗するとポイントは返金されるため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
+const USER_LIMITS = { hour: 20, day: 100 };
+
+function referenceImageErrorResponse(e: SsrfError): Response {
+  const r = referenceImageError(e);
+  return new Response(JSON.stringify(r.body), {
+    status: r.status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -56,6 +70,21 @@ serve(async (req) => {
         JSON.stringify({ error: 'prompt is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // 参照画像の URL は、ポイントを使う前に形を確かめる（内部アドレス・http などは 400）
+    if (itemImageUrl) {
+      try {
+        assertReferenceImageUrl(itemImageUrl);
+      } catch (e) {
+        if (e instanceof SsrfError) return referenceImageErrorResponse(e);
+        throw e;
+      }
+    }
+
+    if (!(await isAdminUser({ user, userClient }))) {
+      const limit = await consumeRateLimit(admin, user.id, 'generate-post-image', USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
     }
 
     // ポイント残高チェック
@@ -129,6 +158,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('generate-post-image error:', error);
     await refund((error as Error).message || 'unknown');
+    // 参照画像を取りに行けなかった（内部アドレス・画像でない・大きすぎる・取得失敗）
+    if (error instanceof SsrfError) return referenceImageErrorResponse(error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

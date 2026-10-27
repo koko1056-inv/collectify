@@ -7,6 +7,7 @@
 // やっていること
 //   1. URL の形を検査する   … https のみ・認証情報なし・ポートは 443 のみ・IP 直指定は拒否
 //                             （10進 / 16進 / 8進の数値ホスト名はすべて IP 直指定として弾く）
+//                             allowHttp を付けたときだけ http（ポート 80）も通す（管理者の呼び出し用）
 //   2. DNS を引いて検査する … A / AAAA の全件が公開アドレスであること
 //   3. リダイレクトを自前で辿る … redirect: "manual" で最大3回。ホップごとに 1・2 をやり直す
 //   4. 本文をストリームで読む … 上限を超えたら読むのをやめる
@@ -188,11 +189,21 @@ export function assertPublicHostnameSyntax(hostname: string): void {
   if (/^(\d+|0x[0-9a-f]*)$/i.test(last)) throw bad(); // 数値・16進の最後のラベル
 }
 
+export interface UrlPolicyOptions {
+  /**
+   * http:// も通すか。既定は false（https のみ）。
+   * 管理者のまとめて登録（BulkImportModal）のように、呼び出し側が管理者だとサーバーで確かめたときだけ true にする。
+   * true でも、ポートは既定（80）のみ・IP 直指定や内部ホスト名の拒否・DNS とリダイレクトの検査はそのまま。
+   */
+  allowHttp?: boolean;
+}
+
 /**
  * 外部から渡された URL 文字列を検査して URL にする。
  * https のみ・長さ上限・認証情報なし・ポート 443 のみ・ホスト名の形の検査まで。DNS は引かない。
+ * allowHttp なら http（ポート 80 のみ）も通す。
  */
-export function parsePublicHttpsUrl(raw: unknown): URL {
+export function parsePublicHttpsUrl(raw: unknown, options: UrlPolicyOptions = {}): URL {
   if (typeof raw !== "string" || raw.length === 0 || raw.length > 2048) {
     throw new SsrfError("Invalid URL");
   }
@@ -202,9 +213,13 @@ export function parsePublicHttpsUrl(raw: unknown): URL {
   } catch {
     throw new SsrfError("Invalid URL");
   }
-  if (url.protocol !== "https:") throw new SsrfError("Invalid URL: only https is allowed");
+  const isHttp = url.protocol === "http:" && options.allowHttp === true;
+  if (url.protocol !== "https:" && !isHttp) throw new SsrfError("Invalid URL: only https is allowed");
   if (url.username || url.password) throw new SsrfError("Invalid URL: credentials are not allowed");
-  if (url.port && url.port !== "443") throw new SsrfError("Invalid URL: port is not allowed");
+  // new URL() は既定のポート（https の 443・http の 80）を空にするので、残っていれば既定以外
+  if (url.port && !(url.protocol === "https:" && url.port === "443")) {
+    throw new SsrfError("Invalid URL: port is not allowed");
+  }
   assertPublicHostnameSyntax(url.hostname);
   return url;
 }
@@ -260,16 +275,16 @@ export async function assertHostResolvesPublic(
 /** 形の検査 + DNS の検査。fetch はしない（外部サービスに URL を渡すだけの用途向け）。 */
 export async function assertPublicHttpsUrl(
   raw: unknown,
-  options: ResolveOptions = {}
+  options: ResolveOptions & UrlPolicyOptions = {}
 ): Promise<URL> {
-  const url = parsePublicHttpsUrl(raw);
+  const url = parsePublicHttpsUrl(raw, options);
   await assertHostResolvesPublic(url.hostname, options);
   return url;
 }
 
 // ────────────────────────────── 安全な fetch ──────────────────────────────
 
-export interface SafeFetchOptions extends ResolveOptions {
+export interface SafeFetchOptions extends ResolveOptions, UrlPolicyOptions {
   /** 辿るリダイレクトの上限。既定 3。 */
   maxRedirects?: number;
   /** 全体のタイムアウト（ミリ秒）。本文の読み込みも含む。既定 10000。 */
@@ -296,7 +311,8 @@ export async function safeFetch(raw: string | URL, options: SafeFetchOptions = {
 
   let current: string = raw instanceof URL ? raw.toString() : raw;
   for (let hop = 0; hop <= maxRedirects; hop++) {
-    const url = parsePublicHttpsUrl(current);
+    // allowHttp はリダイレクト先にも同じだけ効く（既定では https → http のリダイレクトも拒否）
+    const url = parsePublicHttpsUrl(current, { allowHttp: options.allowHttp });
     options.validateUrl?.(url);
     await assertHostResolvesPublic(url.hostname, options);
 
@@ -374,6 +390,25 @@ export async function readBodyCapped(
 /** Content-Type から ; 以降を落として小文字にしたもの。無ければ空文字。 */
 export function mediaType(response: Response): string {
   return (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+}
+
+/**
+ * 先頭バイトから画像の種類を当てる（JPEG / PNG / GIF / WebP / AVIF / HEIC / BMP）。分からなければ null。
+ * 種類を正しく名乗らない配信元（octet-stream・text/plain・空）の画像を見分けるのに使う。
+ */
+export function sniffImageMediaType(bytes: Uint8Array): string | null {
+  const at = (offset: number, sig: number[]) => sig.every((v, i) => bytes[offset + i] === v);
+  const ascii = (offset: number, s: string) => at(offset, [...s].map((c) => c.charCodeAt(0)));
+  if (at(0, [0xff, 0xd8, 0xff])) return "image/jpeg";
+  if (at(0, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "image/png";
+  if (ascii(0, "GIF87a") || ascii(0, "GIF89a")) return "image/gif";
+  if (ascii(0, "RIFF") && ascii(8, "WEBP")) return "image/webp";
+  if (ascii(4, "ftyp")) {
+    if (ascii(8, "avif") || ascii(8, "avis")) return "image/avif";
+    if (ascii(8, "heic") || ascii(8, "heix") || ascii(8, "mif1") || ascii(8, "msf1")) return "image/heic";
+  }
+  if (ascii(0, "BM")) return "image/bmp";
+  return null;
 }
 
 // ────────────────────────────── ホストの許可リスト ──────────────────────────────

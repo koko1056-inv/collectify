@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
+import { isAdminUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +10,10 @@ const corsHeaders = {
 };
 
 const EDIT_IMAGE_COST = 10;
+
+// 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
+// 取得に失敗するとポイントは返金されるため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
+const USER_LIMITS = { hour: 20, day: 100 };
 
 function jsonResp(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -62,6 +68,28 @@ serve(async (req) => {
     if (!imageUrl || !prompt) {
       return jsonResp({ error: 'imageUrl and prompt are required' }, 400);
     }
+    if (itemImages !== undefined && itemImages !== null && !Array.isArray(itemImages)) {
+      return jsonResp({ error: 'itemImages must be an array' }, 400);
+    }
+    const extraImages: unknown[] = Array.isArray(itemImages) ? itemImages.slice(0, 3) : [];
+
+    // 参照画像の URL は、ポイントを使う前に形を確かめる（内部アドレス・http などは 400）
+    try {
+      for (const url of [imageUrl, ...(avatarUrl ? [avatarUrl] : []), ...extraImages]) {
+        assertReferenceImageUrl(url);
+      }
+    } catch (e) {
+      if (e instanceof SsrfError) {
+        const r = referenceImageError(e);
+        return jsonResp(r.body, r.status);
+      }
+      throw e;
+    }
+
+    if (!(await isAdminUser({ user, userClient }))) {
+      const limit = await consumeRateLimit(adminClient, user.id, "edit-image", USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
+    }
 
     // 残高チェック → 消費
     const { data: pointRow } = await adminClient
@@ -108,11 +136,8 @@ serve(async (req) => {
       content.push({ type: "image_url", image_url: { url: imageUrl, detail: "high" } });
     }
 
-    if (itemImages && Array.isArray(itemImages) && itemImages.length > 0) {
-      const imagesToAdd = itemImages.slice(0, 3);
-      for (const itemImageUrl of imagesToAdd) {
-        content.push({ type: "image_url", image_url: { url: itemImageUrl } });
-      }
+    for (const itemImageUrl of extraImages) {
+      content.push({ type: "image_url", image_url: { url: itemImageUrl } });
     }
 
     const response = await callAi({
@@ -149,6 +174,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edit-image function:', error);
     await refund("exception");
+    // 参照画像を取りに行けなかった（内部アドレス・画像でない・大きすぎる・取得失敗）
+    if (error instanceof SsrfError) {
+      const r = referenceImageError(error);
+      return jsonResp(r.body, r.status);
+    }
     return jsonResp(
       { error: error instanceof Error ? error.message : '画像の編集に失敗しました' },
       500

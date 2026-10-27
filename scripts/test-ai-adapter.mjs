@@ -32,7 +32,8 @@ await esbuild.build({
           namespace: "shim",
         }));
         build.onLoad({ filter: /.*/, namespace: "shim" }, () => ({
-          contents: `export function encodeBase64(b){return Buffer.from(b).toString("base64")}`,
+          contents: `export function encodeBase64(b){return Buffer.from(b).toString("base64")}
+export function decodeBase64(s){return new Uint8Array(Buffer.from(s,"base64"))}`,
           loader: "js",
         }));
       },
@@ -43,10 +44,30 @@ await esbuild.build({
 // ── Deno と fetch の差し替え ────────────────────────────────
 
 const env = {};
-globalThis.Deno = { env: { get: (k) => env[k] } };
+// 参照画像の取得は _shared/ssrf.ts の safeFetch を通るので、DNS の問い合わせも差し替える
+const dnsTable = {
+  "cdn.example.com": { A: ["93.184.216.34"] },
+  "redirector.example.com": { A: ["93.184.216.35"] },
+  "internal.example.com": { A: ["10.0.0.5"] },
+  "dmgrgzysrzzgsajwqyrh.supabase.co": { A: ["104.18.38.10"], AAAA: ["2606:4700:4400::6812:260a"] },
+};
+globalThis.Deno = {
+  env: { get: (k) => env[k] },
+  async resolveDns(host, type) {
+    const records = dnsTable[host]?.[type];
+    if (!records || records.length === 0) {
+      const e = new Error("not found");
+      e.name = "NotFound";
+      throw e;
+    }
+    return records;
+  },
+};
 
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]);
 const PNG_B64 = PNG.toString("base64");
+// 先頭8バイトまで正しい PNG（種類を名乗らない応答で、中身から当てる用）
+const PNG_FULL = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d]);
 
 let captured = [];
 let fetchImpl;
@@ -55,13 +76,37 @@ const defaultFetch = async (url, init) => {
   const u = String(url);
   captured.push({ url: u, init });
   if (u.startsWith("https://cdn.example.com/big")) {
-    return new Response(Buffer.alloc(8 * 1024 * 1024), {
+    return new Response(Buffer.alloc(11 * 1024 * 1024), {
       status: 200,
       headers: { "content-type": "image/png" },
     });
   }
   if (u.startsWith("https://cdn.example.com/missing")) {
     return new Response("nope", { status: 404 });
+  }
+  if (u.startsWith("https://cdn.example.com/page")) {
+    return new Response("<html></html>", { status: 200, headers: { "content-type": "text/html" } });
+  }
+  if (u.startsWith("https://cdn.example.com/logo.svg")) {
+    return new Response("<svg/>", { status: 200, headers: { "content-type": "image/svg+xml" } });
+  }
+  if (u.startsWith("https://cdn.example.com/octet-html")) {
+    return new Response("<html>", { status: 200, headers: { "content-type": "application/octet-stream" } });
+  }
+  if (u.startsWith("https://cdn.example.com/octet")) {
+    return new Response(PNG_FULL, { status: 200, headers: { "content-type": "application/octet-stream" } });
+  }
+  if (u === "https://redirector.example.com/to-internal") {
+    return new Response(null, { status: 302, headers: { location: "https://internal.example.com/secret.png" } });
+  }
+  if (u === "https://redirector.example.com/to-metadata") {
+    return new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/meta-data/" } });
+  }
+  if (u === "https://redirector.example.com/to-cdn") {
+    return new Response(null, { status: 302, headers: { location: "https://cdn.example.com/c.png" } });
+  }
+  if (u.startsWith("https://dmgrgzysrzzgsajwqyrh.supabase.co/storage/v1/")) {
+    return new Response(PNG, { status: 200, headers: { "content-type": "image/png" } });
   }
   if (u.startsWith("https://cdn.example.com/")) {
     return new Response(PNG, { status: 200, headers: { "content-type": "image/png" } });
@@ -100,7 +145,7 @@ const defaultFetch = async (url, init) => {
 
 globalThis.fetch = (...args) => (fetchImpl ?? defaultFetch)(...args);
 
-const { callAi, currentAiProvider } = await import(outfile);
+const { callAi, currentAiProvider, assertReferenceImageUrl, referenceImageError, SsrfError } = await import(outfile);
 
 // ── テストの足回り ──────────────────────────────────────────
 
@@ -303,7 +348,7 @@ try {
 } catch (e) {
   threw = e;
 }
-check("参照画像が404なら投げる", threw !== null && /参照画像を取得できませんでした \(404\)/.test(threw.message), String(threw));
+check("参照画像が404なら投げる（SsrfError 502）", threw?.name === "SsrfError" && threw.status === 502, String(threw));
 check("参照画像が取れなければ生成を呼ばない", !captured.some((c) => c.url.includes("generativelanguage")));
 
 reset();
@@ -317,7 +362,7 @@ try {
 } catch (e) {
   threw = e;
 }
-check("大きすぎる参照画像は弾く", threw !== null && /参照画像が大きすぎます/.test(threw.message), String(threw));
+check("大きすぎる参照画像（10MB 超）は弾く（SsrfError 413）", threw?.name === "SsrfError" && threw.status === 413, String(threw));
 
 reset();
 env.GEMINI_API_KEY = "SECRETKEY123";
@@ -330,7 +375,118 @@ try {
 } catch (e) {
   threw = e;
 }
-check("http(s) 以外の参照画像URLは弾く", threw !== null && /参照画像のURLが不正です/.test(threw.message), String(threw));
+check("http(s) 以外の参照画像URLは弾く（SsrfError 400）", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+
+// ── 5. 参照画像の取得の SSRF 対策 ─────────────────────────────
+
+section("[5] 参照画像の取得（safeFetch 経由）");
+
+/** Gemini 直結で参照画像1枚の callAi を呼び、投げたエラー（無ければ null）を返す */
+async function inlineOnly(url, fetchOverride = null) {
+  reset();
+  env.GEMINI_API_KEY = "SECRETKEY123";
+  fetchImpl = fetchOverride;
+  try {
+    await callAi({
+      messages: [{ role: "user", content: [{ type: "text", text: "x" }, { type: "image_url", image_url: { url } }] }],
+      wantImage: true,
+    });
+    return null;
+  } catch (e) {
+    return e;
+  }
+}
+const fetchedHosts = () => captured.map((c) => new URL(c.url).hostname);
+
+for (const [label, url] of [
+  ["メタデータの IP 直指定", "https://169.254.169.254/latest/meta-data/"],
+  ["ループバック", "https://127.0.0.1/a.png"],
+  ["10進の IP", "https://2130706433/a.png"],
+  ["IPv6 ループバック", "https://[::1]/a.png"],
+  ["localhost", "https://localhost/a.png"],
+  ["内部ホスト名", "https://metadata.google.internal/computeMetadata/v1/"],
+  ["http", "http://cdn.example.com/a.png"],
+  ["既定以外のポート", "https://cdn.example.com:8443/a.png"],
+  ["認証情報つき", "https://user:pw@cdn.example.com/a.png"],
+  ["file", "file:///etc/passwd"],
+]) {
+  threw = await inlineOnly(url);
+  check(`${label} は取りに行かずに SsrfError 400`, threw?.name === "SsrfError" && threw.status === 400, String(threw));
+  check(`${label} では fetch を1回も呼ばない`, captured.length === 0, fetchedHosts().join(","));
+}
+
+threw = await inlineOnly("https://internal.example.com/a.png");
+check("DNS が内部 IP を返すホストは SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+check("DNS で止めたときは fetch しない", captured.length === 0, fetchedHosts().join(","));
+
+threw = await inlineOnly("https://redirector.example.com/to-internal");
+check("リダイレクト先が内部 IP を引くなら SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+check("内部のリダイレクト先には取りに行かない", !fetchedHosts().includes("internal.example.com"), fetchedHosts().join(","));
+check("リダイレクトは自前で辿る（redirect: manual）", captured.every((c) => c.init?.redirect === "manual"));
+
+threw = await inlineOnly("https://redirector.example.com/to-metadata");
+check("リダイレクト先が http のメタデータなら SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+check("メタデータには取りに行かない", !fetchedHosts().includes("169.254.169.254"), fetchedHosts().join(","));
+
+threw = await inlineOnly("https://redirector.example.com/to-cdn");
+check("公開ホストへのリダイレクトは辿って使う", threw === null, String(threw));
+check("リダイレクト先の画像が inline_data になる", geminiBody().contents[0].parts[1]?.inline_data?.data === PNG_B64);
+
+threw = await inlineOnly("https://cdn.example.com/page.html");
+check("画像でない（text/html）は SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+threw = await inlineOnly("https://cdn.example.com/logo.svg");
+check("SVG は SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+threw = await inlineOnly("https://cdn.example.com/octet-html");
+check("octet-stream で中身が画像でなければ SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+threw = await inlineOnly("https://cdn.example.com/octet.png");
+check("octet-stream でも中身が PNG なら通す", threw === null, String(threw));
+check("octet-stream の種類は中身から image/png にする", geminiBody().contents[0].parts[1]?.inline_data?.mime_type === "image/png");
+
+threw = await inlineOnly("https://dmgrgzysrzzgsajwqyrh.supabase.co/storage/v1/object/public/kuji_images/a.png");
+check("このプロジェクトの Supabase Storage の URL はそのまま通る", threw === null, String(threw));
+check("Storage の画像が inline_data になる", geminiBody().contents[0].parts[1]?.inline_data?.data === PNG_B64);
+
+threw = await inlineOnly("https://cdn.example.com/a.png", async () => {
+  throw new TypeError("connection refused");
+});
+check("接続できなければ SsrfError 502（中身は出さない）", threw?.name === "SsrfError" && threw.status === 502 && !/refused/.test(threw.message), String(threw));
+
+threw = await inlineOnly("data:text/html;base64,PGh0bWw+");
+check("data URL でも画像でなければ SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+threw = await inlineOnly(`data:application/octet-stream;base64,${PNG_FULL.toString("base64")}`);
+check("octet-stream の data URL は中身から種類を当てる", threw === null && geminiBody().contents[0].parts[1]?.inline_data?.mime_type === "image/png", String(threw));
+threw = await inlineOnly("data:application/octet-stream;base64,PGh0bWw+");
+check("octet-stream の data URL で中身が画像でなければ SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+
+// ゲートウェイ経由（URL のまま渡す）でも、同じ形の検査で止める
+reset();
+env.LOVABLE_API_KEY = "lov";
+threw = null;
+try {
+  await callAi({
+    messages: [{ role: "user", content: [{ type: "image_url", image_url: { url: "https://169.254.169.254/" } }] }],
+    wantImage: true,
+  });
+} catch (e) {
+  threw = e;
+}
+check("ゲートウェイ経由でも内部向けの URL は SsrfError 400", threw?.name === "SsrfError" && threw.status === 400, String(threw));
+check("ゲートウェイを呼ばない", captured.length === 0, `${captured.length} 回`);
+
+// 呼び出し側の事前検査と、レスポンスへの変換
+const throwsSsrf = (fn) => { try { fn(); return false; } catch (e) { return e instanceof SsrfError && e.status === 400; } };
+check("assertReferenceImageUrl: https の公開ホストは通す", !throwsSsrf(() => assertReferenceImageUrl("https://cdn.example.com/a.png")));
+check("assertReferenceImageUrl: data:image は通す", !throwsSsrf(() => assertReferenceImageUrl("data:image/png;base64,AAAA")));
+check("assertReferenceImageUrl: 内部 IP は 400", throwsSsrf(() => assertReferenceImageUrl("https://10.0.0.1/a.png")));
+check("assertReferenceImageUrl: http は 400", throwsSsrf(() => assertReferenceImageUrl("http://cdn.example.com/a.png")));
+check("assertReferenceImageUrl: 文字列以外は 400", throwsSsrf(() => assertReferenceImageUrl(123)));
+check("assertReferenceImageUrl: data:text は 400", throwsSsrf(() => assertReferenceImageUrl("data:text/plain;base64,AAAA")));
+let mapped = referenceImageError(new SsrfError("Invalid URL", 400));
+check("referenceImageError: 400 → 400 invalid_image_url", mapped.status === 400 && mapped.body.code === "invalid_image_url");
+mapped = referenceImageError(new SsrfError("Response too large", 413));
+check("referenceImageError: 413 → 400", mapped.status === 400 && mapped.body.code === "invalid_image_url");
+mapped = referenceImageError(new SsrfError("Unable to resolve host", 502));
+check("referenceImageError: 502 → 502 image_fetch_failed", mapped.status === 502 && mapped.body.code === "image_fetch_failed");
 
 // ── 結果 ────────────────────────────────────────────────────
 

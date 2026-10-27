@@ -21,6 +21,10 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 // ログインしている人なら誰でも使える。一般の人はユーザーごとに 1時間30回・1日150回まで（DB で数える）。
 // 管理者（BulkImportModal で何十枚もまとめて読む）は対象外。
+//
+// URL は https のみ。ただし管理者（サーバー側の has_role('admin') で確かめる）だけは、
+// まとめて登録で古い公式サイトの http:// の画像・ページを読めるように http も通す。
+// その場合も内部アドレス・DNS・リダイレクトの検査はそのまま（_shared/ssrf.ts の allowHttp）。
 const USER_LIMITS = { hour: 30, day: 150 };
 
 // 端末によってはファイルの種類が空のまま読み込まれる（application/octet-stream）ので、それも通す
@@ -37,15 +41,15 @@ function invalidUrl(field: "imageUrl" | "sourceUrl", message: string): Response 
  * http(s) の画像をここで（SSRF 対策つきで）取得しておき、AI 側（_shared/ai.ts の inlineImage や
  * ゲートウェイ）には data URL しか渡さない。こうすると、サーバーから未検査の URL を取りに行く経路が残らない。
  */
-async function toImageDataUrl(raw: string): Promise<string> {
+async function toImageDataUrl(raw: string, allowHttp: boolean): Promise<string> {
   if (raw.startsWith("data:")) {
     if (raw.length > MAX_DATA_URL_LENGTH) throw new SsrfError("Image is too large", 413);
     if (!DATA_URL_RE.test(raw)) throw new SsrfError("Invalid image data");
     return raw;
   }
 
-  const url = parsePublicHttpsUrl(raw);
-  const { response } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3 });
+  const url = parsePublicHttpsUrl(raw, { allowHttp });
+  const { response } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3, allowHttp });
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
     throw new SsrfError("Failed to fetch the image", 502);
@@ -61,8 +65,8 @@ async function toImageDataUrl(raw: string): Promise<string> {
 }
 
 /** 商品ページを（SSRF 対策つきで）読んで、AI に渡すページ情報の文章にする。読めなければ空文字。 */
-async function fetchPageContext(url: URL): Promise<string> {
-  const { response, finalUrl } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3 });
+async function fetchPageContext(url: URL, allowHttp: boolean): Promise<string> {
+  const { response, finalUrl } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3, allowHttp });
   const type = mediaType(response);
   if (!response.ok || (type !== "text/html" && type !== "application/xhtml+xml")) {
     await response.body?.cancel().catch(() => {});
@@ -111,10 +115,14 @@ serve(async (req) => {
       return jsonResponse(corsHeaders, { error: '画像URLが必要です' }, 400);
     }
 
+    // http を通すのは管理者だけ。回数制限の除外にも使う
+    const isAdmin = await isAdminUser(auth);
+    const allowHttp = isAdmin;
+
     // 取りに行く前に形を確かめる。不正・内部向けの URL は 400 で返し、取りに行かない
     if (!rawImageUrl.startsWith('data:')) {
       try {
-        parsePublicHttpsUrl(rawImageUrl);
+        parsePublicHttpsUrl(rawImageUrl, { allowHttp });
       } catch (e) {
         if (e instanceof SsrfError) return invalidUrl('imageUrl', e.message);
         throw e;
@@ -123,7 +131,7 @@ serve(async (req) => {
     let sourceUrl: URL | null = null;
     if (rawSourceUrl !== undefined && rawSourceUrl !== null && rawSourceUrl !== '') {
       try {
-        sourceUrl = parsePublicHttpsUrl(rawSourceUrl);
+        sourceUrl = parsePublicHttpsUrl(rawSourceUrl, { allowHttp });
       } catch (e) {
         if (e instanceof SsrfError) return invalidUrl('sourceUrl', e.message);
         throw e;
@@ -131,7 +139,7 @@ serve(async (req) => {
     }
 
     // 回数制限（管理者は対象外）
-    if (!(await isAdminUser(auth))) {
+    if (!isAdmin) {
       const supabaseAdmin = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -146,7 +154,7 @@ serve(async (req) => {
     // 画像は必ずここで data URL にしてから AI に渡す（内部アドレス・大きすぎる画像はここで止まる）
     let imageUrl: string;
     try {
-      imageUrl = await toImageDataUrl(rawImageUrl);
+      imageUrl = await toImageDataUrl(rawImageUrl, allowHttp);
     } catch (e) {
       if (e instanceof SsrfError) {
         // 内部アドレス・画像でない・大きすぎる → 400。取得できなかった（相手の都合）→ 502
@@ -163,7 +171,7 @@ serve(async (req) => {
     let pageContext = '';
     if (sourceUrl) {
       try {
-        pageContext = await fetchPageContext(sourceUrl);
+        pageContext = await fetchPageContext(sourceUrl, allowHttp);
         if (pageContext) console.log('Page context extracted:', pageContext.substring(0, 200));
       } catch (error) {
         // 名前を引くと内部アドレスだった・リダイレクト先が内部だった → 400（取りに行かない）
@@ -249,6 +257,8 @@ JSON形式で以下のように回答してください：
 
   } catch (error) {
     console.error('Error in analyze-item-image function:', error);
+    // AI に渡す前の画像の検査（_shared/ai.ts）で止まった
+    if (error instanceof SsrfError) return invalidUrl('imageUrl', error.message);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : '画像の分析中にエラーが発生しました' 

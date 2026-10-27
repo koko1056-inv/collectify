@@ -20,7 +20,9 @@
 //
 //   * 参照画像を URL で渡せない。inline_data（base64）にする必要があるため、
 //     この層で画像を取得して埋め込む。ゲートウェイが裏でやっていた処理が
-//     こちらに移ってきた形。
+//     こちらに移ってきた形。URL は呼び出し元のユーザーが渡したものなので、
+//     取得は _shared/ssrf.ts の safeFetch を通す（内部アドレス・大きすぎる・画像でないものは
+//     SsrfError で止まる）。
 //   * messages ではなく contents。system は systemInstruction に分離し、
 //     assistant ロールは model という名前になる。
 //   * 画像出力は generationConfig.responseModalities: ["TEXT","IMAGE"] で要求し、
@@ -30,7 +32,18 @@
 // /v1/images/generations という別エンドポイントで参照画像を渡せず、
 // アバターやグッズを忠実に再現する用途には使えないため。
 
-import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import { decodeBase64, encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import {
+  mediaType,
+  parsePublicHttpsUrl,
+  readBodyCapped,
+  safeFetch,
+  sniffImageMediaType,
+  SsrfError,
+} from "./ssrf.ts";
+
+// 呼び出し側が instanceof で 400 に振り分けられるように、ここからも出しておく
+export { SsrfError };
 
 const VERCEL_GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
 const LOVABLE_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -49,7 +62,14 @@ export const AI_TEXT_MODEL = Deno.env.get("AI_TEXT_MODEL") ?? "google/gemini-2.5
 export const AI_IMAGE_MODEL = Deno.env.get("AI_IMAGE_MODEL") ?? "google/gemini-2.5-flash-image";
 
 /** 埋め込む参照画像1枚あたりの上限。これを超えるものは弾く。 */
-const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/** 参照画像1枚の取得にかける時間の上限（本文の読み込みも含む）とリダイレクトの上限。 */
+const IMAGE_FETCH_TIMEOUT_MS = 15_000;
+const IMAGE_FETCH_MAX_REDIRECTS = 3;
+
+/** 種類をはっきり名乗らない応答。中身の先頭バイトで画像か確かめる。 */
+const SNIFF_MEDIA_TYPES = new Set(["", "application/octet-stream", "binary/octet-stream", "text/plain"]);
 
 /** 1リクエストに埋め込む参照画像の合計上限。Gemini の受け取れる大きさに収めるため。 */
 const MAX_TOTAL_IMAGE_BYTES = 14 * 1024 * 1024;
@@ -129,6 +149,15 @@ export function currentAiProvider(): string {
 export async function callAi(options: CallAiOptions): Promise<AiResult> {
   const { provider, apiKey } = resolveProvider();
   const model = options.wantImage ? AI_IMAGE_MODEL : AI_TEXT_MODEL;
+
+  // 参照画像の URL は接続先によらず同じ形の検査を通す（不正なら SsrfError）。
+  // ゲートウェイ経由では URL のまま渡して向こうが取りに行くが、Gemini 直結ではここから取りに行く。
+  for (const message of options.messages) {
+    if (typeof message.content === "string") continue;
+    for (const part of message.content) {
+      if (part.type === "image_url") assertReferenceImageUrl(part.image_url?.url);
+    }
+  }
 
   if (provider === "gemini") {
     return await callGemini(apiKey, model, options);
@@ -245,8 +274,8 @@ async function callGemini(
   try {
     await Promise.all(inlineJobs);
   } catch (error) {
-    // 参照画像を用意できなければ生成しても意味がないので、
-    // 呼び出し側が 500 として扱えるように投げ直す。
+    // 参照画像を用意できなければ生成しても意味がないので投げ直す。
+    // inlineImage の失敗は SsrfError なので、呼び出し側は referenceImageError で 400 / 502 にできる。
     throw error instanceof Error ? error : new Error(String(error));
   }
 
@@ -325,42 +354,134 @@ function contentToPlainText(content: string | AiContentPart[]): string {
     .join("\n");
 }
 
+// ────────────────────────────── 参照画像 ──────────────────────────────
+
+const DATA_URL_RE = /^data:([^;,]+);base64,(.+)$/;
+
+/**
+ * 参照画像の URL を、取りに行く前に形だけ確かめる（DNS は引かない）。
+ * data:image/…;base64 か、公開ホストの https のみ。だめなら SsrfError（status 400）を投げる。
+ *
+ * 呼び出し側はポイントを消費する前にこれを通しておくと、明らかに不正な URL で
+ * 消費と返金を往復させずに 400 を返せる。取得の段階の検査（DNS・リダイレクト・大きさ・種類）は
+ * callAi の中（inlineImage）で行う。
+ */
+export function assertReferenceImageUrl(raw: unknown): void {
+  if (typeof raw === "string" && raw.startsWith("data:")) {
+    const m = raw.match(DATA_URL_RE);
+    if (!m || !isImageMediaType(m[1].toLowerCase(), true)) throw new SsrfError("Invalid image data");
+    return;
+  }
+  parsePublicHttpsUrl(raw);
+}
+
+/**
+ * callAi が投げた参照画像のエラー（SsrfError）を、呼び出し側が返す形にする。
+ * URL が不正・内部向け・画像でない・大きすぎる → 400。相手の都合で取れなかった・時間切れ → 502。
+ *
+ * error は画面にそのまま出してよい文言（既存の画面は error を表示している）、code は機械向けの種類、
+ * message は SsrfError の文言だけ（内部の IP などは入っていない）。
+ */
+export function referenceImageError(e: SsrfError): {
+  status: 400 | 502;
+  body: { error: string; code: "invalid_image_url" | "image_fetch_failed"; message: string };
+} {
+  return e.status < 500
+    ? {
+      status: 400,
+      body: { error: "参照画像を使えませんでした。別の画像でお試しください。", code: "invalid_image_url", message: e.message },
+    }
+    : {
+      status: 502,
+      body: { error: "参照画像を読み込めませんでした。しばらくしてからお試しください。", code: "image_fetch_failed", message: e.message },
+    };
+}
+
+function isImageMediaType(type: string, allowOctetStream = false): boolean {
+  if (allowOctetStream && type === "application/octet-stream") return true;
+  // SVG はスクリプトを含められ、Gemini も受け取らないので通さない
+  return type.startsWith("image/") && !type.startsWith("image/svg");
+}
+
 /**
  * 参照画像を inline_data に変換する。
  *
- * data URL はそのまま分解する。http(s) は取得して base64 にする。
+ * data URL はそのまま分解する（種類が octet-stream なら先頭バイトで当て直す）。
+ * http(s) は SSRF 対策つき（safeFetch: https のみ・内部アドレス拒否・DNS とリダイレクトをホップごとに検査・
+ * 時間とリダイレクト回数の上限）で取得し、image/* であること・大きさの上限を確かめてから base64 にする。
  * Gemini は画像URLを受け取らないため、この変換は省略できない。
+ *
+ * 失敗はすべて SsrfError で投げる（呼び出し側は referenceImageError で 400 / 502 に振り分ける）。
  */
 async function inlineImage(
   url: string,
   budget: { used: number }
 ): Promise<{ mime_type: string; data: string }> {
-  const dataUrlMatch = url.match(/^data:([^;,]+);base64,(.+)$/);
+  const dataUrlMatch = url.match(DATA_URL_RE);
   if (dataUrlMatch) {
-    return { mime_type: dataUrlMatch[1], data: dataUrlMatch[2] };
+    const declared = dataUrlMatch[1].toLowerCase();
+    if (!isImageMediaType(declared, true)) throw new SsrfError("Invalid image data");
+    if (declared !== "application/octet-stream") {
+      return { mime_type: declared, data: dataUrlMatch[2] };
+    }
+    // 端末によっては種類が空のまま読み込まれる。先頭だけ復号して種類を当てる
+    let head: Uint8Array;
+    try {
+      head = decodeBase64(dataUrlMatch[2].replace(/\s/g, "").slice(0, 32));
+    } catch {
+      throw new SsrfError("Invalid image data");
+    }
+    const sniffed = sniffImageMediaType(head);
+    if (!sniffed) throw new SsrfError("Invalid image data");
+    return { mime_type: sniffed, data: dataUrlMatch[2] };
   }
 
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    throw new Error("参照画像のURLが不正です");
+  // https のみ・IP 直指定や内部ホスト名は拒否（DNS とリダイレクトの検査は safeFetch がホップごとに行う）
+  const target = parsePublicHttpsUrl(url);
+
+  let response: Response;
+  try {
+    ({ response } = await safeFetch(target, {
+      timeoutMs: IMAGE_FETCH_TIMEOUT_MS,
+      maxRedirects: IMAGE_FETCH_MAX_REDIRECTS,
+      headers: () => ({ Accept: "image/*" }),
+    }));
+  } catch (e) {
+    if (e instanceof SsrfError) throw e;
+    // 時間切れ・接続できないなど。中身はログにだけ出す
+    console.error("ai: reference image fetch failed:", e instanceof Error ? e.name : String(e));
+    throw new SsrfError("Failed to fetch the reference image", 502);
   }
 
-  const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`参照画像を取得できませんでした (${response.status})`);
+    await response.body?.cancel().catch(() => {});
+    throw new SsrfError("Failed to fetch the reference image", 502);
   }
 
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength > MAX_IMAGE_BYTES) {
-    throw new Error("参照画像が大きすぎます");
+  const declared = mediaType(response);
+  const needsSniff = SNIFF_MEDIA_TYPES.has(declared);
+  if (!needsSniff && !isImageMediaType(declared)) {
+    await response.body?.cancel().catch(() => {});
+    throw new SsrfError("URL does not point to an image");
   }
+
+  let bytes: Uint8Array;
+  try {
+    bytes = await readBodyCapped(response, MAX_IMAGE_BYTES);
+  } catch (e) {
+    if (e instanceof SsrfError) throw new SsrfError("Reference image is too large", 413);
+    console.error("ai: reference image read failed:", e instanceof Error ? e.name : String(e));
+    throw new SsrfError("Failed to fetch the reference image", 502);
+  }
+  if (bytes.byteLength === 0) throw new SsrfError("Failed to fetch the reference image", 502);
+
+  const mimeType = needsSniff ? sniffImageMediaType(bytes) : declared;
+  if (!mimeType) throw new SsrfError("URL does not point to an image");
+
   budget.used += bytes.byteLength;
   if (budget.used > MAX_TOTAL_IMAGE_BYTES) {
-    throw new Error("参照画像の合計サイズが大きすぎます");
+    throw new SsrfError("Reference images are too large in total", 413);
   }
-
-  // content-type が信用できない配信元もあるので、image/* でなければ png 扱いにする。
-  const contentType = response.headers.get("content-type")?.split(";")[0]?.trim();
-  const mimeType = contentType?.startsWith("image/") ? contentType : "image/png";
 
   return { mime_type: mimeType, data: encodeBase64(bytes) };
 }

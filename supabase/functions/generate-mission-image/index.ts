@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { decodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
 
 // 今日のミッションを「AIで作る」で達成するための1枚を作る。
 //
@@ -167,6 +167,12 @@ serve(async (req) => {
   } catch (error) {
     console.error("generate-mission-image error:", error);
     await release();
+    // グッズの画像（ユーザーが登録した URL）を取りに行けなかった（内部アドレス・画像でない・大きすぎる・取得失敗）
+    // 画面は error を種類として読むので generation_failed のまま。理由は reason に入れる
+    if (error instanceof SsrfError) {
+      const r = referenceImageError(error);
+      return json({ error: "generation_failed", reason: r.body.code }, r.status);
+    }
     return json({ error: "generation_failed" }, 500);
   }
 });
