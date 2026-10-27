@@ -25,7 +25,8 @@
     "test:taxonomy": "node --experimental-strip-types scripts/test-taxonomy.mjs",
     "test:zukan": "node --experimental-strip-types scripts/test-zukan.mjs",
     "test:catalog-tag-counts": "node --experimental-strip-types scripts/test-catalog-tag-counts.mjs",
-    "test:character-page": "node --experimental-strip-types scripts/test-character-page.mjs"
+    "test:character-page": "node --experimental-strip-types scripts/test-character-page.mjs",
+    "test:catalog-perf": "node --experimental-strip-types scripts/test-catalog-perf.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -103,6 +104,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.12",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",
