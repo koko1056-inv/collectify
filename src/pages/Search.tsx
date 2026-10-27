@@ -29,6 +29,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CatalogFilterChips } from "@/components/catalog/CatalogFilterChips";
 import { countChipFacets, isChipFilterActive, matchesChipFilter, type CatalogChipFilter } from "@/lib/goodsTaxonomy";
+import { useZukanView } from "@/hooks/useZukanView";
+import { ZukanPanel } from "@/components/zukan/ZukanPanel";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -148,6 +150,8 @@ const Search = () => {
     [baseItems, chipFilter]
   );
   const chipCounts = useMemo(() => countChipFacets(baseItems, chipFilter), [baseItems, chipFilter]);
+  // 図鑑表示（未所持だけ・発売年・シリーズ別）。チップで絞った後の一覧にさらに重ねる。URL の missing / year / view に残す
+  const zukan = useZukanView(filteredItems, activeContent);
 
   const activeFilterCount = useMemo(
     () => (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length,
@@ -166,11 +170,13 @@ const Search = () => {
     });
   }, [contentNames, profile]);
 
+  const { clearFilters: clearZukanFilters } = zukan;
   const clearAllFilters = useCallback(() => {
     setSelectedContent("all");
     setSelectedTags([]);
     setChipFilter({});
-  }, []);
+    clearZukanFilters();
+  }, [clearZukanFilters]);
 
   if (legacyTab === "trade") return <Navigate to="/trade" replace />;
   if (legacyTab === "friends" || legacyTab === "collections") return <Navigate to="/explore?tab=users" replace />;
@@ -241,7 +247,7 @@ const Search = () => {
                 onFilterChange={setChipFilter}
                 counts={chipCounts}
                 countsComplete={!!activeContent && !workResult.isPlaceholderData && !workResult.isLoading && !workResult.isError}
-                canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0}
+                canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0 || zukan.missingOnly || zukan.year !== null}
                 onReset={clearAllFilters}
               />
 
@@ -262,9 +268,19 @@ const Search = () => {
                 </div>
               )}
 
+              {/* 図鑑の帯（所持率・未所持だけ・一覧/シリーズ別・発売年）。上のチップで絞った一覧に重ねて効く */}
+              <ZukanPanel
+                zukan={zukan}
+                content={activeContent}
+                contentItems={activeContent && !workResult.isPlaceholderData ? workResult.data : undefined}
+                narrowed={isChipFilterActive(chipFilter) || selectedTags.length > 0 || searchQuery.trim().length > 0}
+              />
+
               <div data-tour="search-results">
               <OfficialItemsList
-                items={filteredItems}
+                items={zukan.items}
+                seriesView={zukan.seriesView}
+                ownedIds={zukan.ownedIds}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 selectedTags={selectedTags}

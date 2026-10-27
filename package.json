@@ -22,7 +22,8 @@
     "test:secret-question": "node --experimental-strip-types scripts/test-secret-question.mjs",
     "test:query-retry": "node --experimental-strip-types scripts/test-query-retry.mjs",
     "test:catalog-item-requests": "node --experimental-strip-types scripts/test-catalog-item-requests.mjs",
-    "test:taxonomy": "node --experimental-strip-types scripts/test-taxonomy.mjs"
+    "test:taxonomy": "node --experimental-strip-types scripts/test-taxonomy.mjs",
+    "test:zukan": "node --experimental-strip-types scripts/test-zukan.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

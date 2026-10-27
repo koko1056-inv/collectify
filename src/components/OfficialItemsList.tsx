@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { CatalogRequestButton } from "./catalog/CatalogRequestButton";
+import { SeriesGroupedGrid } from "./zukan/SeriesGroupedGrid";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -42,9 +43,13 @@ interface OfficialItemsListProps {
   isError?: boolean;
   /** エラー表示の「再試行」で呼ばれる。 */
   onRetry?: () => void;
+  /** シリーズ別まとめ表示（/search?view=series）。作品を選んでいるときだけ true にする */
+  seriesView?: boolean;
+  /** 自分の所持 id（シリーズ別の「3/8 所持」用。ゲストは null） */
+  ownedIds?: ReadonlySet<string> | null;
 }
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned" | "release-desc" | "release-asc";
 
 export function OfficialItemsList({ 
   items,
@@ -57,7 +62,9 @@ export function OfficialItemsList({
   tags = [],
   isInitialLoading = false,
   isError = false,
-  onRetry
+  onRetry,
+  seriesView = false,
+  ownedIds = null,
 }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -287,6 +294,8 @@ export function OfficialItemsList({
             </div>
           }
         />
+      ) : seriesView ? (
+        <SeriesGroupedGrid items={sortedItems} ownedIds={ownedIds} ownerCounts={distinctOwnerCounts} />
       ) : (
         <OfficialItemsGrid
           items={currentItems}
@@ -297,7 +306,7 @@ export function OfficialItemsList({
         />
       )}
 
-      {visibleCount < sortedItems.length && (
+      {!seriesView && visibleCount < sortedItems.length && (
         <div 
           ref={loaderRef} 
           className="flex justify-center items-center py-6"
