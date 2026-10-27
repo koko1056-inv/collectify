@@ -478,15 +478,20 @@ export const chrome = {
         toManual: "自分で入力する",
         toPhoto: "写真から選ぶ",
         retry: "もう一度ためす",
+        // 回数制限（scrape-images の 429）。失敗ではないので、やさしく
+        limitedHourTitle: "たくさん読み込んだね！ 少し休んでから、また試してね",
+        limitedDayTitle: "今日はたくさん読み込んだね！ 少し休んでから、また試してね",
+        limitedBody: "そのあいだは、写真から選ぶか、自分で入力して追加できるよ",
+        webHelp: "読み込めないときは、画像を保存して追加しよう",
       },
-      // URL の読み込みが使えない人向け（画像を保存して写真から選ぶ）
+      // URL で読み込めないページ向け（画像を保存して写真から選ぶ）
       web: {
         pokke: "サイトで見つけたグッズは、画像を保存してから選んでね",
         step1: "商品ページの画像を長押しして保存（スクショでもOK）",
         step2: "下のボタンから、保存した画像を選ぶ",
         step3: "AIが名前を読み取るよ。あとは確かめるだけ！",
         pick: "保存した画像を選ぶ",
-        soon: "URLを貼るだけで読み込めるようにする準備中だよ",
+        toUrl: "URLを貼って読み込む",
       },
       gacha: {
         title: "ガチャ・くじ・ランダムのグッズは？",
@@ -1052,6 +1057,10 @@ export const chrome = {
         toManual: "Enter it yourself",
         toPhoto: "Pick a photo",
         retry: "Try again",
+        limitedHourTitle: "You've loaded a lot of pages! Take a short break and try again",
+        limitedDayTitle: "You've loaded a lot of pages today! Take a break and try again later",
+        limitedBody: "Meanwhile, you can pick a photo or enter it yourself",
+        webHelp: "Can't load it? Save the image and add it instead",
       },
       web: {
         pokke: "Found it on a website? Save the image first, then pick it",
@@ -1059,7 +1068,7 @@ export const chrome = {
         step2: "Pick the saved image with the button below",
         step3: "AI reads the name. Then just check it!",
         pick: "Pick the saved image",
-        soon: "Loading straight from a URL is coming soon",
+        toUrl: "Paste a URL to load it",
       },
       gacha: {
         title: "Gacha, lottery or blind-box goods?",

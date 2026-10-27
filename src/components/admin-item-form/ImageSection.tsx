@@ -1,7 +1,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronLeft, ChevronRight, ClipboardPaste, Images, Link2, Loader2, PenLine, RotateCcw, Sparkles, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ClipboardPaste, Download, Images, Link2, Loader2, PenLine, RotateCcw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
 import { CameraScanArt, ManualFormArt } from "@/components/collection/AddGoodsArt";
 import { GachaSplitArt, PageExampleArt, SaveImageArt, UrlImportArt } from "./AddMethodArt";
 import { looksLikeGacha } from "./gachaHint";
+import { readFunctionsRateLimit } from "@/lib/functionsRateLimit";
 import { cn } from "@/lib/utils";
 
 export interface AnalysisResult {
@@ -58,7 +59,7 @@ interface ImageSectionProps {
 }
 
 type Method = "choose" | "photo" | "url" | "web";
-type UrlStatus = "idle" | "loading" | "found" | "failed";
+type UrlStatus = "idle" | "loading" | "found" | "failed" | "limited";
 type ScrapedImage = { url: string; title: string | null };
 
 /** ロゴ・アイコン・バナーらしい画像は後ろへ回す（ページの先頭にあることが多く、グッズの写真ではない） */
@@ -87,13 +88,12 @@ function phrases(text: string) {
  * /add-item（カタログにない・自作グッズ）の最初の画面。
  *
  * 以前は A/B/C の同じ形の枠（写真・Webサイトから取得・画像URL）が縦に並び、読み比べないと違いがわからなかった。
- * しかも「Webサイトから取得」の scrape-images は管理者だけが使える Edge Function で、
- * 一般の人が押すと「エラー / 画像の取得に失敗しました。」のトーストだけが出ていた。
  * ここでは
  *  - 最初に「写真を撮る・選ぶ／サイトのURLを貼る／自分で入力」を絵つきの大きいカードで選んでもらう
- *  - URL を貼るのは、使える人（管理者）にだけ出す。使えない人には「画像を保存して写真から選ぶ」道筋を絵で見せる
- *  - 待つ間と失敗はポッケが伝える。失敗したらワンタップで手入力へ（URLは引き継ぐ）
- *  - 読み込めたら、画像と名前を確かめて（直して）から次へ進む
+ *  - URL の読み込み（scrape-images）はログインしている人なら誰でも使える（1時間・1日の回数制限つき。管理者は対象外）
+ *  - 読み込めないページのために「画像を保存して写真から選ぶ」道筋（web）も、URL の画面と失敗の画面から開ける
+ *  - 待つ間・失敗・回数制限はポッケが伝える。失敗したらワンタップで手入力・写真へ（URLは引き継ぐ）
+ *  - 読み込めたら、画像と名前（ページの名前）を確かめて（直して）から次へ進む
  */
 export function ImageSection({
   imageFile,
@@ -111,8 +111,8 @@ export function ImageSection({
   const [method, setMethod] = useState<Method>(previewUrl ? "photo" : initialUrl ? "url" : "choose");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // URL の読み込み（scrape-images）は管理者だけが使える。ProtectedRoute と同じキーで確かめる
-  const { data: canImportUrl = false } = useQuery({
+  // 「何枚か選んでまとめて登録」は管理者（カタログ整備）向け。ProtectedRoute と同じキーで確かめる
+  const { data: isAdmin = false } = useQuery({
     queryKey: ["has-role", "admin", user?.id],
     enabled: !!user,
     staleTime: 1000 * 60 * 10,
@@ -202,6 +202,7 @@ export function ImageSection({
   const [urlStatus, setUrlStatus] = useState<UrlStatus>("idle");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [failKind, setFailKind] = useState<"empty" | "fetch">("fetch");
+  const [limitedBy, setLimitedBy] = useState<"hour" | "day">("hour");
   const [scrapedImages, setScrapedImages] = useState<ScrapedImage[]>([]);
   const [chosenImage, setChosenImage] = useState<string | null>(null);
   const [importName, setImportName] = useState("");
@@ -243,9 +244,18 @@ export function ImageSection({
       }
       setScrapedImages(images);
       setChosenImage(images[0].url);
-      setImportName(images.find((i) => i.title)?.title ?? "");
+      // 名前はページの名前（og:title など）を優先し、無ければ画像の alt
+      const pageTitle = typeof data?.title === "string" ? data.title.trim() : "";
+      setImportName(pageTitle || images.find((i) => i.title)?.title || "");
       setUrlStatus("found");
     } catch (error) {
+      // 回数制限（429）は失敗ではないので、こわい文言にせず「少し休んでね」と伝える
+      const limited = await readFunctionsRateLimit(error);
+      if (limited) {
+        setLimitedBy(limited.limitedBy);
+        setUrlStatus("limited");
+        return;
+      }
       console.error("Error scraping images:", error);
       setFailKind("fetch");
       setUrlStatus("failed");
@@ -336,24 +346,13 @@ export function ImageSection({
               tone="primary"
               onClick={pickPhoto}
             />
-            {canImportUrl ? (
-              <MethodCard
-                art={<UrlImportArt />}
-                title={t("chrome.adminForm.method.urlTitle")}
-                lead={t("chrome.adminForm.method.urlLead")}
-                tone="primary"
-                onClick={() => setMethod("url")}
-              />
-            ) : (
-              // URL の読み込みが使えない人には、サイトの画像を保存して写真から選ぶ道筋を見せる
-              <MethodCard
-                art={<SaveImageArt />}
-                title={t("chrome.adminForm.method.webTitle")}
-                lead={t("chrome.adminForm.method.webLead")}
-                tone="primary"
-                onClick={() => setMethod("web")}
-              />
-            )}
+            <MethodCard
+              art={<UrlImportArt />}
+              title={t("chrome.adminForm.method.urlTitle")}
+              lead={t("chrome.adminForm.method.urlLead")}
+              tone="primary"
+              onClick={() => setMethod("url")}
+            />
             <MethodCard
               art={<ManualFormArt />}
               title={t("chrome.adminForm.method.manualTitle")}
@@ -436,7 +435,12 @@ export function ImageSection({
             <Images className="h-4 w-4" aria-hidden="true" />
             {t("chrome.adminForm.web.pick")}
           </Button>
-          <p className="text-center text-2xs text-muted-foreground">{t("chrome.adminForm.web.soon")}</p>
+          <div className="flex justify-center">
+            <Button type="button" variant="link" size="sm" className="h-9 px-1 text-xs" onClick={() => setMethod("url")}>
+              <Link2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+              {t("chrome.adminForm.web.toUrl")}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -507,6 +511,7 @@ export function ImageSection({
                 <PageExample kind="good" title={t("chrome.adminForm.url.goodTitle")} example={t("chrome.adminForm.url.goodExample")} />
                 <PageExample kind="bad" title={t("chrome.adminForm.url.badTitle")} example={t("chrome.adminForm.url.badExample")} />
               </div>
+              <WebHelpLink onClick={() => setMethod("web")} />
             </>
           )}
 
@@ -592,7 +597,7 @@ export function ImageSection({
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-                {scrapedImages.length > 1 && (
+                {isAdmin && scrapedImages.length > 1 && (
                   <Button type="button" variant="link" size="sm" className="h-9 px-1 text-xs" onClick={() => setShowImageSelector(true)}>
                     {t("chrome.adminForm.url.bulk")}
                   </Button>
@@ -626,6 +631,32 @@ export function ImageSection({
                   {t("chrome.adminForm.url.retry")}
                 </Button>
               </div>
+              <WebHelpLink onClick={() => setMethod("web")} />
+            </>
+          )}
+
+          {urlStatus === "limited" && (
+            <>
+              <PockeSays pose="wink" height={72}>
+                <span className="block font-bold">
+                  {limitedBy === "day" ? t("chrome.adminForm.url.limitedDayTitle") : t("chrome.adminForm.url.limitedHourTitle")}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">{t("chrome.adminForm.url.limitedBody")}</span>
+              </PockeSays>
+              <Button type="button" onClick={pickPhoto} className="h-12 w-full gap-2 rounded-xl font-bold">
+                <Images className="h-4 w-4" aria-hidden="true" />
+                {t("chrome.adminForm.url.toPhoto")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onManual?.(urlInput.trim())}
+                className="h-11 w-full gap-1.5 rounded-xl text-sm"
+              >
+                <PenLine className="h-4 w-4" aria-hidden="true" />
+                {t("chrome.adminForm.url.toManual")}
+              </Button>
+              <WebHelpLink onClick={() => setMethod("web")} />
             </>
           )}
         </div>
@@ -766,6 +797,24 @@ function PageExample({ kind, title, example }: { kind: "good" | "bad"; title: st
         <span className={cn("block text-2xs font-bold", good ? "text-success" : "text-muted-foreground")}>{title}</span>
         <span className="mt-0.5 block text-2xs leading-snug">{example}</span>
       </span>
+    </div>
+  );
+}
+
+/** 読み込めないページのための「画像を保存して追加する」案内（web）への小さなリンク */
+function WebHelpLink({ onClick }: { onClick: () => void }) {
+  const { t } = useLanguage();
+  return (
+    <div className="flex justify-center">
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex min-h-9 items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        <Download className="h-3.5 w-3.5" aria-hidden="true" />
+        {t("chrome.adminForm.url.webHelp")}
+        <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
     </div>
   );
 }
