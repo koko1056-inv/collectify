@@ -35,7 +35,8 @@ async function rejects(name, fn, status) {
 for (const ip of [
   "0.0.0.0", "0.1.2.3", "10.0.0.1", "10.255.255.255", "100.64.0.1", "100.127.255.255", "127.0.0.1", "127.1.2.3",
   "169.254.169.254", "172.16.0.1", "172.31.255.255", "192.168.1.1", "192.0.0.1", "198.18.0.1", "224.0.0.1",
-  "240.0.0.1", "255.255.255.255", "not-an-ip", "1.2.3",
+  "240.0.0.1", "255.255.255.255", "not-an-ip", "1.2.3", "192.88.99.1", "192.0.2.10", "198.51.100.7", "203.0.113.9",
+  "1.2.3.256", "",
 ]) {
   check(`IPv4 ${ip} は内部`, isPrivateIPv4(ip));
 }
@@ -48,10 +49,17 @@ for (const ip of [
   "::", "::1", "fc00::1", "fd12:3456::1", "fe80::1", "febf::1", "ff02::1", "::ffff:127.0.0.1", "::ffff:7f00:1",
   "::ffff:10.0.0.1", "::ffff:169.254.169.254", "::ffff:a9fe:a9fe", "64:ff9b::7f00:1", "2002:7f00:1::1", "2001:db8::1",
   "[::1]", "fe80::1%eth0", "0:0:0:0:0:0:0:1", "::127.0.0.1", "garbage:",
+  // IPv4 変換（SIIT）・ローカル NAT64・6to4 に埋め込んだ内部 IPv4・Teredo・大文字表記
+  "::ffff:0:127.0.0.1", "::ffff:0:7f00:1", "::ffff:0:a9fe:a9fe", "64:ff9b:1::1", "2002:a9fe:a9fe::1", "2002:c0a8:0101::1",
+  "2001:0:4136:e378:8000:63bf:3fff:fdd2", "FD00::1", "FE80::ABCD", "fd00:ec2::254", "64:ff9b::a9fe:a9fe",
+  "1:2:3:4:5:6:7:8:9", "::1::", "12345::1",
 ]) {
   check(`IPv6 ${ip} は内部`, isPrivateIPv6(ip));
 }
-for (const ip of ["2606:4700:4700::1111", "2001:4860:4860::8888", "::ffff:8.8.8.8", "2a00:1450:4001:81b::200e"]) {
+for (const ip of [
+  "2606:4700:4700::1111", "2001:4860:4860::8888", "::ffff:8.8.8.8", "2a00:1450:4001:81b::200e", "::ffff:0:8.8.8.8",
+  "64:ff9b::808:808", "2002:0808:0808::1",
+]) {
   check(`IPv6 ${ip} は公開`, !isPrivateIPv6(ip));
 }
 
@@ -63,6 +71,12 @@ const badUrls = [
   "https://foo.localhost/", "https://printer.local/", "https://db.internal/", "https://intranet/", "https://example.com:8443/",
   "https://user:pw@example.com/", "https://example.com./", "https://10.0.0.1.nip.io.local/", "https://1.2.3.4/",
   "https://example.0x10/", "https://example.123/", "", "not a url",
+  // 10進・8進・16進・省略形の IP、IPv4 マップ IPv6、メタデータの名前、内部の名前
+  "https://0x7f.0.0.1/", "https://0177.1/", "https://017700000001/", "https://3232235777/", "https://0xa9fea9fe/",
+  "https://[::ffff:a9fe:a9fe]/", "https://[fd00::1]/", "https://[::ffff:0:127.0.0.1]/", "https://LOCALHOST/",
+  "https://localhost./", "https://metadata.google.internal/computeMetadata/v1/", "https://instance-data/latest/",
+  "https://router.lan/", "https://nas.home.arpa/", "https://a.localdomain/", "https://169.254.169.254.nip.io.local/",
+  "data:image/png;base64,AAAA", "https:///nohost", "https://exa mple.com/",
 ];
 for (const u of badUrls) {
   try {

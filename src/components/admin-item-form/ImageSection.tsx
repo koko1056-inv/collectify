@@ -22,6 +22,7 @@ import { CameraScanArt, ManualFormArt } from "@/components/collection/AddGoodsAr
 import { GachaSplitArt, PageExampleArt, SaveImageArt, UrlImportArt } from "./AddMethodArt";
 import { looksLikeGacha } from "./gachaHint";
 import { readFunctionsRateLimit } from "@/lib/functionsRateLimit";
+import { compressImageFile, ITEM_IMAGE_OPTIONS } from "@/utils/compress-image";
 import { cn } from "@/lib/utils";
 
 export interface AnalysisResult {
@@ -144,8 +145,8 @@ export function ImageSection({
     try {
       let imageUrl = previewUrl;
       if (previewUrl.startsWith("blob:")) {
-        const response = await fetch(previewUrl);
-        const blob = await response.blob();
+        // 元の写真のままだと数MBになり、analyze-item-image の上限（10MB）を超えることもある。先に縮めて送る（QuickAddFlow と同じ）
+        const blob = imageFile ? await compressImageFile(imageFile, ITEM_IMAGE_OPTIONS) : await (await fetch(previewUrl)).blob();
         const reader = new FileReader();
         imageUrl = await new Promise<string>((resolve) => {
           reader.onloadend = () => resolve(reader.result as string);
