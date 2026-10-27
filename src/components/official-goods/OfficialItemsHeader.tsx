@@ -11,7 +11,7 @@ import {
 import { ContentTagManageModal } from "@/components/tag/ContentTagManageModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned" | "release-desc" | "release-asc";
 
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
@@ -59,6 +59,8 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
           <SelectContent position="popper" className="bg-popover border border-border z-50">
             <SelectItem value="newest">{t("collectionScreen.official.sortNewest")}</SelectItem>
             <SelectItem value="oldest">{t("collectionScreen.official.sortOldest")}</SelectItem>
+            <SelectItem value="release-desc">{t("zukan.sort.releaseDesc")}</SelectItem>
+            <SelectItem value="release-asc">{t("zukan.sort.releaseAsc")}</SelectItem>
             <SelectItem value="wishlist">{t("collectionScreen.official.sortWishlist")}</SelectItem>
             <SelectItem value="owners-desc">{t("collectionScreen.official.sortOwnersDesc")}</SelectItem>
             <SelectItem value="owners-asc">{t("collectionScreen.official.sortOwnersAsc")}</SelectItem>

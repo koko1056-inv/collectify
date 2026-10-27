@@ -29,6 +29,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CatalogFilterChips } from "@/components/catalog/CatalogFilterChips";
 import { countChipFacets, isChipFilterActive, matchesChipFilter, type CatalogChipFilter } from "@/lib/goodsTaxonomy";
+import { useZukanView } from "@/hooks/useZukanView";
+import { ZukanPanel } from "@/components/zukan/ZukanPanel";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -148,6 +150,8 @@ const Search = () => {
     [baseItems, chipFilter]
   );
   const chipCounts = useMemo(() => countChipFacets(baseItems, chipFilter), [baseItems, chipFilter]);
+  // 図鑑表示（未所持だけ・発売年・シリーズ別）。チップで絞った後の一覧にさらに重ねる。URL の missing / year / view に残す
+  const zukan = useZukanView(filteredItems, activeContent);
 
   const activeFilterCount = useMemo(
     () => (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length,
@@ -262,9 +266,13 @@ const Search = () => {
                 </div>
               )}
 
+              <ZukanPanel zukan={zukan} content={activeContent} contentItems={activeContent && !workResult.isPlaceholderData ? workResult.data : undefined} />
+
               <div data-tour="search-results">
               <OfficialItemsList
-                items={filteredItems}
+                items={zukan.items}
+                seriesView={zukan.seriesView}
+                ownedIds={zukan.ownedIds}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 selectedTags={selectedTags}

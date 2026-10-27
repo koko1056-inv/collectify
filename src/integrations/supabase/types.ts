@@ -4613,6 +4613,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]
       }
+      get_catalog_completion: {
+        Args: { _content: string }
+        Returns: { kind: string; label: string; owned: number; total: number }[]
+      }
       claim_completed_onboarding_rewards: {
         Args: Record<PropertyKey, never>
         Returns: { step_id: string; points: number }[]

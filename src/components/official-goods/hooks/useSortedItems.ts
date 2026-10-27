@@ -2,8 +2,9 @@ import { OfficialItem } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { compareByRelease } from "@/utils/zukan";
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned" | "release-desc" | "release-asc";
 
 export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerCounts: Record<string, number>) {
   const { user } = useAuth();
@@ -51,6 +52,11 @@ export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerC
     
     if (sortBy === "oldest") {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+
+    // 発売日順（図鑑を年表として見る）。newest / oldest は登録日なので別にする
+    if (sortBy === "release-desc" || sortBy === "release-asc") {
+      return compareByRelease(a, b, sortBy === "release-desc" ? "desc" : "asc");
     }
     
     if (sortBy === "wishlist") {
