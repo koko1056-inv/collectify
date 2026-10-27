@@ -26,7 +26,8 @@
     "test:zukan": "node --experimental-strip-types scripts/test-zukan.mjs",
     "test:catalog-tag-counts": "node --experimental-strip-types scripts/test-catalog-tag-counts.mjs",
     "test:character-page": "node --experimental-strip-types scripts/test-character-page.mjs",
-    "test:catalog-perf": "node --experimental-strip-types scripts/test-catalog-perf.mjs"
+    "test:catalog-perf": "node --experimental-strip-types scripts/test-catalog-perf.mjs",
+    "test:realtime": "node --experimental-strip-types scripts/test-realtime-subscriptions.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
