@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
-import { ImageSection, type AnalysisResult } from "./admin-item-form/ImageSection";
+import { GachaHint, ImageSection, type UrlImportResult } from "./admin-item-form/ImageSection";
+import { looksLikeGacha } from "./admin-item-form/gachaHint";
 import { ItemDetailsSection } from "./admin-item-form/ItemDetailsSection";
 import { MultipleItemsForm } from "./admin-item-form/MultipleItemsForm";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
@@ -18,7 +19,7 @@ import {
   type SimilarOfficialItem,
 } from "@/hooks/useSimilarOfficialItems";
 import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
-import { Check, ChevronRight, Sparkles } from "lucide-react";
+import { Check, ChevronRight, ExternalLink, ImagePlus, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,11 @@ export function AdminItemForm() {
   const [addToOwnCollection, setAddToOwnCollection] = useState(true);
   // 既定ON: カタログにも登録して他の人が同じグッズを見つけられるようにする
   const [shareToCatalog, setShareToCatalog] = useState(true);
+  // URL から読み込もうとしたページ。読み込めずに手入力へ来たときも、開き直せるように残す（保存はしない）
+  const [keptUrl, setKeptUrl] = useState<string | null>(null);
+  const [keptUrlFailed, setKeptUrlFailed] = useState(false);
+  const [importingImage, setImportingImage] = useState(false);
+  const stepPhotoInputRef = useRef<HTMLInputElement>(null);
   const bulkSubmittingRef = useRef(false);
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -88,6 +94,8 @@ export function AdminItemForm() {
     setSelectedImages([]);
     setIsMultipleMode(false);
     setShareToCatalog(true);
+    setKeptUrl(null);
+    setKeptUrlFailed(false);
     setFormKey(prev => prev + 1);
   };
 
@@ -185,10 +193,45 @@ export function AdminItemForm() {
 
   const canProceedToStep2 = imageFile || previewUrl;
 
+  // 「自分で入力」: 画像は詳細の画面で入れてもらう。URL の読み込みに失敗して来たときは、そのページを残しておく
+  const handleManual = (url?: string) => {
+    setKeptUrl(url || null);
+    setKeptUrlFailed(!!url);
+    setIsMultipleMode(false);
+    setStep1Completed(true);
+    setCurrentStep("step2");
+  };
+
+  // URL から読み込んだ1件。画像は取り込めればファイルにして（縮めて自分のストレージへ）、
+  // 取り込めない（相手のサイトが許していない）ときはそのURLのまま使う（一括登録と同じ扱い）
+  const handleUrlImported = async ({ imageUrl, title, sourceUrl }: UrlImportResult) => {
+    setImportingImage(true);
+    try {
+      const response = await fetch(imageUrl, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+      const blob = await response.blob();
+      if (!blob.type.startsWith("image/")) throw new Error(`Not an image: ${blob.type}`);
+      const fileName = imageUrl.split("/").pop()?.split("?")[0] || "image.jpg";
+      handleImageChange(new File([blob], fileName, { type: blob.type }));
+    } catch (e) {
+      console.warn("Image fetch failed, using original URL:", e);
+      setImageFile(null);
+      setPreviewUrl(imageUrl);
+    } finally {
+      setImportingImage(false);
+    }
+    if (title) handleFormUpdate({ title });
+    setKeptUrl(sourceUrl);
+    setKeptUrlFailed(false);
+    setIsMultipleMode(false);
+    setStep1Completed(true);
+    setCurrentStep("step2");
+  };
+
   return (
     <div className="space-y-4">
       {/* ステップインジケーター */}
-      <div className="flex items-center justify-center gap-4 py-4">
+      <div className="flex items-center justify-center gap-4 py-2 sm:py-4">
         <div 
           className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-full transition-all cursor-pointer",
@@ -246,30 +289,22 @@ export function AdminItemForm() {
         <CardContent className="p-4 sm:p-6">
           {/* 送信前に枠の残りが分かるようにする。
               枠拡張ボタンが form の submit として発火しないよう form の外に置く */}
-          <div className="mb-6">
-            {currentStep === "step1" ? (
-              <SlotUsageMeter type="collection" />
-            ) : (
-              // 実際に枠を消費する送信ボタンは step2 にあるので、ここでも残りを見せる
-              <SlotUsageMeter type="collection" compact />
-            )}
+          <div className="mb-4 sm:mb-6">
+            {/* 追加のしかたを先に見せたいので、どちらのステップでも小さく出す */}
+            <SlotUsageMeter type="collection" compact />
           </div>
 
           <form key={formKey} onSubmit={handleGuardedSubmit}>
             {currentStep === "step1" && (
               <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-lg font-bold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {t("chrome.adminForm.addImageDesc")}
-                  </p>
-                </div>
-
                 <ImageSection
                   imageFile={imageFile}
                   setImageFile={handleImageChange}
                   previewUrl={previewUrl}
                   setPreviewUrl={setPreviewUrl}
+                  initialUrl={keptUrl ?? undefined}
+                  onManual={handleManual}
+                  onUrlImported={handleUrlImported}
                   onAnalysisComplete={(result) => {
                     if (result.selectedImages && result.selectedImages.length > 0) {
                       setSelectedImages(result.selectedImages);
@@ -281,7 +316,7 @@ export function AdminItemForm() {
                         description: t("chrome.adminForm.imagesSelectedDesc", { n: result.selectedImages.length }),
                       });
                     } else {
-                      const updates: any = {};
+                      const updates: Partial<typeof formData> = {};
                       
                       if (result.title) updates.title = result.title;
                       if (result.description) updates.description = result.description;
@@ -295,18 +330,21 @@ export function AdminItemForm() {
                   }}
                 />
                 
-                <div className="flex justify-end pt-4 border-t">
-                  <Button 
-                    type="button"
-                    onClick={handleNextStep}
-                    disabled={!canProceedToStep2}
-                    size="lg"
-                    className="px-8 gap-2"
-                  >
-                    {t("chrome.adminForm.next")}
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
+                {/* 写真を選んだあとにだけ出す（選ぶ前は、追加のしかたのカードが次の一歩） */}
+                {canProceedToStep2 && (
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button
+                      type="button"
+                      onClick={handleNextStep}
+                      size="lg"
+                      className="w-full gap-2 px-8 sm:w-auto"
+                    >
+                      {t("chrome.adminForm.next")}
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                {importingImage && <span className="sr-only" role="status">{t("chrome.adminForm.url.loading")}</span>}
               </div>
             )}
 
@@ -491,16 +529,64 @@ export function AdminItemForm() {
                       </p>
                     </div>
 
-                    {/* プレビュー画像 */}
-                    {previewUrl && (
-                      <div className="flex justify-center mb-6">
-                        <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg">
-                          <img 
-                            src={previewUrl} 
-                            alt={t("chrome.adminForm.previewAlt")} 
+                    {/* プレビュー画像。「自分で入力」から来て写真がまだ無いときは、ここで入れてもらう */}
+                    <input
+                      ref={stepPhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) handleImageChange(e.target.files[0]);
+                        e.target.value = "";
+                      }}
+                    />
+                    <div className="flex flex-col items-center mb-6">
+                      {previewUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => stepPhotoInputRef.current?.click()}
+                          aria-label={t("chrome.adminForm.details.changePhoto")}
+                          className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg"
+                        >
+                          <img
+                            src={previewUrl}
+                            alt={t("chrome.adminForm.previewAlt")}
                             className="w-full h-full object-cover"
                           />
-                        </div>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => stepPhotoInputRef.current?.click()}
+                          data-step2-photo-slot
+                          className="flex h-32 w-32 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:bg-primary/10"
+                        >
+                          <ImagePlus className="h-7 w-7" aria-hidden="true" />
+                          <span className="text-xs font-bold">{t("chrome.adminForm.details.addPhoto")}</span>
+                        </button>
+                      )}
+                      {!previewUrl && (
+                        <p className="mt-2 text-center text-xs text-muted-foreground">{t("chrome.adminForm.details.needPhoto")}</p>
+                      )}
+                    </div>
+
+                    {/* 読み込もうとしたページ。名前などを見ながら入れられるように、開き直せるようにしておく */}
+                    {keptUrl && (
+                      <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs">
+                        <span className="shrink-0 text-muted-foreground">
+                          {keptUrlFailed ? t("chrome.adminForm.details.keptUrlFailed") : t("chrome.adminForm.details.keptUrl")}
+                        </span>
+                        <a
+                          href={keptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+                        >
+                          <span className="truncate">{hostOf(keptUrl)}</span>
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        </a>
                       </div>
                     )}
 
@@ -510,6 +596,9 @@ export function AdminItemForm() {
                       selectedTags={selectedTags}
                       onTagsChange={setSelectedTags}
                     />
+
+                    {/* ガチャ・くじっぽい名前なら、キャラごとに1件で登録してもらう */}
+                    {looksLikeGacha(formData.title) && <GachaHint strong />}
 
                     {/* 自動で入れた項目があることを伝える。黙って入れると、
                         間違った値のまま登録されてしまう */}
@@ -574,7 +663,7 @@ export function AdminItemForm() {
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={loading || (!addToOwnCollection && !shareToCatalog)} 
+                        disabled={loading || !previewUrl || (!addToOwnCollection && !shareToCatalog)}
                         size="lg"
                         className="px-8 gap-2"
                       >
@@ -611,4 +700,13 @@ export function AdminItemForm() {
       />
     </div>
   );
+}
+
+/** 表示用にURLのホスト名だけを取り出す（読めないときはそのまま） */
+function hostOf(url: string) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
 }

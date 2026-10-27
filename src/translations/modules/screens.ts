@@ -43,8 +43,8 @@ export const screens = {
       descLine1: "自分のコレクションに追加します。",
       descLine2: "みんなのカタログにも登録すると、他のコレクターも見つけられるようになります。",
       tipsTitle: "便利なヒント",
-      tip1: "商品ページのURLから画像を自動取得できます",
-      tip2: "複数の画像を選んで一括登録も可能です",
+      tip1: "写真を選ぶと、AIがグッズの名前を読み取ります",
+      tip2: "ガチャ・くじのグッズは、キャラごとに1件ずつ登録すると探しやすくなります",
       tip3: "タグを追加すると検索されやすくなります",
     },
     quickAdd: {
@@ -471,8 +471,8 @@ export const screens = {
       descLine1: "This adds the item to your own collection.",
       descLine2: "Share it to the catalog too and other collectors can find it.",
       tipsTitle: "Handy tips",
-      tip1: "Paste a product page URL to pull in images automatically",
-      tip2: "Pick several images to register them all at once",
+      tip1: "Pick a photo and AI reads the goods name for you",
+      tip2: "For gacha and lottery goods, add one item per character so they're easier to find",
       tip3: "Adding Tags makes your goods easier to find",
     },
     quickAdd: {
