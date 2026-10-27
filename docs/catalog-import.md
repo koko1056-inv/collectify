@@ -83,7 +83,8 @@
 
 ### 取り込めない・見送った取得元
 
-- **STARTO ENTERTAINMENT**（Snow Man ほか）: `starto.jp` の robots.txt が ClaudeBot / Claude-SearchBot / GPTBot を名指しで禁止しているため、取得元に使わない。
+- **STARTO ENTERTAINMENT**（Snow Man ほか）: `starto.jp` の robots.txt が ClaudeBot / Claude-SearchBot / GPTBot を名指しで禁止しているため、取得元に使わない。公式グッズの販売先 `famikura-store.jp`（ファミクラストア / MERCH MARKET）も robots.txt で ClaudeBot ほかを名指しで禁止しているので使わない（familyclub ほか STARTO が運営するドメインも同様）。
+  - そのため STARTO のグループ（作品は Snow Man・SixTONES・なにわ男子・King & Prince ほか15組。旧名の作品は今の名前にまとめ、旧名はエイリアス。マイグレーション `20261027170000`）は、**MusicBrainz（API）＋ Cover Art Archive の CD・映像・レコードと、tower.jp の表紙の雑誌だけ**で入れる。グッズ・ガチャ・くじは入れていない。
 - JO1（`jo1.jp` は取得可だが、グッズの販売先 LAPONE のショップは、この実行環境のネットワーク許可に無い）: 環境のネットワーク許可に追加するか、取得元を別にする必要がある。
 
 ### 手順
