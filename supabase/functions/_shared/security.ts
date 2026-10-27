@@ -124,17 +124,25 @@ export async function requireUser(req: Request, cors: Record<string, string>): P
   return { ok: true, user: { id: data.user.id, email: data.user.email }, userClient };
 }
 
+/**
+ * requireUser で確かめたユーザーが管理者か（has_role('admin')）。
+ * 確かめられなかったとき（RPC のエラー）は false（安全側）。
+ */
+export async function isAdminUser(auth: { user: AuthedUser; userClient: SupabaseClient }): Promise<boolean> {
+  const { data, error } = await auth.userClient.rpc("has_role", {
+    _user_id: auth.user.id,
+    _role: "admin",
+  });
+  if (error) console.error("isAdminUser: has_role failed:", error.message);
+  return !error && data === true;
+}
+
 /** requireUser に加えて、has_role('admin') を確かめる（delete-official-item と同じ方法）。 */
 export async function requireAdmin(req: Request, cors: Record<string, string>): Promise<AuthResult> {
   const auth = await requireUser(req, cors);
   if (!auth.ok) return auth;
 
-  const { data: isAdmin, error } = await auth.userClient.rpc("has_role", {
-    _user_id: auth.user.id,
-    _role: "admin",
-  });
-  if (error || isAdmin !== true) {
-    if (error) console.error("requireAdmin: has_role failed:", error.message);
+  if (!(await isAdminUser(auth))) {
     return { ok: false, response: jsonResponse(cors, { error: "この操作には管理者権限が必要です" }, 403) };
   }
   return auth;
