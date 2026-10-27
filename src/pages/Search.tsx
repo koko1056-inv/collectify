@@ -6,7 +6,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { FEED_PAGE, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
+import { FEED_PAGE, useCatalogContents, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Navigate, useLocation, useSearchParams } from "react-router-dom";
@@ -27,6 +27,8 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CatalogFilterChips } from "@/components/catalog/CatalogFilterChips";
+import { countChipFacets, isChipFilterActive, matchesChipFilter, type CatalogChipFilter } from "@/lib/goodsTaxonomy";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -34,6 +36,8 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
+  // 作品 → キャラ → カテゴリ → 入手方法 のチップでの絞り込み（キーワード・タグの絞り込みとは別に重ねる）
+  const [chipFilter, setChipFilter] = useState<CatalogChipFilter>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const location = useLocation();
@@ -54,6 +58,13 @@ const Search = () => {
   const items = useMemo(() => (activeContent ? workResult.data ?? [] : feed.items), [activeContent, workResult.data, feed.items]);
   const moreOnServer = !activeContent && !!feed.hasNextPage;
   const { data: allTags = [] } = useTags(selectedContent);
+  const { data: catalogContents } = useCatalogContents();
+  const contentCounts = useMemo(() => new Map((catalogContents ?? []).map((c) => [c.name, c.count])), [catalogContents]);
+
+  // キャラは作品ごとのタグなので、作品を変えたら外す
+  useEffect(() => {
+    setChipFilter((f) => (f.character ? { ...f, character: null } : f));
+  }, [activeContent]);
 
   // コンテンツ名を早期に取得
   const { data: contentNames = [] } = useQuery({
@@ -97,7 +108,7 @@ const Search = () => {
       if (typeof firstInterestItem === 'string') {
         firstInterest = firstInterestItem;
       } else if (firstInterestItem && typeof firstInterestItem === 'object' && 'name' in firstInterestItem) {
-        firstInterest = (firstInterestItem as any).name;
+        firstInterest = (firstInterestItem as { name: string }).name;
       } else {
         firstInterest = String(firstInterestItem);
       }
@@ -117,7 +128,8 @@ const Search = () => {
     }
   }, [location.search, items, setSearchParams]);
 
-  const filteredItems = useMemo(() => {
+  // キーワード・タグ・作品で絞った一覧（チップの件数はここから数える）
+  const baseItems = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return items.filter(item => {
       const matchesSearch = q
@@ -130,6 +142,12 @@ const Search = () => {
       return matchesSearch && matchesTags && matchesContent;
     });
   }, [items, searchQuery, selectedTags, selectedContent]);
+
+  const filteredItems = useMemo(
+    () => (isChipFilterActive(chipFilter) ? baseItems.filter((item) => matchesChipFilter(item, chipFilter)) : baseItems),
+    [baseItems, chipFilter]
+  );
+  const chipCounts = useMemo(() => countChipFacets(baseItems, chipFilter), [baseItems, chipFilter]);
 
   const activeFilterCount = useMemo(
     () => (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length,
@@ -151,6 +169,7 @@ const Search = () => {
   const clearAllFilters = useCallback(() => {
     setSelectedContent("all");
     setSelectedTags([]);
+    setChipFilter({});
   }, []);
 
   if (legacyTab === "trade") return <Navigate to="/trade" replace />;
@@ -212,17 +231,23 @@ const Search = () => {
                 </Button>
               </div>
 
-              {/* アクティブフィルターチップ */}
-              {activeFilterCount > 0 && (
+              {/* 作品 → キャラ → カテゴリ → 入手方法 の絞り込みチップ（作品はここで選ぶので、下の選択中チップには出さない） */}
+              <CatalogFilterChips
+                contents={orderedContentNames}
+                contentCounts={contentCounts}
+                selectedContent={selectedContent}
+                onContentChange={setSelectedContent}
+                filter={chipFilter}
+                onFilterChange={setChipFilter}
+                counts={chipCounts}
+                countsComplete={!!activeContent && !workResult.isPlaceholderData && !workResult.isLoading && !workResult.isError}
+                canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0}
+                onReset={clearAllFilters}
+              />
+
+              {/* アクティブフィルターチップ（キーワード欄・フィルターで選んだタグ） */}
+              {selectedTags.length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap px-1">
-                  {selectedContent && selectedContent !== "all" && (
-                    <Badge variant="secondary" className="text-xs gap-1 pr-1">
-                      {selectedContent}
-                      <button onClick={() => setSelectedContent("all")} className="ml-0.5 hover:bg-muted rounded-full p-0.5">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
                   {selectedTags.map(tag => (
                     <Badge key={tag} variant="outline" className="text-xs gap-1 pr-1">
                       #{tag}

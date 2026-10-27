@@ -31,6 +31,7 @@ import { sampleAccount } from './sampleAccount';
 import { inAppBrowser } from './inAppBrowser';
 import { catalogRequest } from './catalogRequest';
 import { catalogItemRequest } from './catalogItemRequest';
+import { catalogFilters } from './catalogFilters';
 
 export const moduleTranslations = {
   ja: {
@@ -65,6 +66,7 @@ export const moduleTranslations = {
     inAppBrowser: inAppBrowser.ja,
     catalogRequest: catalogRequest.ja,
     catalogItemRequest: catalogItemRequest.ja,
+    catalogFilters: catalogFilters.ja,
   },
   en: {
     admin: admin.en,
@@ -98,5 +100,6 @@ export const moduleTranslations = {
     inAppBrowser: inAppBrowser.en,
     catalogRequest: catalogRequest.en,
     catalogItemRequest: catalogItemRequest.en,
+    catalogFilters: catalogFilters.en,
   },
 };

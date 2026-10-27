@@ -1258,6 +1258,24 @@ export type Database = {
         }
         Relationships: []
       }
+      goods_type_groups: {
+        Row: {
+          group_key: string
+          leaf_name: string
+          sort_order: number
+        }
+        Insert: {
+          group_key: string
+          leaf_name: string
+          sort_order?: number
+        }
+        Update: {
+          group_key?: string
+          leaf_name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       goods_posts: {
         Row: {
           hidden_at: string | null
