@@ -4617,6 +4617,17 @@ export type Database = {
         Args: { _content: string }
         Returns: { kind: string; label: string; owned: number; total: number }[]
       }
+      catalog_tag_counts: {
+        Args: { _content_name?: string | null }
+        Returns: {
+          id: string
+          name: string
+          category: string | null
+          content_id: string | null
+          created_at: string
+          item_count: number
+        }[]
+      }
       claim_completed_onboarding_rewards: {
         Args: Record<PropertyKey, never>
         Returns: { step_id: string; points: number }[]

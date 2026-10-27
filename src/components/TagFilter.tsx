@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
+import { useCatalogTagCounts } from "@/hooks/useCatalogTagCounts";
 import { FilterButton } from "./tag/FilterButton";
 import { PopularTags } from "./tag/PopularTags";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
+import { Pocke } from "@/components/pocke/Pocke";
 import { useLanguage } from "@/contexts/LanguageContext";
 // 選択中の印。以前は文字の ✓ で、フォントによって太さや高さがばらついていた
 import { Check } from "lucide-react";
@@ -28,121 +29,14 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
 
-  const { data: tagsWithCount = [] } = useQuery({
-    queryKey: ["tags-with-count", selectedContent],
-    queryFn: async () => {
-      // コンテンツが選択されている場合、そのコンテンツのアイテムに付けられているタグのみを取得
-      if (selectedContent && selectedContent !== "all") {
-        // 1. 選択されたコンテンツのofficial_itemsを取得
-        const { data: items, error: itemsError } = await supabase
-          .from('official_items')
-          .select('id')
-          .eq('content_name', selectedContent)
-          .eq('exclude_from_lists', false);
-
-        if (itemsError) throw itemsError;
-        
-        if (!items || items.length === 0) {
-          return [];
-        }
-
-        const itemIds = items.map(item => item.id);
-
-        // 2. それらのアイテムに付けられているタグを取得
-        const { data: itemTags, error: itemTagsError } = await supabase
-          .from('item_tags')
-          .select(`
-            tag_id,
-            tags:tag_id (
-              id,
-              name,
-              category,
-              content_id,
-              created_at
-            )
-          `)
-          .in('official_item_id', itemIds);
-
-        if (itemTagsError) throw itemTagsError;
-
-        // 3. タグのカウントを計算
-        const tagCounts: Record<string, Tag & { count: number }> = {};
-        
-        for (const itemTag of itemTags) {
-          if (itemTag.tags) {
-            const tag = itemTag.tags as any;
-            if (!tagCounts[tag.id]) {
-              tagCounts[tag.id] = {
-                id: tag.id,
-                name: tag.name,
-                category: tag.category,
-                count: 0,
-                created_at: tag.created_at
-              };
-            }
-            tagCounts[tag.id].count++;
-          }
-        }
-
-        // グッズタイプと入手方法は、作品に関係なく表示する
-        const { data: typeTags, error: typeTagsError } = await supabase
-          .from('tags')
-          .select('*')
-          .in('category', ['type', 'source']);
-
-        if (!typeTagsError && typeTags) {
-          for (const tag of typeTags) {
-            if (!tagCounts[tag.id]) {
-              tagCounts[tag.id] = {
-                ...tag,
-                count: 0
-              };
-            }
-          }
-        }
-
-        return Object.values(tagCounts).sort((a, b) => b.count - a.count);
-      } else {
-        // コンテンツが選択されていない場合は全てのタグを取得
-        const { data: itemTags, error } = await supabase
-          .from('item_tags')
-          .select(`
-            tag_id,
-            tags:tag_id (
-              id,
-              name,
-              category,
-              content_id,
-              created_at
-            )
-          `);
-
-        if (error) throw error;
-
-        const tagCounts: Record<string, Tag & { count: number }> = {};
-        
-        for (const itemTag of itemTags) {
-          if (itemTag.tags) {
-            const tag = itemTag.tags as any;
-            if (!tagCounts[tag.id]) {
-              tagCounts[tag.id] = {
-                id: tag.id,
-                name: tag.name,
-                category: tag.category,
-                count: 0,
-                created_at: tag.created_at
-              };
-            }
-            tagCounts[tag.id].count++;
-          }
-        }
-
-        return Object.values(tagCounts).sort((a, b) => b.count - a.count);
-      }
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
+  // 作品ごとのタグの数はサーバーで数える。以前はグッズの id を何千件も URL に並べていて、
+  // 大きい作品（ちいかわ 約1万件）では URL が長すぎて 400 になり、タグが1つも出なかった
+  const {
+    data: tagsWithCount = [],
+    isLoading: tagsLoading,
+    isError: tagsError,
+    refetch: refetchTags,
+  } = useCatalogTagCounts(selectedContent);
 
   const getDisplayText = () => {
     if (selectedTags.length === 0) return t("chrome.tagFilter.selectFromTags");
@@ -241,6 +135,17 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
             </TabsList>
 
             <ScrollArea className="max-h-[50vh] mt-4">
+              {tagsLoading ? (
+                // 読み込み中: ポッケが考え中の顔で待つ（空の「タグがありません」を先に出さない）
+                <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground">
+                  <Pocke pose="think" height={72} motion="bob" />
+                  {t("chrome.tagFilter.loading")}
+                </div>
+              ) : tagsError ? (
+                // 読み込めなかったとき: 「タグがありません」と誤解させず、もう一度読み込めるようにする
+                <QueryErrorState onRetry={() => void refetchTags()} className="py-8" />
+              ) : (
+              <>
               <TabsContent value="all" className="mt-0 px-4">
                 <div className="space-y-4">
                   {/* 人気タグ */}
@@ -393,6 +298,8 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   )}
                 </div>
               </TabsContent>
+              </>
+              )}
             </ScrollArea>
           </Tabs>
         </DialogContent>

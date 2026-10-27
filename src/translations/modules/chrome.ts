@@ -217,6 +217,7 @@ export const chrome = {
       allTags: "すべてのタグ",
       noMatchingTags: "該当するタグがありません",
       noTags: "タグがありません",
+      loading: "タグを読み込んでいます…",
     },
 
     tagInput: {
@@ -797,6 +798,7 @@ export const chrome = {
       allTags: "All tags",
       noMatchingTags: "No matching tags",
       noTags: "No tags",
+      loading: "Loading tags…",
     },
 
     tagInput: {
