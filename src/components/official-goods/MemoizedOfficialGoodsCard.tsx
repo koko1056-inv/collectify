@@ -3,10 +3,8 @@ import { OfficialGoodsCard } from "../OfficialGoodsCard";
 import { SwipeableCard } from "./SwipeableCard";
 import { useOfficialGoodsCard } from "./useOfficialGoodsCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { addOfficialItemToWishlist } from "@/utils/wishlist-actions";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
 
@@ -39,13 +37,10 @@ const OfficialGoodsCardWithSwipe = ({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { isInCollection, handleAddToCollection } = useOfficialGoodsCard({ id, title, image });
-  const { t } = useLanguage();
 
   const handleSwipeRight = () => {
     if (isInCollection) {
-      toast(t("collectionScreen.official.alreadyAdded"), {
-        description: t("collectionScreen.official.alreadyAddedDesc"),
-      });
+      pockeCheer("alreadyInCollection");
       return;
     }
     handleAddToCollection();
@@ -53,9 +48,8 @@ const OfficialGoodsCardWithSwipe = ({
 
   const handleSwipeLeft = async () => {
     if (!user) {
-      toast.error(t("collectionScreen.official.wishlistLoginRequired"), {
-        description: t("collectionScreen.official.wishlistLoginDesc"),
-      });
+      // ゲストには「登録すると覚えておける」とポッケがすすめる（タップで登録へ）
+      pockeCheer("wishGuest");
       return;
     }
 
@@ -69,7 +63,7 @@ const OfficialGoodsCardWithSwipe = ({
         .maybeSingle();
 
       if (owned) {
-        toast(t("collectionScreen.official.alreadyInWishlistOrCollection"));
+        pockeCheer("alreadyWished");
         return;
       }
 
@@ -81,7 +75,7 @@ const OfficialGoodsCardWithSwipe = ({
         .maybeSingle();
 
       if (alreadyWished) {
-        toast(t("collectionScreen.official.alreadyInWishlistOrCollection"));
+        pockeCheer("alreadyWished");
         return;
       }
 

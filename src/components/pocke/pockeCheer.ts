@@ -29,13 +29,19 @@ export type PockeCheerKind =
   | "unfollowed" // フォローをやめた
   | "catalogRequestSent" // カタログへの申請（削除・修正・重複の報告）を送った
   | "catalogRequestWithdrawn" // カタログへの申請を取り下げた
+  | "catalogRequestFailed" // カタログへの申請・取り下げが送れなかった（title = 理由のキー。requestErrorKey）
+  | "catalogPhotoFailed" // 申請に付ける写真を上げられなかった
+  | "catalogAddRequested" // 検索で見つからなかった作品・グッズの追加をリクエストした
+  | "alreadyInCollection" // スワイプでコレクションに入れようとしたが、もう入っていた
+  | "alreadyWished" // スワイプで「ほしい」に入れようとしたが、もう入っていた（またはもう持っている）
+  | "wishGuest" // ゲストが「ほしい」に入れようとした（登録をすすめる。タップで登録へ）
   | "levelUp"; // 推しがレベルアップした（n = レベル、title = 推しの名前）
 
 export interface PockeCheerDetail {
   kind: PockeCheerKind;
   /** 数（addedMany: 入れた数 / streak: 連続日数 / added・guideDone: もらったポイント） */
   n?: number;
-  /** 吹き出しに入れる短い文字列（guideDone: 達成した手順名） */
+  /** 吹き出しに入れる短い文字列（guideDone: 達成した手順名 / catalogRequestFailed: 理由のキー） */
   title?: string;
 }
 

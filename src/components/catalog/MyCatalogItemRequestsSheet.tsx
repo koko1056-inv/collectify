@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ClipboardList, Loader2, Undo2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +101,7 @@ function RequestRow({
       pockeCheer("catalogRequestWithdrawn");
     } catch (e) {
       console.error("withdraw failed:", e);
-      toast.error(t(`catalogItemRequest.sheet.failed.${requestErrorKey(e)}`));
+      pockeCheer("catalogRequestFailed", undefined, requestErrorKey(e));
     }
   };
 
