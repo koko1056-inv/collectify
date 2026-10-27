@@ -14,11 +14,12 @@ const Item3DPreview = lazy(() =>
 import type { SimpleItemTag } from "@/utils/tag/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import type { ItemCreatorProfile } from "@/hooks/useItemCreatorProfile";
 
 interface ItemInfoTabProps {
   itemDetails: any;
   itemTags: SimpleItemTag[];
-  itemCreator: any;
+  itemCreator: ItemCreatorProfile | null | undefined;
   ownersCount: number;
   itemArtist?: string | null;
   itemAnime?: string | null;
@@ -90,7 +91,7 @@ export function ItemInfoTab({
           <p>
             {t("itemDetails.info.creator")}{" "}
             <Link to={`/user/${itemCreator.id}`} className="hover:underline">
-              {itemCreator.username}
+              {itemCreator.display_name || itemCreator.username}
             </Link>
           </p>
         )}

@@ -18,6 +18,7 @@ import { ItemRoomPanel } from "@/features/item-room/ItemRoomPanel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { useAddOfficialItem } from "@/hooks/useAddOfficialItem";
+import { useItemCreatorProfile } from "@/hooks/useItemCreatorProfile";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -139,19 +140,9 @@ export function ItemDetailsWrapper({
     enabled: isUUID(itemId),
   });
 
-  const { data: itemCreator } = useQuery({
-    queryKey: ["item-creator", itemDetails?.created_by],
-    queryFn: async () => {
-      if (!itemDetails?.created_by) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", itemDetails.created_by)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!itemDetails?.created_by,
+  // 登録者が空・退会済みのときは、カタログのアカウント（koko）を表示する
+  const { data: itemCreator } = useItemCreatorProfile(itemDetails?.created_by, {
+    enabled: !!itemDetails,
   });
 
   const handleAddToWishlist = async () => {

@@ -3,9 +3,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { User } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useItemCreatorProfile } from "@/hooks/useItemCreatorProfile";
 
 interface CreatorSectionProps {
   isEditing: boolean;
@@ -17,49 +16,25 @@ export function CreatorSection({
   createdBy,
 }: CreatorSectionProps) {
   const { t } = useLanguage();
-  const { data: creatorProfile, isLoading: isProfileLoading, error: profileError } = useQuery({
-    queryKey: ["creator-profile", createdBy],
-    queryFn: async () => {
-      if (!createdBy) return null;
-      
-      console.log("Fetching creator profile for:", createdBy);
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username, display_name, avatar_url, is_sample")
-        .eq("id", createdBy)
-        .maybeSingle();
-      
-      console.log("Creator profile result:", { data, error });
-      
-      if (error) {
-        console.error("Error fetching creator profile:", error);
-        throw error;
-      }
-      return data;
-    },
-    enabled: !!createdBy,
-    retry: 3,
-    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
-  });
+  // 登録者が空・退会済みのときは、カタログのアカウント（koko）が返ってくる
+  const { data: creatorProfile, isLoading: isProfileLoading, error: profileError } =
+    useItemCreatorProfile(createdBy);
 
   if (isEditing) return null;
 
-  const creatorName = !createdBy
-    ? t("itemDetails.creator.admin")
-    : isProfileLoading
-      ? t("itemDetails.common.loading")
-      : creatorProfile
-        ? creatorProfile.display_name || creatorProfile.username
-        : profileError
-          ? t("itemDetails.creator.registeredUserError")
-          : t("itemDetails.creator.registeredUser");
+  const creatorName = isProfileLoading
+    ? t("itemDetails.common.loading")
+    : creatorProfile
+      ? creatorProfile.display_name || creatorProfile.username
+      : profileError
+        ? t("itemDetails.creator.registeredUserError")
+        : t("itemDetails.creator.registeredUser");
 
   return (
     <div className="space-y-4">
       <div className="text-sm space-y-2">
         <div className="flex items-center gap-2">
-          {createdBy && creatorProfile && (
+          {creatorProfile && (
             <>
               <Avatar className="h-8 w-8">
                 <AvatarImage src={creatorProfile.avatar_url || ""} />
@@ -76,14 +51,14 @@ export function CreatorSection({
             </>
           )}
         </div>
-        {createdBy && creatorProfile && (
-          <Button 
-            variant="outline" 
+        {creatorProfile && (
+          <Button
+            variant="outline"
             size="sm"
             asChild
             className="w-full"
           >
-            <Link to={`/user/${createdBy}`}>
+            <Link to={`/user/${creatorProfile.id}`}>
               {t("itemDetails.creator.viewProfile")}
             </Link>
           </Button>
@@ -97,7 +72,7 @@ export function CreatorSection({
             <div className="text-muted-foreground">
               {t("itemDetails.creator.addedBy", { name: creatorName })}
             </div>
-            {createdBy && creatorProfile && (
+            {creatorProfile && (
               <div className="text-success font-medium mt-1">
                 {t("itemDetails.creator.thanks")}
               </div>

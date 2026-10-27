@@ -94,7 +94,6 @@ export const itemDetails = {
       addedBy: "このグッズは{name}によって登録されました。",
       registeredUser: "登録ユーザー",
       registeredUserError: "登録ユーザー（取得エラー）",
-      admin: "管理者",
       thanks: "登録してくれてありがとう！",
     },
     contentSection: {
@@ -298,7 +297,6 @@ export const itemDetails = {
       addedBy: "Added to the catalog by {name}.",
       registeredUser: "a member",
       registeredUserError: "a member (couldn't load)",
-      admin: "an admin",
       thanks: "Thanks for adding it!",
     },
     contentSection: {
