@@ -36,6 +36,4 @@ $$;
 revoke all on function public.catalog_tag_counts(text) from public;
 grant execute on function public.catalog_tag_counts(text) to anon, authenticated;
 
--- item_tags を official_item_id から引くための索引（tag_id 側は idx_item_tags_tag_id がある）
-create index if not exists idx_item_tags_official_item_id
-  on public.item_tags (official_item_id);
+-- official_item_id からの検索は既存の一意索引 item_tags_official_item_id_tag_id_key をそのまま使う
