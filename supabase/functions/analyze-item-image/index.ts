@@ -1,89 +1,174 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { isAdminUser, jsonResponse, readJson, requireUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededResponse } from "../_shared/rate-limit.ts";
+import { mediaType, parsePublicHttpsUrl, readBodyCapped, safeFetch, SsrfError } from "../_shared/ssrf.ts";
+import { cleanText, extractPageDescription, extractPageTitle } from "../_shared/html-meta.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+// ページの HTML は先頭 1MB まで、画像は 10MB まで読む
+const MAX_HTML_BYTES = 1_000_000;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+// data URL で直接送られてくる画像も同じ上限（base64 は元の約 4/3 倍）
+const MAX_DATA_URL_LENGTH = Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 100;
+const FETCH_TIMEOUT_MS = 10_000;
+
+// ログインしている人なら誰でも使える。一般の人はユーザーごとに 1時間30回・1日150回まで（DB で数える）。
+// 管理者（BulkImportModal で何十枚もまとめて読む）は対象外。
+const USER_LIMITS = { hour: 30, day: 150 };
+
+// 端末によってはファイルの種類が空のまま読み込まれる（application/octet-stream）ので、それも通す
+const DATA_URL_RE = /^data:(image\/[a-z0-9.+-]+|application\/octet-stream);base64,[a-z0-9+/=\s]+$/i;
+
+/** 渡された URL を使えないとき（形が不正・内部アドレス・大きすぎるなど）の 400 */
+function invalidUrl(field: "imageUrl" | "sourceUrl", message: string): Response {
+  return jsonResponse(corsHeaders, { error: "invalid_url", field, message }, 400);
+}
+
+/**
+ * imageUrl を AI に渡せる data URL にする。
+ *
+ * http(s) の画像をここで（SSRF 対策つきで）取得しておき、AI 側（_shared/ai.ts の inlineImage や
+ * ゲートウェイ）には data URL しか渡さない。こうすると、サーバーから未検査の URL を取りに行く経路が残らない。
+ */
+async function toImageDataUrl(raw: string): Promise<string> {
+  if (raw.startsWith("data:")) {
+    if (raw.length > MAX_DATA_URL_LENGTH) throw new SsrfError("Image is too large", 413);
+    if (!DATA_URL_RE.test(raw)) throw new SsrfError("Invalid image data");
+    return raw;
+  }
+
+  const url = parsePublicHttpsUrl(raw);
+  const { response } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3 });
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {});
+    throw new SsrfError("Failed to fetch the image", 502);
+  }
+  const type = mediaType(response);
+  if (!type.startsWith("image/")) {
+    await response.body?.cancel().catch(() => {});
+    throw new SsrfError("URL does not point to an image");
+  }
+  const bytes = await readBodyCapped(response, MAX_IMAGE_BYTES);
+  if (bytes.byteLength === 0) throw new SsrfError("Failed to fetch the image", 502);
+  return `data:${type};base64,${encodeBase64(bytes)}`;
+}
+
+/** 商品ページを（SSRF 対策つきで）読んで、AI に渡すページ情報の文章にする。読めなければ空文字。 */
+async function fetchPageContext(url: URL): Promise<string> {
+  const { response, finalUrl } = await safeFetch(url, { timeoutMs: FETCH_TIMEOUT_MS, maxRedirects: 3 });
+  const type = mediaType(response);
+  if (!response.ok || (type !== "text/html" && type !== "application/xhtml+xml")) {
+    await response.body?.cancel().catch(() => {});
+    return "";
+  }
+  const html = new TextDecoder().decode(await readBodyCapped(response, MAX_HTML_BYTES, { truncate: true }));
+
+  const pageTitle = extractPageTitle(html) ?? "";
+  const pageDesc = extractPageDescription(html) ?? "";
+
+  // 本文からテキストを抽出（簡易版）
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  let bodyText = "";
+  if (bodyMatch) {
+    bodyText = cleanText(
+      bodyMatch[1]
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+    ).substring(0, 1000); // 最初の1000文字のみ
+  }
+
+  return `
+ページURL: ${finalUrl.href}
+ページタイトル: ${pageTitle}
+ページ説明: ${pageDesc}
+ページ内容の一部: ${bodyText}
+`;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // 認証チェック: auth.getUser() で本物のログインユーザーか確かめる（匿名・anon キーだけは 401）
+  const auth = await requireUser(req, corsHeaders);
+  if (!auth.ok) return auth.response;
+
   try {
-    // 認証チェック
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authorization header is required" }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    const body = await readJson(req);
+    const rawImageUrl = body?.imageUrl;
+    const rawSourceUrl = body?.sourceUrl;
+
+    if (typeof rawImageUrl !== 'string' || !rawImageUrl) {
+      return jsonResponse(corsHeaders, { error: '画像URLが必要です' }, 400);
+    }
+
+    // 取りに行く前に形を確かめる。不正・内部向けの URL は 400 で返し、取りに行かない
+    if (!rawImageUrl.startsWith('data:')) {
+      try {
+        parsePublicHttpsUrl(rawImageUrl);
+      } catch (e) {
+        if (e instanceof SsrfError) return invalidUrl('imageUrl', e.message);
+        throw e;
+      }
+    }
+    let sourceUrl: URL | null = null;
+    if (rawSourceUrl !== undefined && rawSourceUrl !== null && rawSourceUrl !== '') {
+      try {
+        sourceUrl = parsePublicHttpsUrl(rawSourceUrl);
+      } catch (e) {
+        if (e instanceof SsrfError) return invalidUrl('sourceUrl', e.message);
+        throw e;
+      }
+    }
+
+    // 回数制限（管理者は対象外）
+    if (!(await isAdminUser(auth))) {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
+      const limit = await consumeRateLimit(supabaseAdmin, auth.user.id, 'analyze-item-image', USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededResponse(corsHeaders, limit);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    console.log('Analyzing image:', rawImageUrl.startsWith('data:') ? '(data url)' : rawImageUrl, 'provider:', currentAiProvider());
+    if (sourceUrl) console.log('Source URL:', sourceUrl.href);
+
+    // 画像は必ずここで data URL にしてから AI に渡す（内部アドレス・大きすぎる画像はここで止まる）
+    let imageUrl: string;
+    try {
+      imageUrl = await toImageDataUrl(rawImageUrl);
+    } catch (e) {
+      if (e instanceof SsrfError) {
+        // 内部アドレス・画像でない・大きすぎる → 400。取得できなかった（相手の都合）→ 502
+        if (e.status === 400 || e.status === 413) return invalidUrl('imageUrl', e.message);
+        return jsonResponse(corsHeaders, { error: 'image_fetch_failed', message: e.message }, 502);
+      }
+      if (e instanceof DOMException && (e.name === 'TimeoutError' || e.name === 'AbortError')) {
+        return jsonResponse(corsHeaders, { error: 'image_fetch_failed', message: 'Timed out fetching the image' }, 502);
+      }
+      throw e;
     }
-
-    const { imageUrl, sourceUrl } = await req.json();
-
-    if (!imageUrl) {
-      throw new Error('画像URLが必要です');
-    }
-
-    console.log('Analyzing image:', imageUrl, 'provider:', currentAiProvider());
-    console.log('Source URL:', sourceUrl);
 
     // URLからページ情報を取得（ある場合）
     let pageContext = '';
-    if (sourceUrl && (sourceUrl.startsWith('http://') || sourceUrl.startsWith('https://'))) {
+    if (sourceUrl) {
       try {
-        const pageResponse = await fetch(sourceUrl);
-        if (pageResponse.ok) {
-          const html = await pageResponse.text();
-          
-          // タイトルとメタ情報を抽出
-          const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-          const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
-          const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
-          const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
-          
-          const pageTitle = titleMatch?.[1] || ogTitleMatch?.[1] || '';
-          const pageDesc = descMatch?.[1] || ogDescMatch?.[1] || '';
-          
-          // 本文からテキストを抽出（簡易版）
-          const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-          let bodyText = '';
-          if (bodyMatch) {
-            bodyText = bodyMatch[1]
-              .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-              .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-              .replace(/<[^>]+>/g, ' ')
-              .replace(/\s+/g, ' ')
-              .trim()
-              .substring(0, 1000); // 最初の1000文字のみ
-          }
-          
-          pageContext = `
-ページURL: ${sourceUrl}
-ページタイトル: ${pageTitle}
-ページ説明: ${pageDesc}
-ページ内容の一部: ${bodyText}
-`;
-          console.log('Page context extracted:', pageContext.substring(0, 200));
-        }
+        pageContext = await fetchPageContext(sourceUrl);
+        if (pageContext) console.log('Page context extracted:', pageContext.substring(0, 200));
       } catch (error) {
-        console.error('Error fetching page:', error);
+        // 名前を引くと内部アドレスだった・リダイレクト先が内部だった → 400（取りに行かない）
+        if (error instanceof SsrfError && error.status === 400) return invalidUrl('sourceUrl', error.message);
+        console.error('Error fetching page:', error instanceof Error ? error.message : error);
         // ページ取得に失敗しても処理は続行
       }
     }
@@ -160,10 +245,7 @@ JSON形式で以下のように回答してください：
     const analysisResult = JSON.parse(content);
     console.log('Analysis result:', analysisResult);
 
-    return new Response(
-      JSON.stringify(analysisResult),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse(corsHeaders, analysisResult);
 
   } catch (error) {
     console.error('Error in analyze-item-image function:', error);

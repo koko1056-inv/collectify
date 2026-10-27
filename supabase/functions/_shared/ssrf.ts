@@ -51,6 +51,7 @@ export function isPrivateIPv4(ip: string): boolean {
   if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
   if (a === 192 && b === 0 && c === 0) return true; // 192.0.0.0/24
   if (a === 192 && b === 0 && c === 2) return true; // 192.0.2.0/24 ドキュメント用
+  if (a === 192 && b === 88 && c === 99) return true; // 192.88.99.0/24 6to4 リレー（廃止済み）
   if (a === 192 && b === 168) return true; // 192.168.0.0/16
   if (a === 198 && (b === 18 || b === 19)) return true; // 198.18.0.0/15 ベンチマーク
   if (a === 198 && b === 51 && c === 100) return true; // 198.51.100.0/24
@@ -115,12 +116,18 @@ export function isPrivateIPv6(ip: string): boolean {
   if (g.slice(0, 5).every((n) => n === 0) && g[5] === 0xffff) {
     return isPrivateIPv4(embeddedV4(g[6], g[7]));
   }
+  // ::ffff:0:a.b.c.d（IPv4 変換・SIIT）も埋め込まれた IPv4 で判定
+  if (g.slice(0, 4).every((n) => n === 0) && g[4] === 0xffff && g[5] === 0) {
+    return isPrivateIPv4(embeddedV4(g[6], g[7]));
+  }
   // ::a.b.c.d（IPv4 互換・廃止済み）は使われないので拒否
   if (g.slice(0, 6).every((n) => n === 0)) return true;
   // 64:ff9b::/96（NAT64）も埋め込まれた IPv4 で判定
   if (g[0] === 0x64 && g[1] === 0xff9b && g.slice(2, 6).every((n) => n === 0)) {
     return isPrivateIPv4(embeddedV4(g[6], g[7]));
   }
+  // 64:ff9b:1::/48（ローカル用の NAT64）は内部の変換に使われるので拒否
+  if (g[0] === 0x64 && g[1] === 0xff9b && g[2] === 1) return true;
   // 2002::/16（6to4）は2〜3番目のグループが IPv4
   if (g[0] === 0x2002) return isPrivateIPv4(embeddedV4(g[1], g[2]));
   // 2001::/32（Teredo）は IPv4 を埋め込めるので拒否
