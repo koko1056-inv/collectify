@@ -20,7 +20,8 @@
     "test:oshi-room": "node --experimental-strip-types scripts/test-oshi-room.mjs",
     "test:preorders": "node --experimental-strip-types scripts/test-preorders.mjs",
     "test:secret-question": "node --experimental-strip-types scripts/test-secret-question.mjs",
-    "test:query-retry": "node --experimental-strip-types scripts/test-query-retry.mjs"
+    "test:query-retry": "node --experimental-strip-types scripts/test-query-retry.mjs",
+    "test:catalog-item-requests": "node --experimental-strip-types scripts/test-catalog-item-requests.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

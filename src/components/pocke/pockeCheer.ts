@@ -23,6 +23,8 @@ export type PockeCheerKind =
   | "decorated" // 推しの部屋を飾って保存した
   | "followed" // フォローした
   | "unfollowed" // フォローをやめた
+  | "catalogRequestSent" // カタログへの申請（削除・修正・重複の報告）を送った
+  | "catalogRequestWithdrawn" // カタログへの申請を取り下げた
   | "levelUp"; // 推しがレベルアップした（n = レベル、title = 推しの名前）
 
 export interface PockeCheerDetail {

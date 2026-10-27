@@ -4316,6 +4316,82 @@ export type Database = {
           },
         ]
       }
+      catalog_item_requests: {
+        Row: {
+          admin_note: string | null
+          apply_result: Json | null
+          before_snapshot: Json | null
+          created_at: string
+          duplicate_of: string | null
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          kind: string
+          note: string | null
+          official_item_id: string
+          proposed: Json | null
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          apply_result?: Json | null
+          before_snapshot?: Json | null
+          created_at?: string
+          duplicate_of?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          official_item_id: string
+          proposed?: Json | null
+          reason?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          apply_result?: Json | null
+          before_snapshot?: Json | null
+          created_at?: string
+          duplicate_of?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          official_item_id?: string
+          proposed?: Json | null
+          reason?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_item_requests_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_item_requests_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_item_requests_user_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalog_requests: {
         Row: {
           context: string | null
@@ -4348,6 +4424,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      review_catalog_item_request: {
+        Args: {
+          _admin_note?: string
+          _approve: boolean
+          _keep_reported?: boolean
+          _request_id: string
+        }
+        Returns: Json
+      }
+      withdraw_catalog_item_request: {
+        Args: { _request_id: string }
+        Returns: boolean
+      }
       catalog_request_ranking: {
         Args: { _limit?: number }
         Returns: {
