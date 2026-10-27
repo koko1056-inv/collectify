@@ -36,6 +36,19 @@ export function useZukanView<T extends ZukanItemLike>(items: T[], activeContent:
   const setYear = useCallback((y: number | null) => setParam("year", y === null ? null : String(y)), [setParam]);
   const setMissingOnly = useCallback((on: boolean) => setParam("missing", on ? "1" : null), [setParam]);
   const setSeriesView = useCallback((on: boolean) => setParam("view", on ? "series" : null), [setParam]);
+  // 絞り込みのリセット用。未所持だけ・発売年をまとめて外す（見た目の view はそのまま）。
+  // setParam を2回呼ぶと先の変更が後の呼び出しで上書きされるので、1回で消す
+  const clearFilters = useCallback(() => {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("missing");
+        next.delete("year");
+        return next;
+      },
+      { replace: true }
+    );
+  }, [setParams]);
 
   // 「未所持だけ」は所持 id が届くまで絞らない（一瞬ぜんぶ消えて見えないように）
   const missingApplied = useMemo(
@@ -63,6 +76,7 @@ export function useZukanView<T extends ZukanItemLike>(items: T[], activeContent:
     setMissingOnly,
     seriesView,
     setSeriesView,
+    clearFilters,
     ownedIds,
     ownedUpdatedAt: dataUpdatedAt,
     isGuest,

@@ -170,11 +170,13 @@ const Search = () => {
     });
   }, [contentNames, profile]);
 
+  const { clearFilters: clearZukanFilters } = zukan;
   const clearAllFilters = useCallback(() => {
     setSelectedContent("all");
     setSelectedTags([]);
     setChipFilter({});
-  }, []);
+    clearZukanFilters();
+  }, [clearZukanFilters]);
 
   if (legacyTab === "trade") return <Navigate to="/trade" replace />;
   if (legacyTab === "friends" || legacyTab === "collections") return <Navigate to="/explore?tab=users" replace />;
@@ -245,7 +247,7 @@ const Search = () => {
                 onFilterChange={setChipFilter}
                 counts={chipCounts}
                 countsComplete={!!activeContent && !workResult.isPlaceholderData && !workResult.isLoading && !workResult.isError}
-                canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0}
+                canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0 || zukan.missingOnly || zukan.year !== null}
                 onReset={clearAllFilters}
               />
 
@@ -266,7 +268,13 @@ const Search = () => {
                 </div>
               )}
 
-              <ZukanPanel zukan={zukan} content={activeContent} contentItems={activeContent && !workResult.isPlaceholderData ? workResult.data : undefined} />
+              {/* 図鑑の帯（所持率・未所持だけ・一覧/シリーズ別・発売年）。上のチップで絞った一覧に重ねて効く */}
+              <ZukanPanel
+                zukan={zukan}
+                content={activeContent}
+                contentItems={activeContent && !workResult.isPlaceholderData ? workResult.data : undefined}
+                narrowed={isChipFilterActive(chipFilter) || selectedTags.length > 0 || searchQuery.trim().length > 0}
+              />
 
               <div data-tour="search-results">
               <OfficialItemsList

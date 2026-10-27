@@ -17,6 +17,8 @@ interface ZukanPanelProps {
   content: string | null;
   /** その作品の全グッズ（読み込み済みなら）。所持率の RPC が使えないときの代わりに数える */
   contentItems?: ZukanItemLike[];
+  /** チップ・タグ・キーワードで作品の一部に絞っているか（一部だけ空でも「ぜんぶ持ってる」とは言わない） */
+  narrowed?: boolean;
 }
 
 /**
@@ -25,13 +27,13 @@ interface ZukanPanelProps {
  *  - いつでも: 発売年のチップ
  * ゲストには所持の数を出さず、合計と登録のおすすめだけを出す。
  */
-export function ZukanPanel({ zukan, content, contentItems }: ZukanPanelProps) {
+export function ZukanPanel({ zukan, content, contentItems, narrowed = false }: ZukanPanelProps) {
   const { t } = useLanguage();
   return (
     <section aria-label={t("zukan.filter.viewLabel")} className="space-y-2 px-1">
       {content && <CompletionCard zukan={zukan} content={content} contentItems={contentItems} />}
       {zukan.years.length > 1 || zukan.year !== null ? <YearChips zukan={zukan} /> : null}
-      {content && zukan.missingOnly && zukan.ownedIds && zukan.year === null && zukan.items.length === 0 && contentItems && (
+      {content && !narrowed && zukan.missingOnly && zukan.ownedIds && zukan.year === null && zukan.items.length === 0 && contentItems && (
         <PockeSays pose="celebrate" height={64} bubbleClassName="text-xs">
           {t("zukan.series.allMissingDone")}
         </PockeSays>
