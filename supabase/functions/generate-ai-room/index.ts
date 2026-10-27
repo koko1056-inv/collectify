@@ -1,12 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
+import { isAdminUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// 参照画像（最大5枚）の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
+// 取得に失敗するとポイントは返金される（初回は無料）ため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
+const USER_LIMITS = { hour: 10, day: 50 };
 
 interface GenerateAiRoomInput {
   itemImageUrls: string[]; // 最大5枚
@@ -55,7 +61,7 @@ Deno.serve(async (req) => {
       parentRoomId,
     } = body;
 
-    if (!itemImageUrls || itemImageUrls.length === 0) {
+    if (!Array.isArray(itemImageUrls) || itemImageUrls.length === 0) {
       return json({ error: "アイテム画像が必要です" }, 400);
     }
     if (itemImageUrls.length > 5) {
@@ -65,10 +71,26 @@ Deno.serve(async (req) => {
       return json({ error: "スタイルが必要です" }, 400);
     }
 
+    // 参照画像の URL は、ポイント（初回無料）を使う前に形を確かめる（内部アドレス・http などは 400）
+    try {
+      for (const url of itemImageUrls) assertReferenceImageUrl(url);
+    } catch (e) {
+      if (e instanceof SsrfError) {
+        const r = referenceImageError(e);
+        return json(r.body, r.status);
+      }
+      throw e;
+    }
+
     // ポイント消費 (100pt) — service role で原子的に処理
     // ただし初回（過去にAIルーム生成履歴がない、かつ ai_generated_rooms にレコードもない場合）は無料
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const ROOM_GENERATION_COST = 100;
+
+    if (!(await isAdminUser({ user, userClient }))) {
+      const limit = await consumeRateLimit(adminClient, user.id, "generate-ai-room", USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
+    }
 
     // 過去のAIルーム生成履歴をチェック
     const { count: pastTxCount } = await adminClient
@@ -175,7 +197,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       {
         role: "user" as const,
         content: [
-          { type: "text", text: fullPrompt },
+          { type: "text" as const, text: fullPrompt },
           ...itemImageUrls.map((url) => ({
             type: "image_url" as const,
             image_url: { url },
@@ -186,7 +208,18 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
     console.log("Generating AI room with", itemCount, "items. Style:", stylePreset, "Visual:", visualStyle, "provider:", currentAiProvider());
 
-    const aiRes = await callAi({ messages, wantImage: true });
+    let aiRes;
+    try {
+      aiRes = await callAi({ messages, wantImage: true });
+    } catch (e) {
+      // 参照画像を取りに行けなかったなど。消費したポイントを返してから返す
+      await refundPoints(e instanceof SsrfError ? "参照画像の取得失敗" : "AI呼び出し失敗");
+      if (e instanceof SsrfError) {
+        const r = referenceImageError(e);
+        return json(r.body, r.status);
+      }
+      throw e;
+    }
 
     if (!aiRes.ok) {
       console.error("AI Gateway error:", aiRes.status, aiRes.errorText);

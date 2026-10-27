@@ -77,3 +77,23 @@ export function rateLimitExceededResponse(
     { "Retry-After": String(result.retryAfterSec) }
   );
 }
+
+/**
+ * rateLimitExceededResponse と同じ 429 だが、error に画面へそのまま出せる文言を入れる版。
+ * 本文の error をそのまま表示している既存の画面（edit-image・generate-ai-room など）向け。
+ * 種類は code === "rate_limited" と limitedBy で見分けられる。
+ */
+export function rateLimitExceededMessageResponse(
+  cors: Record<string, string>,
+  result: { retryAfterSec: number; limitedBy: RateLimitWindow }
+): Response {
+  const error = result.limitedBy === "day"
+    ? "今日の利用回数の上限に達しました。明日またお試しください。"
+    : "利用回数の上限に達しました。しばらくしてからお試しください。";
+  return jsonResponse(
+    cors,
+    { error, code: "rate_limited", retryAfterSec: result.retryAfterSec, limitedBy: result.limitedBy },
+    429,
+    { "Retry-After": String(result.retryAfterSec) }
+  );
+}

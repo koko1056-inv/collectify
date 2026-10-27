@@ -15,6 +15,7 @@ import {
   parsePublicHttpsUrl,
   readBodyCapped,
   safeFetch,
+  sniffImageMediaType,
 } from "../supabase/functions/_shared/ssrf.ts";
 
 let failed = 0;
@@ -94,6 +95,30 @@ for (const u of ["https://example.com/a.png", "https://cdn.shopify.com/s/files/1
     check(`URL ${u} は通す`, false, String(e));
   }
 }
+// ── allowHttp（管理者の呼び出しだけ http も通す） ──
+for (const u of ["http://example.com/a.png", "http://shop.example.co.jp/item?id=1", "http://example.com:80/x"]) {
+  try {
+    check(`allowHttp なら ${u} は通す`, parsePublicHttpsUrl(u, { allowHttp: true }).protocol === "http:");
+  } catch (e) {
+    check(`allowHttp なら ${u} は通す`, false, String(e));
+  }
+  check(`allowHttp が無ければ ${u} は拒否`, (() => { try { parsePublicHttpsUrl(u); return false; } catch (e) { return e instanceof SsrfError; } })());
+  check(`allowHttp: false なら ${u} は拒否`, (() => { try { parsePublicHttpsUrl(u, { allowHttp: false }); return false; } catch (e) { return e instanceof SsrfError; } })());
+}
+for (const u of [
+  "http://127.0.0.1/", "http://169.254.169.254/latest/meta-data/", "http://2130706433/", "http://0x7f.1/", "http://[::1]/",
+  "http://localhost/", "http://db.internal/", "http://example.com:8080/", "http://example.com:443/", "http://user:pw@example.com/",
+  "ftp://example.com/", "file:///etc/passwd", "gopher://example.com/", "http://metadata.google.internal/", "http://intranet/",
+]) {
+  try {
+    parsePublicHttpsUrl(u, { allowHttp: true });
+    check(`allowHttp でも ${JSON.stringify(u)} は拒否`, false);
+  } catch (e) {
+    check(`allowHttp でも ${JSON.stringify(u)} は拒否`, e instanceof SsrfError, String(e));
+  }
+}
+check("allowHttp でも https はそのまま通す", parsePublicHttpsUrl("https://example.com/", { allowHttp: true }).protocol === "https:");
+
 check("URL が長すぎると拒否", (() => { try { parsePublicHttpsUrl("https://example.com/" + "a".repeat(3000)); return false; } catch { return true; } })());
 check("文字列以外は拒否", (() => { try { parsePublicHttpsUrl({ toString: () => "https://example.com" }); return false; } catch { return true; } })());
 
@@ -180,6 +205,44 @@ await rejects("validateUrl（許可リスト）をホップごとに適用", () 
   safeFetch("https://public.example/", {
     validateUrl: (u) => { if (u.hostname !== "public.example") throw new SsrfError("not allowed", 403); },
   }), 403);
+
+// ── safeFetch の allowHttp ──
+calls = stubFetch(() => new Response("ok"));
+await rejects("safeFetch は既定で http を拒否（取りに行かない）", () => safeFetch("http://public.example/"), 400);
+check("拒否したときは fetch を呼ばない", calls.length === 0, `${calls.length} 回`);
+r = await safeFetch("http://public.example/", { allowHttp: true });
+check("allowHttp なら http を取りに行く", (await r.response.text()) === "ok" && r.finalUrl.protocol === "http:");
+
+stubFetch((url) => (url === "http://public.example/" ? redirect("http://meta.example/") : new Response("secret")));
+await rejects("allowHttp でもリダイレクト先が内部 IP を引くなら拒否", () => safeFetch("http://public.example/", { allowHttp: true }), 400);
+stubFetch((url) => (url === "http://public.example/" ? redirect("http://169.254.169.254/latest") : new Response("secret")));
+await rejects("allowHttp でもリダイレクト先の IP 直指定は拒否", () => safeFetch("http://public.example/", { allowHttp: true }), 400);
+stubFetch((url) => (url === "http://public.example/" ? redirect("http://localhost/") : new Response("secret")));
+await rejects("allowHttp でもリダイレクト先の localhost は拒否", () => safeFetch("http://public.example/", { allowHttp: true }), 400);
+calls = stubFetch(() => new Response("secret"));
+await rejects("allowHttp でも DNS が内部 IP なら拒否", () => safeFetch("http://rebind.example/", { allowHttp: true }), 400);
+check("DNS で拒否したときは fetch を呼ばない", calls.length === 0, `${calls.length} 回`);
+stubFetch((url) => (url === "https://public.example/" ? redirect("http://hop2.example/") : new Response("x")));
+r = await safeFetch("https://public.example/", { allowHttp: true });
+check("allowHttp なら https → http のリダイレクトも辿る", r.finalUrl.href === "http://hop2.example/");
+stubFetch((url) => (url === "http://public.example/" ? redirect("http://hop2.example:8080/") : new Response("x")));
+await rejects("allowHttp でもリダイレクト先の既定以外のポートは拒否", () => safeFetch("http://public.example/", { allowHttp: true }), 400);
+await rejects("assertPublicHttpsUrl も既定で http を拒否", () => assertPublicHttpsUrl("http://public.example/"), 400);
+await assertPublicHttpsUrl("http://public.example/", { allowHttp: true }).then(
+  () => check("assertPublicHttpsUrl も allowHttp なら http を通す", true),
+  (e) => check("assertPublicHttpsUrl も allowHttp なら http を通す", false, String(e))
+);
+
+// ── 画像の種類の判定 ──
+const bytesOf = (...parts) => new Uint8Array(parts.flatMap((p) => (typeof p === "string" ? [...p].map((c) => c.charCodeAt(0)) : p)));
+check("sniff JPEG", sniffImageMediaType(bytesOf([0xff, 0xd8, 0xff, 0xe0, 0, 0])) === "image/jpeg");
+check("sniff PNG", sniffImageMediaType(bytesOf([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0])) === "image/png");
+check("sniff GIF", sniffImageMediaType(bytesOf("GIF89a", [1, 2])) === "image/gif");
+check("sniff WebP", sniffImageMediaType(bytesOf("RIFF", [0, 0, 0, 0], "WEBPVP8 ")) === "image/webp");
+check("sniff AVIF", sniffImageMediaType(bytesOf([0, 0, 0, 0x1c], "ftypavif")) === "image/avif");
+check("sniff HTML は画像でない", sniffImageMediaType(bytesOf("<!doctype html>")) === null);
+check("sniff SVG は画像として扱わない", sniffImageMediaType(bytesOf("<svg xmlns=")) === null);
+check("sniff 空は null", sniffImageMediaType(new Uint8Array(0)) === null);
 
 // ── 本文の上限 ──
 function streamOf(chunks) {

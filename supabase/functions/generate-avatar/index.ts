@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
+import { isAdminUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +10,10 @@ const corsHeaders = {
 };
 
 const AVATAR_GENERATION_COST = 30;
+
+// 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
+// 取得に失敗するとポイントは返金されるため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
+const USER_LIMITS = { hour: 20, day: 100 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -54,6 +60,24 @@ serve(async (req) => {
 
     if (!prompt && !imageUrl) {
       return jsonResp({ error: "プロンプトまたは画像が必要です" }, 400);
+    }
+
+    // 参照画像の URL は、ポイント（初回無料）を使う前に形を確かめる（内部アドレス・http などは 400）
+    if (imageUrl) {
+      try {
+        assertReferenceImageUrl(imageUrl);
+      } catch (e) {
+        if (e instanceof SsrfError) {
+          const r = referenceImageError(e);
+          return jsonResp(r.body, r.status);
+        }
+        throw e;
+      }
+    }
+
+    if (!(await isAdminUser({ user, userClient }))) {
+      const limit = await consumeRateLimit(adminClient, user.id, "generate-avatar", USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
     }
 
     // 初回判定: 過去のアバター生成履歴 もしくは avatar_gallery にレコードがあるか
@@ -163,6 +187,11 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in generate-avatar:", error);
     await refund((error as Error).message || "unknown");
+    // 参照画像を取りに行けなかった（内部アドレス・画像でない・大きすぎる・取得失敗）
+    if (error instanceof SsrfError) {
+      const r = referenceImageError(error);
+      return jsonResp(r.body, r.status);
+    }
     return jsonResp(
       { error: error instanceof Error ? error.message : "アバター生成に失敗しました" },
       500

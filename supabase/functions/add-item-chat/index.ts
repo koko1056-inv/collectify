@@ -1,13 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callAi, currentAiProvider } from "../_shared/ai.ts";
-import {
-  checkRateLimit,
-  corsHeadersFor,
-  jsonResponse,
-  rateLimitedResponse,
-  readJson,
-  requireUser,
-} from "../_shared/security.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAi, currentAiProvider, referenceImageError } from "../_shared/ai.ts";
+import { corsHeadersFor, isAdminUser, jsonResponse, readJson, requireUser } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 import { assertPublicHttpsUrl, SsrfError } from "../_shared/ssrf.ts";
 
 // 入力の上限
@@ -17,6 +12,9 @@ const MAX_IMAGES = 3;
 const MAX_DATA_URL_CHARS = 6 * 1024 * 1024; // 1枚あたり（base64 の文字数）
 const MAX_TOTAL_DATA_URL_CHARS = 12 * 1024 * 1024;
 const DATA_IMAGE_PATTERN = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+
+// チャットなので多めに。画像の URL をサーバーから取りに行く（Gemini 直結時）ので DB で数える。管理者は対象外。
+const USER_LIMITS = { hour: 60, day: 300 };
 
 const SYSTEM_PROMPT = `あなたはグッズ登録をサポートするアシスタントです。ユーザーと対話しながら、以下の情報を収集してください：
 
@@ -121,10 +119,14 @@ serve(async (req) => {
       checked.push({ role: msg.role, content, imageUrl });
     }
 
-    // 1時間に60メッセージまで（チャットなので多めに）
-    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限に置き換えること（_shared/security.ts 参照）
-    const limit = checkRateLimit(`add-item-chat:${auth.user.id}`, 60, 60 * 60 * 1000);
-    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec);
+    if (!(await isAdminUser(auth))) {
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+      const limit = await consumeRateLimit(supabaseAdmin, auth.user.id, "add-item-chat", USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
+    }
 
     // Build messages array with image if provided
     const apiMessages = [
@@ -184,6 +186,11 @@ serve(async (req) => {
     return jsonResponse(corsHeaders, parsed);
   } catch (error) {
     console.error("Error in add-item-chat:", error);
+    // 画像を取りに行けなかった（内部アドレス・画像でない・大きすぎる・取得失敗）
+    if (error instanceof SsrfError) {
+      const r = referenceImageError(error);
+      return jsonResponse(corsHeaders, r.body, r.status);
+    }
     // 内部のエラー文言はクライアントに返さない
     return jsonResponse(corsHeaders, { error: "チャットの処理に失敗しました" }, 500);
   }

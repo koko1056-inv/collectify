@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+import { hostMatches, mediaType, parsePublicHttpsUrl, readBodyCapped, safeFetch, SsrfError } from "../_shared/ssrf.ts";
 
 /**
  * オフラインで切り出したカタログ画像（catalog_upload_staging に溜めた base64）を
@@ -37,7 +38,7 @@ const PATH_RE = /^catalog-crops\/[A-Za-z0-9._/-]+\.(jpg|png|webp)$/;
 const ALLOWED_CONTENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 // ─── crop モード用の定数 ───
-const CROP_ALLOWED_HOSTS = new Set(["cdn.shopify.com"]);
+const CROP_ALLOWED_HOSTS = ["cdn.shopify.com"];
 const CROP_PATH_RE = /^catalog-crops\/[A-Za-z0-9._/-]+\.jpg$/;
 const PAD_COLOR_RE = /^#[0-9a-f]{6}$/;
 const CROP_MIN_DIM = 1;
@@ -97,52 +98,19 @@ function isValidCropDestPath(path: string): boolean {
   return CROP_PATH_RE.test(path) && !path.includes("..") && !path.includes("//");
 }
 
+/** 元画像の URL。https・公開ホストの形（_shared/ssrf.ts）に加えて、許可リストのホストだけ。 */
 function isValidCropSourceUrl(raw: string): URL | null {
-  let url: URL;
   try {
-    url = new URL(raw);
+    const url = parsePublicHttpsUrl(raw);
+    return hostMatches(url.hostname, CROP_ALLOWED_HOSTS) ? url : null;
   } catch {
     return null;
   }
-  if (url.protocol !== "https:") return null;
-  if (!CROP_ALLOWED_HOSTS.has(url.hostname)) return null;
-  return url;
 }
 
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
-}
-
-/** レスポンス本体を、maxBytes を超えたら読むのをやめて失敗にする */
-async function readCapped(response: Response, maxBytes: number): Promise<Uint8Array> {
-  const reader = response.body?.getReader();
-  if (!reader) {
-    const buf = new Uint8Array(await response.arrayBuffer());
-    if (buf.byteLength > maxBytes) throw new Error("too large");
-    return buf;
-  }
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (value) {
-      total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel().catch(() => {});
-        throw new Error("too large");
-      }
-      chunks.push(value);
-    }
-  }
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return out;
 }
 
 interface CropJob {
@@ -196,41 +164,44 @@ async function processCropJob(job: CropJob): Promise<CropOutcome> {
     return { status: "failed", error: "invalid crop" };
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CROP_FETCH_TIMEOUT_MS);
+  // 取得は _shared/ssrf.ts の safeFetch に揃える（DNS が内部アドレスを返さないかの検査が加わる）。
+  // リダイレクトはこれまでどおり辿らない（maxRedirects: 0 → 3xx は失敗）。
+  // 時間の上限は本文の読み込みも含む。
   let response: Response;
   try {
-    response = await fetch(url.toString(), { redirect: "manual", signal: controller.signal });
+    ({ response } = await safeFetch(url, {
+      maxRedirects: 0,
+      timeoutMs: CROP_FETCH_TIMEOUT_MS,
+      // 許可リストで接続先を cdn.shopify.com に絞っているので、DNS 検査が使えない環境では通す（proxy-image と同じ）
+      allowDnsUnavailable: true,
+      validateUrl: (u) => {
+        if (!hostMatches(u.hostname, CROP_ALLOWED_HOSTS)) throw new SsrfError("source_url not allowed", 403);
+      },
+    }));
   } catch (e) {
+    if (e instanceof SsrfError && e.message === "Too many redirects") {
+      return { status: "failed", error: "redirect not allowed" };
+    }
+    if (e instanceof SsrfError) return { status: "failed", error: `blocked: ${e.message}` };
     return { status: "failed", error: `fetch failed: ${String(e).slice(0, 100)}` };
-  } finally {
-    clearTimeout(timer);
   }
 
-  if (response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
-    await response.body?.cancel().catch(() => {});
-    return { status: "failed", error: "redirect not allowed" };
-  }
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
     return { status: "failed", error: `fetch http ${response.status}` };
   }
-  const contentType = response.headers.get("content-type") ?? "";
+  const contentType = mediaType(response);
   if (!contentType.startsWith("image/")) {
     await response.body?.cancel().catch(() => {});
-    return { status: "failed", error: `not an image: ${contentType}` };
-  }
-  const contentLength = response.headers.get("content-length");
-  if (contentLength && Number(contentLength) > CROP_MAX_SOURCE_BYTES) {
-    await response.body?.cancel().catch(() => {});
-    return { status: "failed", error: "source too large" };
+    return { status: "failed", error: `not an image: ${contentType.slice(0, 50)}` };
   }
 
   let bytes: Uint8Array;
   try {
-    bytes = await readCapped(response, CROP_MAX_SOURCE_BYTES);
-  } catch {
-    return { status: "failed", error: "source too large" };
+    bytes = await readBodyCapped(response, CROP_MAX_SOURCE_BYTES);
+  } catch (e) {
+    if (e instanceof SsrfError) return { status: "failed", error: "source too large" };
+    return { status: "failed", error: `fetch failed: ${String(e).slice(0, 100)}` };
   }
 
   let img: Image;
