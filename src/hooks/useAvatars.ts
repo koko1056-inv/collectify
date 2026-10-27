@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProfileImagesPublicUrl } from "@/utils/avatar-storage";
@@ -29,7 +28,6 @@ const QK = (userId?: string) => ["avatars", userId ?? "anon"] as const;
  * - 削除 / 名前変更
  * - ファイルアップロード
  * - AI生成結果の保存
- * - リアルタイム購読
  */
 export function useAvatars(userId: string | undefined) {
   const qc = useQueryClient();
@@ -59,23 +57,6 @@ export function useAvatars(userId: string | undefined) {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: QK(userId) });
 
-  // リアルタイム購読
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel(`avatars:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "avatar_gallery", filter: `user_id=eq.${userId}` },
-        () => invalidate()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
   const setCurrent = useMutation({
     mutationFn: async (avatarId: string) => {
       const { data, error } = await supabase.rpc("set_current_avatar", { _avatar_id: avatarId });
@@ -86,7 +67,7 @@ export function useAvatars(userId: string | undefined) {
       toast.success(t("notices.avatars.switched"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.switchFailed")),
+    onError: (e: Error) => toast.error(e?.message ?? t("notices.avatars.switchFailed")),
   });
 
   const remove = useMutation({
@@ -98,7 +79,7 @@ export function useAvatars(userId: string | undefined) {
       toast.success(t("notices.avatars.deleted"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.deleteFailed")),
+    onError: (e: Error) => toast.error(e?.message ?? t("notices.avatars.deleteFailed")),
   });
 
   const rename = useMutation({
@@ -113,7 +94,7 @@ export function useAvatars(userId: string | undefined) {
       toast.success(t("notices.avatars.renamed"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.renameFailed")),
+    onError: (e: Error) => toast.error(e?.message ?? t("notices.avatars.renameFailed")),
   });
 
   /**
@@ -148,7 +129,7 @@ export function useAvatars(userId: string | undefined) {
       toast.success(t("notices.avatars.uploaded"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.uploadFailed")),
+    onError: (e: Error) => toast.error(e?.message ?? t("notices.avatars.uploadFailed")),
   });
 
   /**

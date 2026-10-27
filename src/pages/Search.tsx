@@ -16,7 +16,7 @@ import { Package, SlidersHorizontal, X, Image as ImageIcon, Loader2, UserRound, 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +48,6 @@ const Search = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
-  const queryClient = useQueryClient();
   // 数万件を一度に読み込まない: 作品を選んでいればその作品だけ全件、
   // 選んでいなければ（言葉を入れた場合も）サーバーから新しい順に少しずつ読み足して、最後まで辿れるようにする。
   const activeContent = selectedContent && selectedContent !== "all" ? selectedContent : null;
@@ -98,23 +97,6 @@ const Search = () => {
       return data;
     },
   });
-
-  // Supabase Realtimeでofficial_itemsの変更を監視
-  useEffect(() => {
-    let refetchTimer: ReturnType<typeof setTimeout> | undefined;
-    const channel = supabase
-      .channel('official-items-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'official_items' }, () => {
-        // まとめて登録されると変更通知が大量に届く。全件を取り直すので、静まってから1回だけ再取得する
-        if (refetchTimer) clearTimeout(refetchTimer);
-        refetchTimer = setTimeout(() => { queryClient.invalidateQueries({ queryKey: ['official-items'] }); queryClient.invalidateQueries({ queryKey: ['catalog-content-counts'] }); }, 3000);
-      })
-      .subscribe();
-    return () => {
-      if (refetchTimer) clearTimeout(refetchTimer);
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   // この画面はグッズのカタログだけにした。以前のタブは、それぞれの置き場所へ送る
   const legacyTab = searchParams.get("tab");
