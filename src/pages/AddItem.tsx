@@ -12,16 +12,19 @@ export default function AddItem() {
       <Navbar />
       <main className="container mx-auto px-4 pt-6 pb-nav">
         <div className="max-w-2xl mx-auto">
-          <BackButton className="mb-6" fallbackTo="/collection" />
+          <BackButton className="mb-2 sm:mb-6" fallbackTo="/collection" />
 
           {/* タイトルセクション */}
-          <div className="mb-6 text-center">
+          {/* スマホでは見出しを詰めて、追加のしかたのカードを最初の画面に入れる */}
+          <div className="mb-2 text-center sm:mb-6">
             {/* 以前はグラデーションの手作りの面。共通の IconTile にそろえる */}
-            <IconTile tone="primary" size="lg" className="mb-4">
-              <Package />
-            </IconTile>
-            <h1 className="text-2xl font-bold text-foreground mb-2">{t("screens.addItem.title")}</h1>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            <div className="hidden sm:block">
+              <IconTile tone="primary" size="lg" className="mb-4">
+                <Package />
+              </IconTile>
+            </div>
+            <h1 className="text-xl font-bold text-foreground mb-1 sm:text-2xl sm:mb-2">{t("screens.addItem.title")}</h1>
+            <p className="text-muted-foreground text-xs max-w-md mx-auto sm:text-sm">
               {t("screens.addItem.descLine1")}
               <br />
               {t("screens.addItem.descLine2")}
