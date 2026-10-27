@@ -29,6 +29,13 @@ const LINES: Record<
   freezeUsed: [{ pose: "sleepy", key: "pocke.cheer.freezeUsed" }],
   missionDone: [{ pose: "celebrate", key: "pocke.mission.cheer" }],
   wishlisted: [{ pose: "think", key: "pocke.cheer.wishlisted" }],
+  wished: [
+    { pose: "love", key: "pocke.cheer.wished1" },
+    { pose: "wink", key: "pocke.cheer.wished2" },
+  ],
+  unwished: [{ pose: "think", key: "pocke.cheer.unwished" }],
+  wishFailed: [{ pose: "sad", key: "pocke.cheer.wishFailed" }],
+  unwishFailed: [{ pose: "sad", key: "pocke.cheer.unwishFailed" }],
   preordered: [{ pose: "point", key: "pocke.cheer.preordered" }],
   liked: [{ pose: "love", key: "pocke.cheer.liked" }],
   listedForTrade: [{ pose: "cheer", key: "pocke.cheer.listedForTrade" }],

@@ -8,7 +8,7 @@ import { Pocke, PockeSays } from "@/components/pocke/Pocke";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCatalogCompletion } from "@/hooks/useCatalogCompletion";
 import type { ZukanViewState } from "@/hooks/useZukanView";
-import { completionPercent, isComplete, type CompletionRow, type ZukanItemLike } from "@/utils/zukan";
+import { completionPercent, isComplete, type CompletionRow, type CompletionSummary, type ZukanItemLike } from "@/utils/zukan";
 import { cn } from "@/lib/utils";
 
 interface ZukanPanelProps {
@@ -19,6 +19,11 @@ interface ZukanPanelProps {
   contentItems?: ZukanItemLike[];
   /** チップ・タグ・キーワードで作品の一部に絞っているか（一部だけ空でも「ぜんぶ持ってる」とは言わない） */
   narrowed?: boolean;
+  /**
+   * 所持率を外から渡す（キャラページなど、作品以外の範囲で数えるとき）。
+   * 渡すと作品の所持率（get_catalog_completion）は読まない。content は見出しの名前として使う。
+   */
+  completion?: { summary: CompletionSummary | null; isLoading: boolean };
 }
 
 /**
@@ -27,11 +32,16 @@ interface ZukanPanelProps {
  *  - いつでも: 発売年のチップ
  * ゲストには所持の数を出さず、合計と登録のおすすめだけを出す。
  */
-export function ZukanPanel({ zukan, content, contentItems, narrowed = false }: ZukanPanelProps) {
+export function ZukanPanel({ zukan, content, contentItems, narrowed = false, completion }: ZukanPanelProps) {
   const { t } = useLanguage();
   return (
     <section aria-label={t("zukan.filter.viewLabel")} className="space-y-2 px-1">
-      {content && <CompletionCard zukan={zukan} content={content} contentItems={contentItems} />}
+      {content &&
+        (completion ? (
+          <CompletionCardView zukan={zukan} content={content} summary={completion.summary} isLoading={completion.isLoading} />
+        ) : (
+          <CompletionCard zukan={zukan} content={content} contentItems={contentItems} />
+        ))}
       {zukan.years.length > 1 || zukan.year !== null ? <YearChips zukan={zukan} /> : null}
       {content && !narrowed && zukan.missingOnly && zukan.ownedIds && zukan.year === null && zukan.items.length === 0 && contentItems && (
         <PockeSays pose="celebrate" height={64} bubbleClassName="text-xs">
@@ -43,10 +53,6 @@ export function ZukanPanel({ zukan, content, contentItems, narrowed = false }: Z
 }
 
 function CompletionCard({ zukan, content, contentItems }: { zukan: ZukanViewState; content: string; contentItems?: ZukanItemLike[] }) {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [open, setOpen] = useState(false);
   const { summary, isLoading } = useCatalogCompletion(
     content,
     contentItems ?? [],
@@ -54,6 +60,25 @@ function CompletionCard({ zukan, content, contentItems }: { zukan: ZukanViewStat
     zukan.ownedIds,
     zukan.ownedUpdatedAt
   );
+  return <CompletionCardView zukan={zukan} content={content} summary={summary} isLoading={isLoading} />;
+}
+
+/** 所持率のカード（見た目だけ）。作品の所持率でも、キャラページの所持率でも同じ形で出す */
+function CompletionCardView({
+  zukan,
+  content,
+  summary,
+  isLoading,
+}: {
+  zukan: ZukanViewState;
+  content: string;
+  summary: CompletionSummary | null;
+  isLoading: boolean;
+}) {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
   const work = summary?.work ?? null;
   const owned = work?.owned ?? 0;
   const total = work?.total ?? 0;

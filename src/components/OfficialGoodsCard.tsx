@@ -14,6 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { WishToggleButton } from "./catalog/WishToggleButton";
+import { useOwnedOfficialIds } from "@/hooks/useOwnedOfficialIds";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -60,6 +62,10 @@ export function OfficialGoodsCard({
     handleAddToCollection,
   } = useOfficialGoodsCard({ id, title, image });
 
+  // 「ほしい」ボタンを出すかどうか。一覧の全カードで共有する所持 id（1 回の問い合わせ）とカード自身の確認の両方を見る
+  const { ownedIds } = useOwnedOfficialIds();
+  const owned = isInCollection || !!ownedIds?.has(id);
+
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isWishlistUsersModalOpen, setIsWishlistUsersModalOpen] = useState(false);
 
@@ -98,11 +104,14 @@ export function OfficialGoodsCard({
             skeletonClassName="aspect-square"
           />
           
+          {/* 右上は「ほしい」ボタンなので、数のバッジは右下に置く */}
           {quantity > 1 && (
-            <Badge className="absolute top-1.5 right-1.5 z-10 bg-primary/90 text-primary-foreground text-3xs px-1.5">
+            <Badge className="absolute bottom-1.5 right-1.5 z-10 bg-primary/90 text-primary-foreground text-3xs px-1.5">
               ×{quantity}
             </Badge>
           )}
+
+          <WishToggleButton officialItemId={id} owned={owned} />
 
           {/* ホバーオーバーレイ（デスクトップ） */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 hidden sm:flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">

@@ -9,10 +9,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FEED_PAGE, useCatalogContents, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, SlidersHorizontal, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Package, SlidersHorizontal, X, Image as ImageIcon, Loader2, UserRound, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,13 +31,15 @@ import { CatalogFilterChips } from "@/components/catalog/CatalogFilterChips";
 import { countChipFacets, isChipFilterActive, matchesChipFilter, type CatalogChipFilter } from "@/lib/goodsTaxonomy";
 import { useZukanView } from "@/hooks/useZukanView";
 import { ZukanPanel } from "@/components/zukan/ZukanPanel";
+import { characterPath, pickCharacterTagId } from "@/utils/characterPage";
 
 const Search = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedContent, setSelectedContent] = useState("");
+  // ?content= で作品を選んだ状態から開ける（キャラページの「〇〇 のカタログを見る」から戻るとき）
+  const [selectedContent, setSelectedContent] = useState(() => new URLSearchParams(window.location.search).get("content")?.trim() ?? "");
   // 作品 → キャラ → カテゴリ → 入手方法 のチップでの絞り込み（キーワード・タグの絞り込みとは別に重ねる）
   const [chipFilter, setChipFilter] = useState<CatalogChipFilter>({});
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +64,22 @@ const Search = () => {
   const { data: allTags = [] } = useTags(selectedContent);
   const { data: catalogContents } = useCatalogContents();
   const contentCounts = useMemo(() => new Map((catalogContents ?? []).map((c) => [c.name, c.count])), [catalogContents]);
+
+  // ?content= から開いたあとに作品を選び直したら、URL も合わせる（再読み込みで前の作品に戻らないように）。
+  // ?content= が無いときは今までどおり URL に作品を残さない
+  useEffect(() => {
+    const inUrl = searchParams.get("content");
+    if (inUrl === null || inUrl === (activeContent ?? "")) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (activeContent) next.set("content", activeContent);
+        else next.delete("content");
+        return next;
+      },
+      { replace: true }
+    );
+  }, [activeContent, searchParams, setSearchParams]);
 
   // キャラは作品ごとのタグなので、作品を変えたら外す
   useEffect(() => {
@@ -150,6 +168,8 @@ const Search = () => {
     [baseItems, chipFilter]
   );
   const chipCounts = useMemo(() => countChipFacets(baseItems, chipFilter), [baseItems, chipFilter]);
+  // 選んでいるキャラのチップ（名前）→ キャラページの tag id
+  const characterTagId = useMemo(() => pickCharacterTagId(baseItems, chipFilter.character), [baseItems, chipFilter.character]);
   // 図鑑表示（未所持だけ・発売年・シリーズ別）。チップで絞った後の一覧にさらに重ねる。URL の missing / year / view に残す
   const zukan = useZukanView(filteredItems, activeContent);
 
@@ -249,6 +269,22 @@ const Search = () => {
                 countsComplete={!!activeContent && !workResult.isPlaceholderData && !workResult.isLoading && !workResult.isError}
                 canReset={!!activeContent || isChipFilterActive(chipFilter) || selectedTags.length > 0 || zukan.missingOnly || zukan.year !== null}
                 onReset={clearAllFilters}
+                footerStart={
+                  // キャラのチップを選んだら、そのキャラのページへの入口を出す（長押しなどは気づかれないので、見えるボタンにする）
+                  characterTagId && chipFilter.character ? (
+                    <Link
+                      to={characterPath(characterTagId)}
+                      aria-label={t("characterPage.openAria", { name: chipFilter.character })}
+                      className="-ml-1 inline-flex h-10 max-w-full items-center gap-1 rounded-full px-2 text-xs font-bold text-primary hover:bg-primary/10"
+                      data-character-link
+                    >
+                      <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span className="truncate">{chipFilter.character}</span>
+                      <span className="shrink-0">{t("characterPage.open")}</span>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    </Link>
+                  ) : undefined
+                }
               />
 
               {/* アクティブフィルターチップ（キーワード欄・フィルターで選んだタグ） */}

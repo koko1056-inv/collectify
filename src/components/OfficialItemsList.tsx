@@ -47,6 +47,8 @@ interface OfficialItemsListProps {
   seriesView?: boolean;
   /** 自分の所持 id（シリーズ別の「3/8 所持」用。ゲストは null） */
   ownedIds?: ReadonlySet<string> | null;
+  /** 最初の並び順（キャラページは発売が新しい順） */
+  initialSort?: SortOption;
 }
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned" | "release-desc" | "release-asc";
@@ -65,10 +67,11 @@ export function OfficialItemsList({
   onRetry,
   seriesView = false,
   ownedIds = null,
+  initialSort = "newest",
 }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>(initialSort);
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts, distinctOwnerCounts } = useItemCounts();
   const [isFilterOpen, setIsFilterOpen] = useState(false);

@@ -9,7 +9,8 @@ const CONCURRENCY = 4;
 /** 作品を選ばないときに読み込む件数（新しい順）。数万件ある全体を毎回読み込まないための上限。 */
 export const RECENT_LIMIT = 1500;
 
-const SELECT = `
+/** 一覧のカードと絞り込みに使う列（キャラページも同じ形で読む） */
+export const OFFICIAL_ITEM_SELECT = `
   id,
   title,
   image,
@@ -36,7 +37,7 @@ interface PageFilter {
 
 /** 重複として統合されたグッズは出さない。作品が指定されていればその作品だけ。 */
 function baseQuery(filter: PageFilter) {
-  let q = supabase.from("official_items").select(SELECT).is("merged_into", null).eq("exclude_from_lists", false);
+  let q = supabase.from("official_items").select(OFFICIAL_ITEM_SELECT).is("merged_into", null).eq("exclude_from_lists", false);
   if (filter.content) q = q.eq("content_name", filter.content);
   return q;
 }
@@ -54,7 +55,7 @@ async function fetchPage(filter: PageFilter, page: number, to: number) {
   return data ?? [];
 }
 
-function toItems(rows: unknown[]): OfficialItem[] {
+export function toItems(rows: unknown[]): OfficialItem[] {
   return (rows as Record<string, unknown>[]).map((item) => ({ ...item, artist: null, anime: null })) as unknown as OfficialItem[];
 }
 
@@ -199,7 +200,7 @@ export function useCatalogFeed(term: string, enabled = true) {
         const ids = rows.map((r) => r.id);
         const total = rows.length > 0 ? Number(rows[0].total) : 0;
         if (ids.length === 0) return { items: [] as OfficialItem[], total: pageParam === 0 ? 0 : null, next: null };
-        const { data, error } = await supabase.from("official_items").select(SELECT).in("id", ids);
+        const { data, error } = await supabase.from("official_items").select(OFFICIAL_ITEM_SELECT).in("id", ids);
         if (error) throw error;
         const byId = new Map((data ?? []).map((r: { id: string }) => [r.id, r]));
         const ordered = ids.map((id) => byId.get(id)).filter(Boolean) as unknown[];
@@ -208,7 +209,7 @@ export function useCatalogFeed(term: string, enabled = true) {
 
       const { data, error, count } = await supabase
         .from("official_items")
-        .select(SELECT, pageParam === 0 ? { count: "exact" } : undefined)
+        .select(OFFICIAL_ITEM_SELECT, pageParam === 0 ? { count: "exact" } : undefined)
         .is("merged_into", null)
         .eq("exclude_from_lists", false)
         .order("release_date", { ascending: false })

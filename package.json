@@ -24,7 +24,8 @@
     "test:catalog-item-requests": "node --experimental-strip-types scripts/test-catalog-item-requests.mjs",
     "test:taxonomy": "node --experimental-strip-types scripts/test-taxonomy.mjs",
     "test:zukan": "node --experimental-strip-types scripts/test-zukan.mjs",
-    "test:catalog-tag-counts": "node --experimental-strip-types scripts/test-catalog-tag-counts.mjs"
+    "test:catalog-tag-counts": "node --experimental-strip-types scripts/test-catalog-tag-counts.mjs",
+    "test:character-page": "node --experimental-strip-types scripts/test-character-page.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

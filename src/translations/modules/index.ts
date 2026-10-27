@@ -33,6 +33,8 @@ import { catalogRequest } from './catalogRequest';
 import { catalogItemRequest } from './catalogItemRequest';
 import { catalogFilters } from './catalogFilters';
 import { zukan } from './zukan';
+import { characterPage } from './characterPage';
+import { catalogWish } from './catalogWish';
 
 export const moduleTranslations = {
   ja: {
@@ -69,6 +71,8 @@ export const moduleTranslations = {
     catalogItemRequest: catalogItemRequest.ja,
     catalogFilters: catalogFilters.ja,
     zukan: zukan.ja,
+    characterPage: characterPage.ja,
+    catalogWish: catalogWish.ja,
   },
   en: {
     admin: admin.en,
@@ -104,5 +108,7 @@ export const moduleTranslations = {
     catalogItemRequest: catalogItemRequest.en,
     catalogFilters: catalogFilters.en,
     zukan: zukan.en,
+    characterPage: characterPage.en,
+    catalogWish: catalogWish.en,
   },
 };
