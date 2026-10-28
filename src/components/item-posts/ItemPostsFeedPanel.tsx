@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, ImagePlus, Images, LayoutGrid, Rows3, Users, X } from "lucide-react";
+import { Camera, Feather, Images, LayoutGrid, Rows3, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,8 @@ export function ItemPostsFeedPanel() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pendingTag, setPendingTag] = useState<string | null>(null);
   const [createCtx, setCreateCtx] = useState<{
-    target: PostTarget;
+    /** null = グッズなし（文字だけの投稿など） */
+    target: PostTarget | null;
     title: string;
     image: string | null;
     tag: string | null;
@@ -365,7 +366,8 @@ export function ItemPostsFeedPanel() {
         title={t("screens.itemPostsFeed.createPost")}
         className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:brightness-110 active:scale-95 motion-reduce:transition-none sm:bottom-8 sm:right-8"
       >
-        <ImagePlus className="h-6 w-6" />
+        {/* 写真なしでも書けるので、写真の印ではなくペン（X と同じ） */}
+        <Feather className="h-6 w-6" />
       </button>
 
       {/* 投稿がまだ少ない（3件未満）うちは、人の動きの代わりに推しの新着・発売予定・人気のグッズを出す */}
@@ -393,6 +395,7 @@ export function ItemPostsFeedPanel() {
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onSelect={(target, title, image) => setCreateCtx({ target, title, image, tag: pendingTag })}
+        onSkip={() => setCreateCtx({ target: null, title: "", image: null, tag: pendingTag })}
       />
 
       {createCtx && (

@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ItemPost } from "./useItemPosts";
+import { ItemPost, sortImages } from "./useItemPosts";
 import type { ItemPostComment } from "./useItemPostInteractions";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
@@ -124,7 +124,7 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
   if (error) throw error;
   // 埋め込みの画像は URL が空のことがある・並びが不定なので、下で整える
   const raw = (data || []) as unknown as ItemPost[];
-  // 次のカーソルは絞り込み（ブロック・作品・写真なし）の前の最後の行から作る。絞り込んで 0 件のページがあっても先へ進めるように
+  // 次のカーソルは絞り込み（ブロック・作品・中身のない投稿）の前の最後の行から作る。絞り込んで 0 件のページがあっても先へ進めるように
   const last = raw[raw.length - 1];
   const next: FeedCursor | null =
     raw.length === limit && last ? { created_at: last.created_at, id: last.id, like_count: last.like_count } : null;
@@ -162,15 +162,11 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
     });
   }
 
-  // 画像のURLが空の投稿は、一覧で真っ白なカードになる。写真のない投稿は並べない
+  // URL が空の写真は落とす（真っ白な写真を出さない）。写真がなくても本文があれば文字だけの投稿として並べる。
+  // 写真も本文もない投稿（壊れた行）だけは並べない
   posts = posts
-    .map((p) => ({
-      ...p,
-      images: (p.images || [])
-        .filter((img) => !!img.image_url)
-        .sort((a, b) => a.display_order - b.display_order),
-    }))
-    .filter((p) => p.images.length > 0);
+    .map((p) => ({ ...p, images: sortImages(p.images) }))
+    .filter((p) => p.images.length > 0 || !!p.caption?.trim());
 
   const ids = posts.map((p) => p.id);
   const [likedIds, commentsByPost] = await Promise.all([

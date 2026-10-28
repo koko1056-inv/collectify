@@ -11,6 +11,8 @@ const SHOW_MS = 2400;
 const NUDGE_MS = 5000;
 /** タップで登録画面へ進む（ゲスト向けの）一言 */
 const SIGNUP_KINDS = new Set<PockeCheerKind>(["wishGuest", "likeGuest"]);
+/** 登録へは進まないが、読む時間がいる長めの一言 */
+const LONG_KINDS = new Set<PockeCheerKind>(["textPostNeedsGoods"]);
 
 /** catalogRequestFailed の理由（requestErrorKey）ごとの顔。混んでいる・もう出ている、は困り顔にしない */
 const REQUEST_FAILED_POSE: Record<string, PockePose> = {
@@ -68,6 +70,7 @@ const LINES: Record<
   alreadyWished: [{ pose: "wink", key: "pocke.cheer.alreadyWished" }],
   wishGuest: [{ pose: "wave", key: "pocke.cheer.wishGuest" }],
   likeGuest: [{ pose: "wave", key: "pocke.cheer.likeGuest" }],
+  textPostNeedsGoods: [{ pose: "sad", key: "pocke.cheer.textPostNeedsGoods" }],
 };
 
 /**
@@ -108,7 +111,7 @@ export function PockeCheerHost() {
       }
       setShown({ id: Date.now(), ...next });
       window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setShown(null), next.signup ? NUDGE_MS : SHOW_MS);
+      timer.current = window.setTimeout(() => setShown(null), next.signup || LONG_KINDS.has(kind) ? NUDGE_MS : SHOW_MS);
     };
     window.addEventListener(POCKE_CHEER_EVENT, onCheer);
     return () => {

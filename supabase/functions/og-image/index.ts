@@ -106,7 +106,8 @@ serve(async (req) => {
     } else if (type === "post") {
       const { data: post } = await supabase
         .from("item_posts")
-        .select("id, user_id, image_url, caption, like_count")
+        // 写真は item_post_images にある（item_posts に image_url の列はない。以前はここで読めず、いつも既定の画像だった）
+        .select("id, user_id, caption, like_count, images:item_post_images ( image_url, display_order )")
         .eq("id", id)
         .maybeSingle();
 
@@ -122,7 +123,11 @@ serve(async (req) => {
         description = post.caption
           ? post.caption.slice(0, 120)
           : `${ownerName}さんの投稿をチェック！ #Collectify #推し活`;
-        if (post.image_url) imageUrl = post.image_url;
+        // 文字だけの投稿（写真なし）は既定の画像のまま
+        const images = ((post as { images?: { image_url: string | null; display_order: number }[] }).images ?? [])
+          .filter((i) => !!i.image_url)
+          .sort((x, y) => x.display_order - y.display_order);
+        if (images[0]?.image_url) imageUrl = images[0].image_url;
         pageUrl = `${APP_URL}/post/${id}`;
       }
     } else if (type === "display") {

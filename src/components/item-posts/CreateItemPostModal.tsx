@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ImagePlus, X, Loader2, Wand2, Sparkles, Hash, Images } from "lucide-react";
+import { ImagePlus, X, Loader2, Wand2, Sparkles, Hash, Images, PenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
+import { POST_CAPTION_MAX, PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,8 @@ const POST_IMAGE_COST = 50;
 interface CreateItemPostModalProps {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  target: PostTarget;
+  /** 投稿に付けるグッズ。null ならグッズなし（X のような文字だけの投稿も書ける） */
+  target: PostTarget | null;
   itemTitle: string;
   itemImage?: string | null;
   /** 作成できた投稿のID。シェアの導線などに使う */
@@ -57,6 +58,9 @@ export function CreateItemPostModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasImages = images.length > 0;
+  // 写真がないときは本文が必須（空の投稿は出さない）
+  const canSubmit = hasImages || caption.trim().length > 0;
   const createMutation = useCreateItemPost();
   const qc = useQueryClient();
 
@@ -184,7 +188,8 @@ export function CreateItemPostModal({
           <DialogTitle>{t("social.itemPosts.createTitle")}</DialogTitle>
         </DialogHeader>
 
-        {/* 対象グッズ情報 */}
+        {/* 対象グッズ情報（グッズなしのときは、文字だけの投稿だと分かる1行） */}
+        {target ? (
         <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
           {itemImage && (
             <img
@@ -198,10 +203,35 @@ export function CreateItemPostModal({
             <p className="text-sm font-medium truncate">{itemTitle}</p>
           </div>
         </div>
+        ) : (
+          <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <PenLine className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            {t("social.itemPosts.noGoodsTarget")}
+          </div>
+        )}
 
         {/* 画像選択 */}
         <div>
-          <p className="text-sm font-medium mb-2">{t("social.itemPosts.imagesCount", { current: images.length, max: MAX_IMAGES })}</p>
+          <p className="text-sm font-medium mb-2">{t("social.itemPosts.photosOptional", { current: images.length, max: MAX_IMAGES })}</p>
+          {/* 写真がまだないときは、文字だけでも投稿できるよう、追加の枠を低い1行にする（選んだあとは今までどおりのマス） */}
+          {!hasImages ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={createMutation.isPending}
+              data-testid="post-add-photo"
+              className={cn(
+                "flex w-full items-center gap-3 rounded-xl border-2 border-dashed border-border px-3 py-3 text-left text-muted-foreground",
+                "hover:border-primary hover:text-primary transition-colors"
+              )}
+            >
+              <ImagePlus className="h-6 w-6 shrink-0" />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">{t("social.itemPosts.addImage")}</span>
+                <span className="block text-2xs">{t("social.itemPosts.photosOptionalHint")}</span>
+              </span>
+            </button>
+          ) : (
           <div className="grid grid-cols-2 gap-2">
             {images.map((img, i) => (
               <div
@@ -233,6 +263,7 @@ export function CreateItemPostModal({
               </button>
             )}
           </div>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -246,8 +277,8 @@ export function CreateItemPostModal({
           />
         </div>
 
-        {/* AI画像生成（畳んだ1行から開く） */}
-        {!aiOpen ? (
+        {/* AI画像生成（畳んだ1行から開く）。グッズを題材に作るので、グッズなしの投稿では出さない */}
+        {!target ? null : !aiOpen ? (
           <button
             type="button"
             onClick={() => setAiOpen(true)}
@@ -329,15 +360,21 @@ export function CreateItemPostModal({
         )}
 
         <div>
-          <p className="text-sm font-medium mb-2">{t("social.itemPosts.commentOptional")}</p>
+          <label htmlFor="post-caption" className="mb-2 block text-sm font-medium">
+            {hasImages ? t("social.itemPosts.commentOptional") : t("social.itemPosts.bodyRequired")}
+          </label>
           <Textarea
+            id="post-caption"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
-            placeholder={t("social.itemPosts.commentPlaceholder")}
+            placeholder={hasImages ? t("social.itemPosts.commentPlaceholder") : t("social.itemPosts.textPlaceholder")}
             className="resize-none"
-            rows={4}
-            maxLength={500}
+            // 文字だけのときは本文が主役なので、少し高くする
+            rows={hasImages ? 4 : 6}
+            maxLength={POST_CAPTION_MAX}
+            autoFocus={!target}
             disabled={createMutation.isPending}
+            data-testid="post-caption"
           />
           <div className="mt-2 flex flex-wrap gap-1.5">
             {[...QUICK_TAGS.map((id) => t(`engage.posts.quickTag.${id}`)), weeklyTag].map((tag, i, all) => {
@@ -362,7 +399,7 @@ export function CreateItemPostModal({
               );
             })}
           </div>
-          <p className="mt-1 text-right text-3xs text-muted-foreground">{caption.length}/500</p>
+          <CharCounter count={caption.length} max={POST_CAPTION_MAX} />
         </div>
 
         {/* アクション */}
@@ -377,7 +414,7 @@ export function CreateItemPostModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={createMutation.isPending || images.length === 0}
+            disabled={createMutation.isPending || !canSubmit}
             className="flex-1 gap-2"
           >
             {createMutation.isPending ? (
@@ -404,5 +441,47 @@ export function CreateItemPostModal({
         />
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** 残りの文字数の輪（X と同じ）。残りが少なくなったら数字を出し、色を変える */
+function CharCounter({ count, max }: { count: number; max: number }) {
+  const { t } = useLanguage();
+  const left = max - count;
+  const near = left <= 50;
+  const R = 9;
+  const C = 2 * Math.PI * R;
+  const progress = Math.min(1, count / max);
+  const tone = left <= 0 ? "text-destructive" : left <= 20 ? "text-warning" : "text-primary";
+  return (
+    <div className="mt-1 flex items-center justify-end gap-1.5 pr-1" data-testid="post-char-counter">
+      {near && (
+        <span aria-hidden="true" className={cn("text-2xs tabular-nums", left <= 20 ? tone : "text-muted-foreground")}>
+          {left}
+        </span>
+      )}
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" className="-rotate-90">
+        <circle cx="11" cy="11" r={R} fill="none" strokeWidth="2" className="stroke-border" />
+        {count > 0 && (
+          <circle
+            cx="11"
+            cy="11"
+            r={R}
+            fill="none"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray={C}
+            strokeDashoffset={C * (1 - progress)}
+            className={cn("stroke-current transition-[stroke-dashoffset] duration-150", tone)}
+          />
+        )}
+      </svg>
+      <span className="shrink-0 whitespace-nowrap text-3xs tabular-nums text-muted-foreground">
+        {count}/{max}
+      </span>
+      <span className="sr-only" aria-live="polite">
+        {near ? t("social.itemPosts.charsLeft", { n: left }) : ""}
+      </span>
+    </div>
   );
 }

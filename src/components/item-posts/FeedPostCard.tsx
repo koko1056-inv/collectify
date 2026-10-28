@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { useCreateItemPostComment, useToggleItemPostLike } from "@/hooks/item-posts/useItemPostInteractions";
-import { useDeleteItemPost } from "@/hooks/item-posts/useItemPosts";
+import { isTextOnlyPost, useDeleteItemPost } from "@/hooks/item-posts/useItemPosts";
 import { useToggleReaction, type PostReactionSummary, type ReactionKind } from "@/hooks/item-posts/useItemPostReactions";
 import type { FeedGoods, FeedPost } from "@/hooks/item-posts/useItemPostsFeed";
 import { pockeCheer } from "@/components/pocke/pockeCheer";
@@ -99,6 +99,7 @@ export const FeedPostCard = memo(function FeedPostCard({ post, onOpen, onTagClic
   };
 
   const previewCount = post.preview_comments.length;
+  const textOnly = isTextOnlyPost(post);
 
   return (
     <article className="flex gap-3 border-b border-border/70 px-4 pb-2 pt-3" aria-label={name}>
@@ -136,14 +137,28 @@ export const FeedPostCard = memo(function FeedPostCard({ post, onOpen, onTagClic
           )}
           {handle && <span className="min-w-0 truncate text-muted-foreground">@{handle}</span>}
           <span aria-hidden="true" className="shrink-0 text-muted-foreground">·</span>
-          <time dateTime={post.created_at} className="shrink-0 text-muted-foreground">
-            {formatAgo(post.created_at)}
-          </time>
+          {/* 時刻は投稿へのリンク（X と同じ）。文字だけの投稿は写真がないので、ここか本文から詳細をひらく */}
+          <button
+            type="button"
+            onClick={() => onOpen(post)}
+            aria-label={t("social.itemPosts.openPost")}
+            className="shrink-0 text-muted-foreground hover:underline"
+          >
+            <time dateTime={post.created_at}>{formatAgo(post.created_at)}</time>
+          </button>
           <PostMenu post={post} className="-my-1.5 -mr-2 ml-auto" />
         </header>
 
-        {post.caption && <Caption caption={post.caption} onTagClick={onTagClick} />}
+        {post.caption && (
+          <Caption
+            caption={post.caption}
+            onTagClick={onTagClick}
+            // 文字だけの投稿は本文が主役。本文のタップで詳細をひらく（#タグ・もっと見るのボタンは除く）
+            onOpen={textOnly ? () => onOpen(post) : undefined}
+          />
+        )}
 
+        {!textOnly && (
         <PostMedia post={post} eager={eager} onTap={onMediaTap}>
           <AnimatePresence>
             {burst > 0 && (
@@ -162,6 +177,7 @@ export const FeedPostCard = memo(function FeedPostCard({ post, onOpen, onTagClic
             )}
           </AnimatePresence>
         </PostMedia>
+        )}
 
         {post.goods && <GoodsChip goods={post.goods} ownerId={post.user_id} />}
 
@@ -519,7 +535,16 @@ function GoodsChip({ goods, ownerId }: { goods: FeedGoods; ownerId: string }) {
 }
 
 /** 本文（4 行で畳み、「もっと見る」で全文）。#タグ はフィードの絞り込みに */
-function Caption({ caption, onTagClick }: { caption: string; onTagClick?: (tag: string) => void }) {
+function Caption({
+  caption,
+  onTagClick,
+  onOpen,
+}: {
+  caption: string;
+  onTagClick?: (tag: string) => void;
+  /** 渡すと、本文（ボタン以外）のタップで詳細をひらく */
+  onOpen?: () => void;
+}) {
   const { t } = useLanguage();
   const ref = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -532,7 +557,20 @@ function Caption({ caption, onTagClick }: { caption: string; onTagClick?: (tag: 
   }, [caption, expanded]);
 
   return (
-    <div className="mt-0.5 text-sm leading-relaxed">
+    <div
+      className={cn("mt-0.5 text-sm leading-relaxed", onOpen && "cursor-pointer")}
+      onClick={
+        onOpen
+          ? (e) => {
+              if ((e.target as HTMLElement).closest("button, a")) return;
+              // 文字を選んでいるときはひらかない
+              if (window.getSelection()?.toString()) return;
+              onOpen();
+            }
+          : undefined
+      }
+      data-testid={onOpen ? "text-post-body" : undefined}
+    >
       <p ref={ref} className={cn("whitespace-pre-wrap break-words", !expanded && "line-clamp-4")}>
         {caption.split(/(#[^\s#]+)/g).map((part, i) =>
           part.startsWith("#") && part.length > 1 ? (
