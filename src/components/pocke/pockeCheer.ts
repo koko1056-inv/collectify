@@ -35,6 +35,7 @@ export type PockeCheerKind =
   | "alreadyInCollection" // スワイプでコレクションに入れようとしたが、もう入っていた
   | "alreadyWished" // スワイプで「ほしい」に入れようとしたが、もう入っていた（またはもう持っている）
   | "wishGuest" // ゲストが「ほしい」に入れようとした（登録をすすめる。タップで登録へ）
+  | "likeGuest" // ゲストが投稿にいいね・コメントしようとした（登録をすすめる。タップで登録へ）
   | "levelUp"; // 推しがレベルアップした（n = レベル、title = 推しの名前）
 
 export interface PockeCheerDetail {

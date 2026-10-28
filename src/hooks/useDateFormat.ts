@@ -59,6 +59,26 @@ export function useDateFormat() {
       formatRelative: (value: DateInput) =>
         formatDistanceToNow(toDate(value), { addSuffix: true, locale }),
 
+      /**
+       * SNS 風の短い経過時間。たった今 / 3分前 / 2時間前 / 昨日 / 3日前 / 5月1日（1週間より前）/ 2025年5月1日（去年より前）
+       * formatRelative（「約2時間前」）より短く、フィードのカードの見出しに向く。
+       */
+      formatAgo: (value: DateInput, now: Date = new Date()) => {
+        const d = toDate(value);
+        const sec = Math.max(0, Math.floor((now.getTime() - d.getTime()) / 1000));
+        if (sec < 60) return isEn ? "just now" : "たった今";
+        const min = Math.floor(sec / 60);
+        if (min < 60) return isEn ? `${min}m ago` : `${min}分前`;
+        const hours = Math.floor(min / 60);
+        if (hours < 24) return isEn ? `${hours}h ago` : `${hours}時間前`;
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const days = Math.ceil((startOfToday.getTime() - d.getTime()) / 86_400_000);
+        if (days <= 1) return isEn ? "yesterday" : "昨日";
+        if (days < 7) return isEn ? `${days}d ago` : `${days}日前`;
+        if (d.getFullYear() === now.getFullYear()) return format(d, isEn ? "MMM d" : "M月d日", { locale });
+        return format(d, isEn ? "MMM d, yyyy" : "yyyy年M月d日", { locale });
+      },
+
       /** 3日 / 3 days （「後」「前」を付けない残り時間などに） */
       formatDistance: (value: DateInput) =>
         formatDistanceToNow(toDate(value), { locale }),

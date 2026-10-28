@@ -18,7 +18,6 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { SITE_URL } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -37,8 +36,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReactionBar } from "./ReactionBar";
-import { shareContent } from "@/utils/share";
-import { buildShareText } from "@/utils/shareLinks";
+import { sharePost } from "./sharePost";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
@@ -98,21 +96,7 @@ export function ItemPostDetailModal({
   const hasMultiple = post.images.length > 1;
   const currentImage = post.images[imageIdx];
 
-  const handleShare = async () => {
-    const shareUrl = `${SITE_URL}/post/${post.id}`;
-    const owner = post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector");
-    // 本文の1行目は buildShareText と同じ文言にそろえる（URLは shareContent が末尾に付ける）
-    const text = buildShareText({ type: "post", id: post.id, ownerName: owner }).split("\n").slice(0, 2).join("\n");
-    const result = await shareContent({
-      title: t("social.itemPosts.shareTitle"),
-      text,
-      url: shareUrl,
-      imageUrl: post.images[0]?.image_url ?? null,
-      fileName: "collectify-post.png",
-    });
-    if (result === "copied") toast.success(t("social.itemPosts.urlCopied"));
-    else if (result === "failed") toast.error(t("engage.share.copyFailed"));
-  };
+  const handleShare = () => sharePost(post, t);
 
   const handleDelete = async () => {
     if (!confirm(t("social.itemPosts.confirmDelete"))) return;
@@ -259,6 +243,7 @@ export function ItemPostDetailModal({
             </div>
             <button
               onClick={handleShare}
+              aria-label={t("social.itemPosts.share")}
               className="ml-auto flex items-center gap-1.5 py-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <Share2 className="w-5 h-5" />

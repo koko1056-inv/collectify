@@ -1,22 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Flame, Images, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
+import { Pocke } from "@/components/pocke/Pocke";
 import { OshiDiscoveryPanel } from "@/components/releases/OshiDiscoveryPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useItemPostsFeed, type FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
-import { useItemPostReactions } from "@/hooks/item-posts/useItemPostReactions";
+import { useItemPostsFeedPages, type FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
 import type { ItemPost, PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { shareContent } from "@/utils/share";
 import { SITE_URL } from "@/config/site";
-import { ItemPostGrid } from "./ItemPostGrid";
+import { FeedPostCard, FeedPostCardSkeleton } from "./FeedPostCard";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { SelectItemForPostModal } from "./SelectItemForPostModal";
 import { CreateItemPostModal } from "./CreateItemPostModal";
@@ -54,8 +54,21 @@ export function ItemPostsFeedPanel() {
     tag: string | null;
   } | null>(null);
 
-  const { data: posts = [], isLoading } = useItemPostsFeed({ mode, hashtag, contentFilter });
-  const reactions = useItemPostReactions(posts.map((p) => p.id));
+  const feed = useItemPostsFeedPages({ mode, hashtag, contentFilter });
+  const posts = useMemo(() => feed.data?.pages.flatMap((pg) => pg.posts) ?? [], [feed.data]);
+  const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = feed;
+
+  // 下まで来たら次を読む（「もっと見る」も残す: 読み上げ・キーボードでも進めるように）
+  const sentinel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !hasNextPage || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && !isFetchingNextPage) void fetchNextPage();
+    }, { rootMargin: "800px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const activePostId = selectedPost?.id ?? routePostId ?? null;
 
@@ -115,14 +128,8 @@ export function ItemPostsFeedPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-lg font-bold">{t("screens.itemPostsFeed.title")}</h2>
-          {posts.length > 0 && (
-            <span className="text-sm text-muted-foreground">
-              {t("screens.itemPostsFeed.countSuffix", { count: posts.length })}
-            </span>
-          )}
-        </div>
+        {/* 件数は出さない（タイムラインは下へ読み足していくので、読み込んだ数しか分からない） */}
+        <h2 className="text-lg font-bold">{t("screens.itemPostsFeed.title")}</h2>
         <Button size="sm" onClick={() => startPost(null)} className="gap-1.5 rounded-full h-9">
           <Camera className="w-4 h-4" />
           {t("screens.itemPostsFeed.createPost")}
@@ -186,47 +193,88 @@ export function ItemPostsFeedPanel() {
         </div>
       )}
 
+      {/* SNS 風のタイムライン: 1 列のカード。写真をひらかなくても、いいね・コメントが見られて書ける */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-xl" />
-          ))}
+        <div className="mx-auto max-w-lg space-y-4">
+          <p role="status" aria-live="polite" className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Pocke pose="think" height={40} motion="bob" />
+            {t("social.itemPosts.feedLoading")}
+          </p>
+          <FeedPostCardSkeleton />
+          <FeedPostCardSkeleton />
         </div>
+      ) : isError && posts.length === 0 ? (
+        <QueryErrorState title={t("social.itemPosts.feedFailed")} onRetry={() => void feed.refetch()} />
+      ) : posts.length === 0 && !hasNextPage ? (
+        // 「まだありません」で終わらせず、並び・絞り込みに合わせた次の一手を出す
+        mode === "following" ? (
+          <EmptyState
+            icon={Users}
+            className="py-8"
+            title={t("discover.empty.followingTitle")}
+            description={t("discover.empty.followingDesc")}
+            action={<Button variant="outline" onClick={() => navigate("/explore?tab=users")}>{t("discover.empty.findUsers")}</Button>}
+          />
+        ) : (
+          <EmptyState
+            icon={Images}
+            className="py-8"
+            title={hashtag || contentFilter ? t("discover.empty.postsFilteredTitle") : t("discover.empty.postsFirstTitle")}
+            description={t("discover.empty.postsFirstDesc")}
+            action={
+              <Button onClick={() => startPost(hashtag)} className="gap-1.5">
+                <Camera className="h-4 w-4" />
+                {t("screens.itemPostsFeed.createPost")}
+              </Button>
+            }
+          />
+        )
       ) : (
-        <ItemPostGrid
-          posts={posts}
-          onPostClick={setSelectedPost}
-          getReactions={reactions.get}
-          empty={
-            // 「まだありません」で終わらせず、並び・絞り込みに合わせた次の一手を出す
-            mode === "following" ? (
-              <EmptyState
-                icon={Users}
-                className="py-8"
-                title={t("discover.empty.followingTitle")}
-                description={t("discover.empty.followingDesc")}
-                action={<Button variant="outline" onClick={() => navigate("/explore?tab=users")}>{t("discover.empty.findUsers")}</Button>}
-              />
-            ) : (
-              <EmptyState
-                icon={Images}
-                className="py-8"
-                title={hashtag || contentFilter ? t("discover.empty.postsFilteredTitle") : t("discover.empty.postsFirstTitle")}
-                description={t("discover.empty.postsFirstDesc")}
-                action={
-                  <Button onClick={() => startPost(hashtag)} className="gap-1.5">
-                    <Camera className="h-4 w-4" />
-                    {t("screens.itemPostsFeed.createPost")}
-                  </Button>
-                }
-              />
+        <div className="mx-auto max-w-lg space-y-4">
+          {posts.map((post, i) => (
+            <FeedPostCard
+              key={post.id}
+              post={post}
+              eager={i < 2}
+              onOpen={setSelectedPost}
+              onTagClick={(tag) => {
+                patchParams((p) => p.set("tag", tag));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          ))}
+          {isFetchingNextPage && (
+            <>
+              <p role="status" aria-live="polite" className="text-center text-xs text-muted-foreground">
+                {t("social.itemPosts.feedLoadingMore")}
+              </p>
+              <FeedPostCardSkeleton />
+            </>
+          )}
+          {hasNextPage ? (
+            <div ref={sentinel} className="flex justify-center py-2">
+              {!isFetchingNextPage && (
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => void fetchNextPage()}>
+                  {t("social.itemPosts.feedLoadMore")}
+                </Button>
+              )}
+            </div>
+          ) : (
+            posts.length >= 3 && (
+              <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
+                <Pocke pose="wink" height={44} loading="lazy" />
+                {t("social.itemPosts.feedEnd")}
+              </div>
             )
-          }
-        />
+          )}
+          {isError && (
+            <QueryErrorState className="py-6" title={t("social.itemPosts.feedFailed")} onRetry={() => void fetchNextPage()} />
+          )}
+        </div>
       )}
 
       {/* 投稿がまだ少ない（3件未満）うちは、人の動きの代わりに推しの新着・発売予定・人気のグッズを出す */}
-      {!isLoading && posts.length < 3 && (
+      {!isLoading && !hasNextPage && posts.length < 3 && (
         <OshiDiscoveryPanel
           className="border-t border-border pt-5"
           title={t("discover.panel.fillTitle")}
