@@ -26,7 +26,7 @@ export function OfficialItemsGrid({
       {items.map((item) => {
         const isSelected = selectedIds?.has(item.id) ?? false;
         return (
-          <div key={item.id} className="relative">
+          <div key={item.id} className="relative" data-item-id={item.id}>
             {selectionMode && (
               <button
                 type="button"

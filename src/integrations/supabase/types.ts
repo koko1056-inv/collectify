@@ -4640,6 +4640,33 @@ export type Database = {
         Args: { per_content?: number }
         Returns: { content_name: string; images: string[] }[]
       }
+      catalog_items_after: {
+        Args: {
+          p_content?: string | null
+          p_after_release?: string | null
+          p_after_created?: string | null
+          p_after_id?: string | null
+          p_limit?: number
+          p_until_release?: string | null
+          p_until_created?: string | null
+          p_until_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["official_items"]["Row"][]
+      }
+      catalog_listed_total: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      catalog_page_cursors: {
+        Args: { p_content?: string | null; p_page_size?: number; p_max_rows?: number | null }
+        Returns: {
+          page_no: number
+          after_release: string | null
+          after_created: string | null
+          after_id: string | null
+          total: number
+        }[]
+      }
       add_user_points: {
         Args: {
           _description?: string
