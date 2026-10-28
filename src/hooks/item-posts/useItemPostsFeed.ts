@@ -15,7 +15,19 @@ export const FEED_PAGE_SIZE = 12;
 /** フィードのカード 1 枚ぶん。投稿に、カードの下に出す最新コメント（古い順）を添えたもの */
 export interface FeedPost extends ItemPost {
   preview_comments: ItemPostComment[];
+  /** 投稿に紐づくグッズ（カードの下の札）。読めなかった・紐づいていないときは null */
+  goods?: FeedGoods | null;
 }
+
+/** 投稿のグッズの札に出すもの。公式のグッズがあればそのページへ、なければ持ち主のグッズをひらく */
+export interface FeedGoods {
+  title: string;
+  image: string | null;
+  officialItemId: string | null;
+  userItemId: string | null;
+}
+
+type GoodsRow = { id: string; title: string | null; image: string | null; content_name: string | null; official_item_id?: string | null };
 
 /**
  * keyset（前のページの最後の 1 件の次から）のカーソル。並びに使う列 + id（同じ時刻の投稿でも順序が決まるように）。
@@ -53,6 +65,7 @@ const q = (v: string | number) => `"${String(v).replace(/"/g, '\\"')}"`;
  *  - 投稿・画像・投稿者 … 1 回（埋め込み）。いいね数・コメント数は item_posts の集計列
  *  - 自分のいいね … ページの投稿 id で 1 回（in）
  *  - 最新コメント … ページの投稿 id で 1 回（in + 新しい順）。手元で投稿ごとに分けて、新しい方から 2 件
+ *  - グッズ（札・作品の絞り込み） … official_items / user_items を id で 1 回ずつ
  */
 async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<FeedPage> {
   const { mode, contentFilter, hashtag, userId, limit, after, withComments } = args;
@@ -120,38 +133,33 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
   const blocked = await fetchBlockedUserIds(queryClient, userId);
   let posts = excludeBlocked(raw, blocked, (p) => p.user_id);
 
-  // コンテンツ名フィルタ（official_items or user_items 経由で filter）
-  if (contentFilter) {
-    const officialIds = posts
-      .map((p) => p.official_item_id)
-      .filter(Boolean) as string[];
-    const userItemIds = posts
-      .map((p) => p.user_item_id)
-      .filter(Boolean) as string[];
-
+  // グッズ（札に出す名前・写真と、作品での絞り込み）。ページの id でまとめて 1 回ずつ（official / user_items）。
+  // 作品で絞り込むときもこの結果を使う（同じ表を 2 回読まない）
+  const goodsById = new Map<string, GoodsRow>();
+  if (withComments || contentFilter) {
+    const officialIds = [...new Set(posts.map((p) => p.official_item_id).filter(Boolean) as string[])];
+    const userItemIds = [...new Set(posts.map((p) => p.user_item_id).filter(Boolean) as string[])];
     const [officialRes, userRes] = await Promise.all([
       officialIds.length
-        ? supabase
-            .from("official_items")
-            .select("id, content_name")
-            .in("id", officialIds)
-            .eq("content_name", contentFilter)
-        : Promise.resolve({ data: [] as { id: string }[] }),
+        ? supabase.from("official_items").select("id, title, image, content_name").in("id", officialIds)
+        : Promise.resolve({ data: [] as GoodsRow[] }),
       userItemIds.length
-        ? supabase
-            .from("user_items")
-            .select("id, content_name")
-            .in("id", userItemIds)
-            .eq("content_name", contentFilter)
-        : Promise.resolve({ data: [] as { id: string }[] }),
+        ? supabase.from("user_items").select("id, title, image, content_name, official_item_id").in("id", userItemIds)
+        : Promise.resolve({ data: [] as GoodsRow[] }),
     ]);
-    const matchingOfficial = new Set((officialRes.data ?? []).map((r) => r.id));
-    const matchingUser = new Set((userRes.data ?? []).map((r) => r.id));
-    posts = posts.filter(
-      (p) =>
-        (p.official_item_id && matchingOfficial.has(p.official_item_id)) ||
-        (p.user_item_id && matchingUser.has(p.user_item_id))
-    );
+    // 読めなかったとき（権限など）は札を出さないだけ。投稿は出す
+    for (const r of [...(officialRes.data ?? []), ...(userRes.data ?? [])] as GoodsRow[]) goodsById.set(r.id, r);
+  }
+  const goodsOf = (p: ItemPost) =>
+    (p.official_item_id && goodsById.get(p.official_item_id)) || (p.user_item_id && goodsById.get(p.user_item_id)) || null;
+
+  // コンテンツ名フィルタ（official_items or user_items の作品名で絞る）
+  if (contentFilter) {
+    posts = posts.filter((p) => {
+      const o = p.official_item_id ? goodsById.get(p.official_item_id) : undefined;
+      const u = p.user_item_id ? goodsById.get(p.user_item_id) : undefined;
+      return o?.content_name === contentFilter || u?.content_name === contentFilter;
+    });
   }
 
   // 画像のURLが空の投稿は、一覧で真っ白なカードになる。写真のない投稿は並べない
@@ -205,8 +213,20 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
       is_liked_by_me: likedIds.has(p.id),
       // 新しい順で取ったので、表示は古い→新しい（会話の流れ）に戻す
       preview_comments: [...(commentsByPost.get(p.id) ?? [])].reverse(),
+      goods: withComments ? toGoods(p, goodsOf(p)) : undefined,
     })),
     next,
+  };
+}
+
+function toGoods(p: ItemPost, row: GoodsRow | null): FeedGoods | null {
+  if (!row?.title) return null;
+  const isOfficial = row.id === p.official_item_id;
+  return {
+    title: row.title,
+    image: row.image,
+    officialItemId: isOfficial ? row.id : row.official_item_id ?? null,
+    userItemId: isOfficial ? null : row.id,
   };
 }
 

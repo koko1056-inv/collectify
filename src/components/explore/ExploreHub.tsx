@@ -1,5 +1,5 @@
 import { getInitial } from "@/utils/initial";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,14 +114,26 @@ export function ExploreHub() {
     ai: t("chrome.explore.tabAi"),
   };
 
+  // 上のバーの高さ（検索欄を開くと高くなる）を、その下に貼りつく投稿タブの並びに渡す
+  const rootRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = headerRef.current;
+    const root = rootRef.current;
+    if (!header || !root || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => root.style.setProperty("--app-sticky-top", `${header.offsetHeight}px`));
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div ref={rootRef} className="min-h-screen bg-background text-foreground">
       <Navbar />
 
       <main className="pb-nav">
         {/* ヘッダー。最初の画面は「みんな」と検索だけ。一覧（?tab=）を開いたときは「みんなへ戻る」と一覧の名前。
             以前は見出し・説明文・検索欄・5つのタブが常に並び、約190pxを使っていた */}
-        <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div ref={headerRef} className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
           <div className="container mx-auto flex items-center gap-2 px-4 py-3">
             {activeTab === "home" ? (
               <div className="flex flex-1 items-center gap-2">
