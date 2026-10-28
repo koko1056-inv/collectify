@@ -19,16 +19,21 @@ export function useUniverseItems(userId: string | undefined, enabled: boolean) {
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<UniverseItemInput[]> => {
       const rows: UniverseItemInput[] = [];
-      for (let from = 0; from < MAX_ITEMS; from += PAGE) {
-        const { data, error } = await supabase
+      // 「何件目から」ではなく「前のページの最後の 1 件（登録日, id）より後ろ」で読む（奥のページでも読み捨てが無い）
+      let last: { created_at: string; id: string } | null = null;
+      while (rows.length < MAX_ITEMS) {
+        let q = supabase
           .from("user_items")
           .select(
             "id, title, image, quantity, content_name, created_at, official_items!user_items_official_item_id_fkey(content_name), user_item_tags(tags(name, category))"
           )
-          .eq("user_id", userId!)
+          .eq("user_id", userId!);
+        // 日時は「.」「:」を含むので、PostgREST の or の中では "" で囲む
+        if (last) q = q.or(`created_at.gt."${last.created_at}",and(created_at.eq."${last.created_at}",id.gt.${last.id})`);
+        const { data, error } = await q
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
-          .range(from, from + PAGE - 1);
+          .limit(Math.min(PAGE, MAX_ITEMS - rows.length));
         if (error) throw error;
         for (const r of data ?? []) {
           const official = r.official_items as { content_name: string | null } | null;
@@ -45,6 +50,8 @@ export function useUniverseItems(userId: string | undefined, enabled: boolean) {
           });
         }
         if (!data || data.length < PAGE) break;
+        const tail = data[data.length - 1];
+        last = { created_at: tail.created_at, id: tail.id };
       }
       return rows;
     },

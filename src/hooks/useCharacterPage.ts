@@ -77,16 +77,16 @@ export function useCharacterItems(tagIds: string[] | undefined) {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const ids = new Set<string>();
-      for (let page = 0; ; page += 1) {
-        const { data, error } = await supabase
-          .from("item_tags")
-          .select("official_item_id")
-          .in("tag_id", key)
-          .order("id", { ascending: true })
-          .range(page * PAGE, (page + 1) * PAGE - 1);
+      // 「何件目から」ではなく「前のページの最後の id より後ろ」で読む（奥のページでも読み捨てが無い）
+      let lastId: string | null = null;
+      for (;;) {
+        let q = supabase.from("item_tags").select("id,official_item_id").in("tag_id", key);
+        if (lastId) q = q.gt("id", lastId);
+        const { data, error } = await q.order("id", { ascending: true }).limit(PAGE);
         if (error) throw error;
         for (const r of data ?? []) if (r.official_item_id) ids.add(r.official_item_id);
         if (!data || data.length < PAGE) break;
+        lastId = data[data.length - 1].id;
       }
       const all = [...ids];
       const chunks: string[][] = [];
