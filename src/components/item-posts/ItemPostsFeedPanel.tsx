@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Flame, Images, Sparkles, Users } from "lucide-react";
+import { Camera, Flame, Images, LayoutGrid, Rows3, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Pocke } from "@/components/pocke/Pocke";
@@ -13,10 +14,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useItemPostsFeedPages, type FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
+import { useItemPostReactions } from "@/hooks/item-posts/useItemPostReactions";
 import type { ItemPost, PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { shareContent } from "@/utils/share";
 import { SITE_URL } from "@/config/site";
 import { FeedPostCard, FeedPostCardSkeleton } from "./FeedPostCard";
+import { ItemPostGrid } from "./ItemPostGrid";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { SelectItemForPostModal } from "./SelectItemForPostModal";
 import { CreateItemPostModal } from "./CreateItemPostModal";
@@ -24,11 +27,35 @@ import { WeeklyPromptBanner } from "./WeeklyPromptBanner";
 import { RecentRegistrationsStrip } from "./RecentRegistrationsStrip";
 
 // label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
+const VIEWS: { id: FeedView; label: string; icon: typeof Flame }[] = [
+  { id: "feed", label: "screens.itemPostsFeed.viewFeed", icon: Rows3 },
+  { id: "grid", label: "screens.itemPostsFeed.viewGrid", icon: LayoutGrid },
+];
 const MODES: { id: FeedMode; label: string; icon: typeof Flame }[] = [
   { id: "new", label: "screens.itemPostsFeed.modeNew", icon: Sparkles },
   { id: "popular", label: "screens.itemPostsFeed.modePopular", icon: Flame },
   { id: "following", label: "screens.itemPostsFeed.modeFollowing", icon: Users },
 ];
+
+type FeedView = "feed" | "grid";
+const VIEW_KEY = "collectify:item-posts-view";
+
+// 表示（タイムライン / タイル）は端末に覚えておく。SSR やプライベートモードで localStorage が使えなくても落ちないように
+function readView(): FeedView {
+  try {
+    return typeof window !== "undefined" && window.localStorage.getItem(VIEW_KEY) === "grid" ? "grid" : "feed";
+  } catch {
+    return "feed";
+  }
+}
+
+function saveView(v: FeedView) {
+  try {
+    window.localStorage.setItem(VIEW_KEY, v);
+  } catch {
+    // 保存できなくても、この画面の中では切り替わっていれば十分
+  }
+}
 
 /**
  * 投稿フィード一式（お題・新着登録・フィード・投稿作成）。
@@ -42,6 +69,11 @@ export function ItemPostsFeedPanel() {
   const { postId: routePostId } = useParams<{ postId?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = useState<FeedMode>("new");
+  const [view, setViewState] = useState<FeedView>(readView);
+  const setView = (v: FeedView) => {
+    setViewState(v);
+    saveView(v);
+  };
   const hashtag = searchParams.get("tag");
   const contentFilter = searchParams.get("content");
   const [selectedPost, setSelectedPost] = useState<ItemPost | null>(null);
@@ -57,6 +89,8 @@ export function ItemPostsFeedPanel() {
   const feed = useItemPostsFeedPages({ mode, hashtag, contentFilter });
   const posts = useMemo(() => feed.data?.pages.flatMap((pg) => pg.posts) ?? [], [feed.data]);
   const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = feed;
+  // タイルでは「持ってる」の数も出す（前のタイル表示と同じ）。タイムラインのときは取りに行かない
+  const reactions = useItemPostReactions(view === "grid" ? posts.map((p) => p.id) : [], { keepPrevious: true });
 
   // 下まで来たら次を読む（「もっと見る」も残す: 読み上げ・キーボードでも進めるように）
   const sentinel = useRef<HTMLDivElement>(null);
@@ -143,26 +177,52 @@ export function ItemPostsFeedPanel() {
 
       <RecentRegistrationsStrip />
 
-      <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30 max-w-md">
-        {MODES.map((m) => {
-          const isActive = mode === m.id;
-          const disabled = m.id === "following" && !user;
-          const Icon = m.icon;
-          return (
-            <button
-              key={m.id}
-              onClick={() => !disabled && setMode(m.id)}
-              disabled={disabled}
-              className={cn(
-                "relative flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-sm font-medium transition-colors z-10 disabled:opacity-40 disabled:cursor-not-allowed",
-                isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="text-xs sm:text-sm">{t(m.label)}</span>
-            </button>
-          );
-        })}
+      <div className="flex items-center gap-2">
+        <div className="relative flex flex-1 p-1 rounded-full bg-muted/60 border border-border/30 max-w-md">
+          {MODES.map((m) => {
+            const isActive = mode === m.id;
+            const disabled = m.id === "following" && !user;
+            const Icon = m.icon;
+            return (
+              <button
+                key={m.id}
+                onClick={() => !disabled && setMode(m.id)}
+                disabled={disabled}
+                className={cn(
+                  "relative flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-full text-sm font-medium transition-colors z-10 disabled:opacity-40 disabled:cursor-not-allowed",
+                  isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-xs sm:text-sm">{t(m.label)}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 表示の切り替え（Instagram のプロフィールのように、タイムライン / タイル） */}
+        <div role="group" aria-label={t("screens.itemPostsFeed.viewToggle")} className="flex shrink-0 p-1 rounded-full bg-muted/60 border border-border/30">
+          {VIEWS.map((v) => {
+            const isActive = view === v.id;
+            const Icon = v.icon;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setView(v.id)}
+                aria-pressed={isActive}
+                aria-label={t(v.label)}
+                title={t(v.label)}
+                className={cn(
+                  "flex h-8 w-9 items-center justify-center rounded-full transition-colors",
+                  isActive ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 作品の札は折り返さず1行で横にスクロール（以前は3〜4行に折り返し、投稿が押し下げられていた） */}
@@ -193,15 +253,22 @@ export function ItemPostsFeedPanel() {
         </div>
       )}
 
-      {/* SNS 風のタイムライン: 1 列のカード。写真をひらかなくても、いいね・コメントが見られて書ける */}
+      {/* タイムライン: 1 列のカード。写真をひらかなくても、いいね・コメントが見られて書ける。
+          タイル: 前の 2 列のマス。どちらも同じページ（同じ並び・絞り込み）を読むので、切り替えても取り直さない */}
       {isLoading ? (
-        <div className="mx-auto max-w-lg space-y-4">
+        <div className={cn("space-y-4", view === "feed" && "mx-auto max-w-lg")}>
           <p role="status" aria-live="polite" className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Pocke pose="think" height={40} motion="bob" />
             {t("social.itemPosts.feedLoading")}
           </p>
-          <FeedPostCardSkeleton />
-          <FeedPostCardSkeleton />
+          {view === "feed" ? (
+            <>
+              <FeedPostCardSkeleton />
+              <FeedPostCardSkeleton />
+            </>
+          ) : (
+            <GridSkeletonTiles count={6} />
+          )}
         </div>
       ) : isError && posts.length === 0 ? (
         <QueryErrorState title={t("social.itemPosts.feedFailed")} onRetry={() => void feed.refetch()} />
@@ -230,8 +297,15 @@ export function ItemPostsFeedPanel() {
           />
         )
       ) : (
-        <div className="mx-auto max-w-lg space-y-4">
-          {posts.map((post, i) => (
+        <div className={cn("space-y-4", view === "feed" && "mx-auto max-w-lg")}>
+          {view === "grid" ? (
+            <ItemPostGrid
+              posts={posts}
+              onPostClick={setSelectedPost}
+              getReactions={reactions.get}
+              trailing={isFetchingNextPage && <SkeletonTiles count={4} />}
+            />
+          ) : posts.map((post, i) => (
             <FeedPostCard
               key={post.id}
               post={post}
@@ -248,7 +322,7 @@ export function ItemPostsFeedPanel() {
               <p role="status" aria-live="polite" className="text-center text-xs text-muted-foreground">
                 {t("social.itemPosts.feedLoadingMore")}
               </p>
-              <FeedPostCardSkeleton />
+              {view === "feed" && <FeedPostCardSkeleton />}
             </>
           )}
           {hasNextPage ? (
@@ -336,5 +410,24 @@ function FilterPill({
     >
       {children}
     </button>
+  );
+}
+
+/** タイルの骨組み（ItemPostGrid のマスと同じ形） */
+function SkeletonTiles({ count }: { count: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton key={i} className="aspect-square rounded-xl" />
+      ))}
+    </>
+  );
+}
+
+function GridSkeletonTiles({ count }: { count: number }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <SkeletonTiles count={count} />
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -19,8 +19,9 @@ const empty = (): PostReactionSummary => ({
 
 /**
  * 複数の投稿ぶんの反応をまとめて1回で取得する（一覧の各タイルで個別に問い合わせない）。
+ * keepPrevious: 下へ読み足して投稿が増えたとき、取り直しの間も今の件数を出したままにする
  */
-export function useItemPostReactions(postIds: string[]) {
+export function useItemPostReactions(postIds: string[], opts?: { keepPrevious?: boolean }) {
   const { user } = useAuth();
   const key = [...postIds].sort().join(",");
 
@@ -46,6 +47,7 @@ export function useItemPostReactions(postIds: string[]) {
     },
     enabled: postIds.length > 0,
     staleTime: 1000 * 30,
+    placeholderData: opts?.keepPrevious ? keepPreviousData : undefined,
   });
 
   const get = (postId: string): PostReactionSummary => query.data?.get(postId) ?? empty();

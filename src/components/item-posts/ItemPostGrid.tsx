@@ -14,9 +14,11 @@ interface ItemPostGridProps {
   getReactions?: (postId: string) => PostReactionSummary;
   /** 0件のときに出すもの（並び・絞り込みに合わせた「次の一手」）。省略時は「まだ投稿はありません」 */
   empty?: React.ReactNode;
+  /** 末尾に足すマス（続きを読み込み中の骨組みなど）。並びと同じグリッドの中に置く */
+  trailing?: React.ReactNode;
 }
 
-export function ItemPostGrid({ posts, onPostClick, getReactions, empty }: ItemPostGridProps) {
+export function ItemPostGrid({ posts, onPostClick, getReactions, empty, trailing }: ItemPostGridProps) {
   const { t } = useLanguage();
 
   if (posts.length === 0) {
@@ -42,6 +44,7 @@ export function ItemPostGrid({ posts, onPostClick, getReactions, empty }: ItemPo
           reactions={getReactions?.(post.id)}
         />
       ))}
+      {trailing}
     </div>
   );
 }
