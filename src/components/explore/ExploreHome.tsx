@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { TextPostCover } from "@/components/item-posts/TextPostCover";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, ChevronRight, Package, PackageSearch } from "lucide-react";
@@ -61,7 +62,8 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
     },
   });
 
-  const postList = (posts.data ?? []).filter((p) => p.images?.length > 0).slice(0, 6);
+  // 写真の投稿も文字だけの投稿も並べる（文字だけは本文のマス）。どちらもない行はフィードの取得で落ちている
+  const postList = (posts.data ?? []).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-4xl space-y-7">
@@ -89,13 +91,17 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
                 className="overflow-hidden rounded-xl bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
                 aria-label={p.caption || t("chrome.explore.home.posts")}
               >
-                <img
-                  src={getOptimizedImageUrl(p.images[0].image_url, { width: 300 })}
-                  onError={fallbackToOriginal(p.images[0].image_url)}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-square w-full object-cover"
-                />
+                {p.images[0] ? (
+                  <img
+                    src={getOptimizedImageUrl(p.images[0].image_url, { width: 300 })}
+                    onError={fallbackToOriginal(p.images[0].image_url)}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-square w-full object-cover"
+                  />
+                ) : (
+                  <TextPostCover caption={p.caption ?? ""} lines={4} className="aspect-square p-2.5" />
+                )}
               </button>
             ))}
           </div>

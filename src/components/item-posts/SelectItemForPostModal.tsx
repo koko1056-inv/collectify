@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { Search, PackageOpen } from "lucide-react";
+import { Search, PackageOpen, PenLine, ChevronRight } from "lucide-react";
 import { PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +21,8 @@ interface SelectItemForPostModalProps {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSelect: (target: PostTarget, itemTitle: string, itemImage: string | null) => void;
+  /** 渡すと「グッズを選ばずに書く」を出す（X のような文字だけの投稿へ） */
+  onSkip?: () => void;
 }
 
 /**
@@ -31,6 +33,7 @@ export function SelectItemForPostModal({
   open,
   onOpenChange,
   onSelect,
+  onSkip,
 }: SelectItemForPostModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -64,6 +67,27 @@ export function SelectItemForPostModal({
         <DialogHeader>
           <DialogTitle>{t("social.itemPosts.selectGoodsTitle")}</DialogTitle>
         </DialogHeader>
+
+        {onSkip && (
+          <button
+            type="button"
+            onClick={() => {
+              onOpenChange(false);
+              onSkip();
+            }}
+            data-testid="post-without-goods"
+            className="flex w-full items-center gap-3 rounded-xl border border-border px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <PenLine className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium">{t("social.itemPosts.writeWithoutGoods")}</span>
+              <span className="block text-2xs text-muted-foreground">{t("social.itemPosts.writeWithoutGoodsDesc")}</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </button>
+        )}
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

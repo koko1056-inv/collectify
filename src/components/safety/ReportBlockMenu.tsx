@@ -43,6 +43,11 @@ interface ReportBlockMenuProps {
   align?: "start" | "center" | "end";
   /** 明るい背景の上にないとき（画像の上など）は暗い丸ボタンにする */
   tone?: "default" | "overlay";
+  /**
+   * 通報・ブロックの上に足す項目（DropdownMenuItem）。シェア・リンクのコピー・自分の投稿の削除など。
+   * これを渡すと、自分の投稿やゲストでもメニューを出す（通報・ブロックはそのときも出さない）
+   */
+  extraItems?: React.ReactNode;
 }
 
 /**
@@ -62,6 +67,7 @@ export function ReportBlockMenu({
   triggerClassName,
   align = "end",
   tone = "default",
+  extraItems,
 }: ReportBlockMenuProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -69,8 +75,10 @@ export function ReportBlockMenu({
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
 
-  if (!user || !ownerId || ownerId === user.id) return null;
-  if (!allowBlock && !allowReport) return null;
+  const canModerate = !!user && !!ownerId && ownerId !== user.id;
+  allowBlock = allowBlock && canModerate;
+  allowReport = allowReport && canModerate;
+  if (!allowBlock && !allowReport && !extraItems) return null;
 
   const displayName = ownerName || t("safety.blocked.anonymous");
 
@@ -97,6 +105,8 @@ export function ReportBlockMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align={align}>
+          {extraItems}
+          {extraItems && (allowReport || allowBlock) && <DropdownMenuSeparator />}
           {allowReport && (
             <DropdownMenuItem onSelect={() => setReportOpen(true)}>
               <Flag className="mr-2 h-4 w-4" />
@@ -137,7 +147,7 @@ export function ReportBlockMenu({
             <AlertDialogFooter>
               <AlertDialogCancel>{t("safety.menu.cancel")}</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => blockUser.mutate({ userId: ownerId, name: displayName })}
+                onClick={() => ownerId && blockUser.mutate({ userId: ownerId, name: displayName })}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {t("safety.menu.blockConfirm")}

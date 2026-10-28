@@ -152,6 +152,10 @@ export const screens = {
       createPost: "投稿する",
       allFilter: "すべて",
       clearTag: "解除",
+      viewToggle: "表示の切り替え",
+      viewFeed: "タイムラインで表示",
+      viewGrid: "タイルで表示",
+      sortLabel: "投稿の並び",
     },
     aiWorkDetail: {
       back: "戻る",
@@ -580,6 +584,10 @@ export const screens = {
       createPost: "Post",
       allFilter: "All",
       clearTag: "Clear",
+      viewToggle: "Switch view",
+      viewFeed: "Show as feed",
+      viewGrid: "Show as grid",
+      sortLabel: "Sort posts",
     },
     aiWorkDetail: {
       back: "Back",

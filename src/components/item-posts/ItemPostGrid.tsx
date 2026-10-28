@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { EmptyState } from "@/components/ui/empty-state";
+import { TextPostCover } from "./TextPostCover";
 import type { PostReactionSummary } from "@/hooks/item-posts/useItemPostReactions";
 
 interface ItemPostGridProps {
@@ -14,9 +15,11 @@ interface ItemPostGridProps {
   getReactions?: (postId: string) => PostReactionSummary;
   /** 0件のときに出すもの（並び・絞り込みに合わせた「次の一手」）。省略時は「まだ投稿はありません」 */
   empty?: React.ReactNode;
+  /** 末尾に足すマス（続きを読み込み中の骨組みなど）。並びと同じグリッドの中に置く */
+  trailing?: React.ReactNode;
 }
 
-export function ItemPostGrid({ posts, onPostClick, getReactions, empty }: ItemPostGridProps) {
+export function ItemPostGrid({ posts, onPostClick, getReactions, empty, trailing }: ItemPostGridProps) {
   const { t } = useLanguage();
 
   if (posts.length === 0) {
@@ -42,6 +45,7 @@ export function ItemPostGrid({ posts, onPostClick, getReactions, empty }: ItemPo
           reactions={getReactions?.(post.id)}
         />
       ))}
+      {trailing}
     </div>
   );
 }
@@ -57,8 +61,11 @@ function ItemPostTile({
   delayIndex: number;
   reactions?: PostReactionSummary;
 }) {
+  const { t } = useLanguage();
   const cover = post.images[0]?.image_url;
   const hasMultiple = post.images.length > 1;
+  // 文字だけの投稿は、写真のかわりに本文のマス。下の数字も、明るい面の上なので黒いぼかしをやめる
+  const textCaption = !cover ? post.caption?.trim() : null;
 
   return (
     <motion.button
@@ -66,6 +73,7 @@ function ItemPostTile({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(delayIndex * 0.03, 0.3) }}
       onClick={onClick}
+      aria-label={textCaption ? `${t("social.itemPosts.textPost")}: ${textCaption.slice(0, 60)}` : undefined}
       className={cn(
         "relative aspect-square rounded-xl overflow-hidden group",
         "bg-muted shadow-sm hover:shadow-lg transition-all hover:scale-[1.02]"
@@ -83,6 +91,8 @@ function ItemPostTile({
           fetchPriority={delayIndex < 4 ? "high" : undefined}
           decoding="async"
         />
+      ) : textCaption ? (
+        <TextPostCover caption={textCaption} lines={4} className="pb-8 pt-11" />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/10" />
       )}
@@ -109,8 +119,13 @@ function ItemPostTile({
       )}
 
       {/* 下部オーバーレイ: いいね・コメント数 */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-2">
-        <div className="flex items-center gap-2.5 text-white text-xs font-medium">
+      <div
+        className={cn(
+          "absolute bottom-0 left-0 right-0 p-2",
+          !textCaption && "bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+        )}
+      >
+        <div className={cn("flex items-center gap-2.5 text-xs font-medium", textCaption ? "text-muted-foreground" : "text-white")}>
           <div className="flex items-center gap-1">
             <Heart
               className={cn(

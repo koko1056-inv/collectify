@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
+import { pockeCheer } from "@/components/pocke/pockeCheer";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export interface ItemPost {
@@ -26,6 +28,14 @@ export interface ItemPost {
   } | null;
   is_liked_by_me?: boolean;
 }
+
+/** 写真を並び順にし、URL が空の行は落とす（文字だけの投稿と同じに扱う。真っ白な写真を出さない） */
+export function sortImages(images: ItemPost["images"] | null | undefined): ItemPost["images"] {
+  return (images || []).filter((img) => !!img.image_url).sort((a, b) => a.display_order - b.display_order);
+}
+
+/** 文字だけの投稿（写真なし） */
+export const isTextOnlyPost = (post: Pick<ItemPost, "images">) => post.images.length === 0;
 
 export type PostTarget =
   | { type: "official"; id: string }
@@ -85,9 +95,7 @@ export function useItemPosts(target: PostTarget | null, limit = 20, authorId?: s
 
       return posts.map((p) => ({
         ...p,
-        images: (p.images || []).sort(
-          (a: any, b: any) => a.display_order - b.display_order
-        ),
+        images: sortImages(p.images),
         is_liked_by_me: likedIds.has(p.id),
       }));
     },
@@ -136,9 +144,7 @@ export function useItemPost(postId: string | null) {
 
       return {
         ...(data as any),
-        images: (data.images || []).sort(
-          (a: any, b: any) => a.display_order - b.display_order
-        ),
+        images: sortImages(data.images),
         is_liked_by_me,
       };
     },
@@ -146,8 +152,24 @@ export function useItemPost(postId: string | null) {
   });
 }
 
+/** 本文の上限。X より少し長め（グッズの説明も書けるように）。入力欄の maxLength と残りの輪に使う */
+export const POST_CAPTION_MAX = 500;
+
+/**
+ * グッズなしの文字だけの投稿が、DB の制約（item_posts_target_check）で断られたとき。
+ * 制約をゆるめるマイグレーション（20261029120000_item_posts_text_only）がまだ当たっていない環境で起きる。
+ * 画面では赤いエラーではなく、ポッケの一言で「グッズを選んでね」と伝える
+ */
+export class TextPostNeedsGoodsError extends Error {
+  constructor() {
+    super("text post needs goods");
+    this.name = "TextPostNeedsGoodsError";
+  }
+}
+
 /**
  * 投稿作成 (画像アップロード + insert をまとめて)
+ * 写真は任意（X のような文字だけの投稿）。写真がないときは本文が必須。グッズ（target）も任意。
  */
 export function useCreateItemPost() {
   const { user } = useAuth();
@@ -160,27 +182,29 @@ export function useCreateItemPost() {
       caption,
       images,
     }: {
-      target: PostTarget;
+      target: PostTarget | null;
       caption?: string;
       images: File[];
     }) => {
       if (!user?.id) throw new Error("Not logged in");
-      if (images.length === 0) throw new Error(t("notices.itemPosts.imageRequired"));
+      const text = caption?.trim() || null;
+      if (images.length === 0 && !text) throw new Error(t("notices.itemPosts.textOrImageRequired"));
+      if (text && text.length > POST_CAPTION_MAX) throw new Error(t("notices.itemPosts.captionTooLong", { max: POST_CAPTION_MAX }));
 
       // 1. 投稿行作成
-      const insertPayload: any = {
-        user_id: user.id,
-        caption: caption?.trim() || null,
-      };
-      if (target.type === "official") insertPayload.official_item_id = target.id;
-      else insertPayload.user_item_id = target.id;
+      const insertPayload: TablesInsert<"item_posts"> = { user_id: user.id, caption: text };
+      if (target?.type === "official") insertPayload.official_item_id = target.id;
+      else if (target?.type === "user_item") insertPayload.user_item_id = target.id;
 
       const { data: post, error: postError } = await supabase
         .from("item_posts")
         .insert(insertPayload)
         .select()
         .single();
+      // 23514 = CHECK 違反。グッズなしの投稿で、制約がまだ古いとき
+      if (postError?.code === "23514" && !target) throw new TextPostNeedsGoodsError();
       if (postError) throw postError;
+      if (images.length === 0) return post;
 
       // 2. 画像アップロード + レコード作成
       const imageRecords: { post_id: string; image_url: string; display_order: number }[] = [];
@@ -208,13 +232,19 @@ export function useCreateItemPost() {
       return post;
     },
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ["item-posts", variables.target.type, variables.target.id] });
+      if (variables.target) qc.invalidateQueries({ queryKey: ["item-posts", variables.target.type, variables.target.id] });
       // 探索/フィードの一覧は別キー。ここを更新しないと、投稿してもフィードに出てこない。
       qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success(t("notices.itemPosts.created"));
     },
-    onError: (e) => toast.error((e as Error).message || t("notices.itemPosts.createFailed")),
+    onError: (e) => {
+      if (e instanceof TextPostNeedsGoodsError) {
+        pockeCheer("textPostNeedsGoods");
+        return;
+      }
+      toast.error((e as Error).message || t("notices.itemPosts.createFailed"));
+    },
   });
 }
 
@@ -261,7 +291,7 @@ export function useUserItemPosts(userId: string | undefined | null, limit = 30) 
       if (error) throw error;
       return (data || []).map((p: any) => ({
         ...p,
-        images: (p.images || []).sort((a: any, b: any) => a.display_order - b.display_order),
+        images: sortImages(p.images),
       }));
     },
     enabled: !!userId,

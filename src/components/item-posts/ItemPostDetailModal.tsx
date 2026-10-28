@@ -18,12 +18,12 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { SITE_URL } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useItemPost,
   useDeleteItemPost,
+  isTextOnlyPost,
   ItemPost,
 } from "@/hooks/item-posts/useItemPosts";
 import {
@@ -37,8 +37,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReactionBar } from "./ReactionBar";
-import { shareContent } from "@/utils/share";
-import { buildShareText } from "@/utils/shareLinks";
+import { sharePost } from "./sharePost";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
@@ -96,23 +95,11 @@ export function ItemPostDetailModal({
 
   const isOwner = user?.id === post.user_id;
   const hasMultiple = post.images.length > 1;
+  // 文字だけの投稿: 黒い写真の枠を出さず、本文を大きめに（X の詳細と同じ）
+  const textOnly = isTextOnlyPost(post);
   const currentImage = post.images[imageIdx];
 
-  const handleShare = async () => {
-    const shareUrl = `${SITE_URL}/post/${post.id}`;
-    const owner = post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector");
-    // 本文の1行目は buildShareText と同じ文言にそろえる（URLは shareContent が末尾に付ける）
-    const text = buildShareText({ type: "post", id: post.id, ownerName: owner }).split("\n").slice(0, 2).join("\n");
-    const result = await shareContent({
-      title: t("social.itemPosts.shareTitle"),
-      text,
-      url: shareUrl,
-      imageUrl: post.images[0]?.image_url ?? null,
-      fileName: "collectify-post.png",
-    });
-    if (result === "copied") toast.success(t("social.itemPosts.urlCopied"));
-    else if (result === "failed") toast.error(t("engage.share.copyFailed"));
-  };
+  const handleShare = () => sharePost(post, t);
 
   const handleDelete = async () => {
     if (!confirm(t("social.itemPosts.confirmDelete"))) return;
@@ -129,7 +116,8 @@ export function ItemPostDetailModal({
           <DialogTitle>{t("social.itemPosts.postDetail")}</DialogTitle>
         </DialogHeader>
 
-        {/* 画像カルーセル */}
+        {/* 画像カルーセル（写真があるときだけ） */}
+        {!textOnly && (
         <div className="relative bg-black">
           <div className="relative aspect-square overflow-hidden">
             {currentImage && (
@@ -173,10 +161,11 @@ export function ItemPostDetailModal({
             )}
           </div>
         </div>
+        )}
 
         <div className="p-4 space-y-3">
-          {/* 投稿者情報 */}
-          <div className="flex items-center gap-3">
+          {/* 投稿者情報。写真がないときは右上の閉じるボタンと重ならないよう右をあける */}
+          <div className={cn("flex items-center gap-3", textOnly && "pr-8")}>
             <button
               onClick={() => {
                 onOpenChange(false);
@@ -223,7 +212,13 @@ export function ItemPostDetailModal({
 
           {/* キャプション */}
           {post.caption && (
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">
+            <p
+              className={cn(
+                "whitespace-pre-wrap break-words leading-relaxed",
+                textOnly ? "text-lg" : "text-sm"
+              )}
+              data-testid={textOnly ? "detail-text-body" : undefined}
+            >
               {renderCaption(post.caption)}
             </p>
           )}
@@ -259,6 +254,7 @@ export function ItemPostDetailModal({
             </div>
             <button
               onClick={handleShare}
+              aria-label={t("social.itemPosts.share")}
               className="ml-auto flex items-center gap-1.5 py-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <Share2 className="w-5 h-5" />
@@ -388,7 +384,8 @@ function renderCaption(caption: string) {
         <a
           key={i}
           href={`/item-posts?tag=${encodeURIComponent(part.slice(1))}`}
-          className="text-primary hover:underline"
+          // 「#」とタグ名が別の行に分かれないよう、ひとかたまりにする（行より長いタグだけ折り返す）
+          className="inline-block max-w-full break-words text-primary hover:underline"
         >
           {part}
         </a>

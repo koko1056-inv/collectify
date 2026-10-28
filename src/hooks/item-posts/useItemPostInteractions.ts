@@ -50,26 +50,26 @@ export function useToggleItemPostLike() {
       // 楽観的: キャッシュ上の like_count と is_liked_by_me を即更新
       await qc.cancelQueries({ queryKey: ["item-posts"] });
       await qc.cancelQueries({ queryKey: ["item-posts-feed"] });
-      const updateFn = (old: any) => {
-        if (!old) return old;
-        if (Array.isArray(old)) {
-          return old.map((p: any) =>
-            p.id === postId
-              ? {
-                  ...p,
-                  is_liked_by_me: !currentlyLiked,
-                  like_count: p.like_count + (currentlyLiked ? -1 : 1),
-                }
-              : p
-          );
-        }
-        if (old.id === postId) {
+      type LikeFields = { id: string; like_count: number; is_liked_by_me?: boolean };
+      const bump = (p: LikeFields): LikeFields =>
+        p.id === postId
+          ? { ...p, is_liked_by_me: !currentlyLiked, like_count: p.like_count + (currentlyLiked ? -1 : 1) }
+          : p;
+      const updateFn = (old: unknown): unknown => {
+        if (!old || typeof old !== "object") return old;
+        if (Array.isArray(old)) return (old as LikeFields[]).map(bump);
+        // SNS 風フィード（useInfiniteQuery）: { pages: [{ posts, next }], pageParams }
+        const o = old as { pages?: unknown[]; id?: string };
+        if (Array.isArray(o.pages)) {
           return {
-            ...old,
-            is_liked_by_me: !currentlyLiked,
-            like_count: old.like_count + (currentlyLiked ? -1 : 1),
+            ...o,
+            pages: o.pages.map((pg) => {
+              const page = pg as { posts?: unknown } | null;
+              return page && Array.isArray(page.posts) ? { ...page, posts: updateFn(page.posts) } : pg;
+            }),
           };
         }
+        if (o.id === postId) return bump(old as LikeFields);
         return old;
       };
       qc.getQueriesData({ queryKey: ["item-posts"] }).forEach(([key, data]) => {
