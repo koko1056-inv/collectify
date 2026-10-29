@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { AiCreationPicker } from "./AiCreationPicker";
 import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
 import { useAiCosts } from "@/hooks/useAiCosts";
+import { eventColor, type PostEvent } from "@/types/postEvents";
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -26,8 +27,15 @@ interface CreateItemPostModalProps {
   onCreated?: (postId: string) => void;
   /** お題などから開いたときの先頭ハッシュタグ（#は含まない） */
   initialTag?: string | null;
-  /** 書き出しの文（グッズのページの話題のチップから開いたとき）。ハッシュタグの後に入る */
+  /**
+   * 書き出しの文。ハッシュタグ（initialTag）の後に入る。
+   * グッズのページの話題のチップや、シェア画像の「Collectifyに投稿」（本文まるごと）から渡す
+   */
   initialText?: string | null;
+  /** お題イベントのページから開いたとき。投稿がイベントにつながる */
+  event?: PostEvent | null;
+  /** はじめから添える写真（シェア画像から「Collectifyに投稿」したときなど） */
+  initialFiles?: File[];
 }
 
 /** AI画像のプロンプトの出発点。ゼロから文章を考えなくてよいようにする */
@@ -47,17 +55,22 @@ export function CreateItemPostModal({
   onCreated,
   initialTag,
   initialText,
+  event,
+  initialFiles,
 }: CreateItemPostModalProps) {
   const { t } = useLanguage();
   // サブスクの人は割引後の値段（正はサーバー）
   const POST_IMAGE_COST = useAiCosts().costs.postImage;
-  const [caption, setCaption] = useState(`${initialTag ? `#${initialTag} ` : ""}${initialText ?? ""}`);
+  const startCaption = `${initialTag ? `#${initialTag} ` : ""}${initialText ?? ""}`;
+  const [caption, setCaption] = useState(startCaption);
   const [aiPickerOpen, setAiPickerOpen] = useState(false);
   // AI で画像を作る欄は、既定では1行に畳む。投稿の本題は「自分のグッズの写真」で、
   // 以前は写真の欄と同じ大きさの AI の欄が常に開いていて、投稿が AI 画像を作る場所に見えていた
   const [aiOpen, setAiOpen] = useState(false);
   const weeklyTag = getWeeklyPrompt().tag;
-  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [images, setImages] = useState<{ file: File; preview: string }[]>(() =>
+    (initialFiles ?? []).slice(0, MAX_IMAGES).map((file) => ({ file, preview: URL.createObjectURL(file) }))
+  );
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -160,7 +173,7 @@ export function CreateItemPostModal({
   const reset = () => {
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
-    setCaption(`${initialTag ? `#${initialTag} ` : ""}${initialText ?? ""}`);
+    setCaption(startCaption);
     setAiPrompt("");
   };
 
@@ -176,6 +189,7 @@ export function CreateItemPostModal({
         target,
         caption,
         images: images.map((i) => i.file),
+        eventId: event?.id ?? null,
       });
       reset();
       onOpenChange(false);
@@ -191,6 +205,26 @@ export function CreateItemPostModal({
         <DialogHeader>
           <DialogTitle>{t("social.itemPosts.createTitle")}</DialogTitle>
         </DialogHeader>
+
+        {/* お題イベントに参加するとき: イベントの札と、投稿の行き先の一言 */}
+        {event && (
+          <div
+            className="flex items-center gap-3 rounded-xl border px-3 py-2.5"
+            style={{ borderColor: `${eventColor(event)}55`, backgroundColor: `${eventColor(event)}12` }}
+            data-testid="post-event-chip"
+          >
+            <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-background text-xl">
+              {event.emoji || "#"}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-2xs font-bold" style={{ color: eventColor(event) }}>
+                {t("postEvents.composer.joining")}
+              </span>
+              <span className="block truncate text-sm font-bold">#{event.hashtag}</span>
+              <span className="block text-3xs text-muted-foreground">{t("postEvents.composer.hint", { tag: event.hashtag })}</span>
+            </span>
+          </div>
+        )}
 
         {/* 対象グッズ情報（グッズなしのときは、文字だけの投稿だと分かる1行） */}
         {target ? (

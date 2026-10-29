@@ -21,6 +21,7 @@ import { SITE_URL } from "@/config/site";
 import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { sharePost } from "./sharePost";
 import { DeletePostDialog } from "@/components/posts/DeletePostDialog";
+import { EventBadge } from "@/components/events/EventBadge";
 
 /** 1回目のタップから、2回目（ダブルタップ）を待つ時間。これを過ぎたら1回のタップとして詳細を開く */
 const DOUBLE_TAP_MS = 260;
@@ -144,6 +145,8 @@ export const FeedPostCard = memo(function FeedPostCard({ post, onOpen, onTagClic
           </button>
           <PostMenu post={post} className="-my-1.5 -mr-2 ml-auto" />
         </header>
+
+        {post.event_id && <EventBadge eventId={post.event_id} />}
 
         {post.caption && (
           <Caption

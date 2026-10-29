@@ -36,6 +36,8 @@ import { zukan } from './zukan';
 import { characterPage } from './characterPage';
 import { catalogWish } from './catalogWish';
 import { goodsSocial } from './goodsSocial';
+import { postEvents } from './postEvents';
+import { collectionShare } from './collectionShare';
 
 export const moduleTranslations = {
   ja: {
@@ -75,6 +77,8 @@ export const moduleTranslations = {
     characterPage: characterPage.ja,
     catalogWish: catalogWish.ja,
     goodsSocial: goodsSocial.ja,
+    postEvents: postEvents.ja,
+    collectionShare: collectionShare.ja,
   },
   en: {
     admin: admin.en,
@@ -113,5 +117,7 @@ export const moduleTranslations = {
     characterPage: characterPage.en,
     catalogWish: catalogWish.en,
     goodsSocial: goodsSocial.en,
+    postEvents: postEvents.en,
+    collectionShare: collectionShare.en,
   },
 };

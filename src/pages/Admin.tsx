@@ -9,6 +9,7 @@ import { FeedbackManager } from "@/components/admin/FeedbackManager";
 import { CatalogRequestsManager } from "@/components/admin/CatalogRequestsManager";
 import { CatalogItemRequestsManager } from "@/components/admin/CatalogItemRequestsManager";
 import { SeriesBackfillManager } from "@/components/admin/SeriesBackfillManager";
+import { PostEventsManager } from "@/components/admin/PostEventsManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearchParams } from "react-router-dom";
@@ -48,6 +49,7 @@ const Admin = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="feedback">{t("screens.admin.feedbackTab")}</TabsTrigger>
+            <TabsTrigger value="events">{t("postEvents.admin.tab")}</TabsTrigger>
             <TabsTrigger value="catalogRequests">{t("screens.admin.catalogRequestsTab")}</TabsTrigger>
             {/* グッズ1件ごとの削除申請・修正申請・重複の報告 */}
             <TabsTrigger value="itemRequests" className="gap-1.5">
@@ -83,6 +85,10 @@ const Admin = () => {
 
           <TabsContent value="feedback">
             <FeedbackManager />
+          </TabsContent>
+
+          <TabsContent value="events">
+            <PostEventsManager />
           </TabsContent>
 
           <TabsContent value="catalogRequests">

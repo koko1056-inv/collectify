@@ -18,6 +18,8 @@ export interface ItemPost {
   updated_at: string;
   like_count: number;
   comment_count: number;
+  /** 参加したお題イベント（post_events）。参加していなければ null */
+  event_id?: string | null;
   images: { id: string; image_url: string; display_order: number }[];
   profile?: {
     id: string;
@@ -183,10 +185,13 @@ export function useCreateItemPost() {
       target,
       caption,
       images,
+      eventId,
     }: {
       target: PostTarget | null;
       caption?: string;
       images: File[];
+      /** お題イベントのページから投稿したとき。サーバーが公開中・期間内かを確かめる */
+      eventId?: string | null;
     }) => {
       if (!user?.id) throw new Error("Not logged in");
       const text = caption?.trim() || null;
@@ -197,15 +202,22 @@ export function useCreateItemPost() {
       const insertPayload: TablesInsert<"item_posts"> = { user_id: user.id, caption: text };
       if (target?.type === "official") insertPayload.official_item_id = target.id;
       else if (target?.type === "user_item") insertPayload.user_item_id = target.id;
+      if (eventId) insertPayload.event_id = eventId;
 
-      const { data: post, error: postError } = await supabase
+      let { data: post, error: postError } = await supabase
         .from("item_posts")
         .insert(insertPayload)
         .select()
         .single();
+      // 開いている間にお題が締め切られた（22023）ときは、投稿そのものは失わずにふつうの投稿として出す
+      if (postError?.code === "22023" && eventId) {
+        delete insertPayload.event_id;
+        ({ data: post, error: postError } = await supabase.from("item_posts").insert(insertPayload).select().single());
+        if (!postError) toast.info(t("postEvents.closedError"));
+      }
       // 23514 = CHECK 違反。グッズなしの投稿で、制約がまだ古いとき
       if (postError?.code === "23514" && !target) throw new TextPostNeedsGoodsError();
-      if (postError) throw postError;
+      if (postError || !post) throw postError ?? new Error("insert failed");
       if (images.length === 0) return post;
 
       // 2. 画像アップロード + レコード作成
@@ -238,6 +250,7 @@ export function useCreateItemPost() {
       // 探索/フィードの一覧は別キー。ここを更新しないと、投稿してもフィードに出てこない。
       qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
+      qc.invalidateQueries({ queryKey: ["post-event-stats"] });
       toast.success(t("notices.itemPosts.created"));
     },
     onError: (e) => {

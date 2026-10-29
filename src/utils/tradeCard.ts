@@ -94,7 +94,7 @@ export function paginateTradeCard(give: TradeCardGoods[], want: TradeCardGoods[]
 export { shortGoodsTitle } from "./goodsTitle";
 
 /** canvas に描ける形で写真を取りに行く。サムネ → proxy-image → 元の URL の順に試す */
-async function loadGoodsBitmap(src: string | null): Promise<ImageBitmap | null> {
+export async function loadGoodsBitmap(src: string | null): Promise<ImageBitmap | null> {
   if (!src || !/^https?:\/\//.test(src)) return null;
   const candidates: string[] = [];
   if (src.includes("/storage/v1/")) {
