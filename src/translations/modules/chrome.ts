@@ -507,18 +507,6 @@ export const chrome = {
       },
     },
 
-    priceSearch: {
-      title: "価格検索",
-      introLine1: "メルカリ、Amazon、eBay、楽天、ヤフオクで",
-      introLine2: "このグッズの価格を検索します",
-      search: "価格を検索",
-      searchAgain: "再検索",
-      doneTitle: "検索完了",
-      noResults: "該当する商品が見つかりませんでした",
-      failedDesc: "価格検索に失敗しました。しばらく経ってから再試行してください。",
-      resultCount: "{n}件",
-    },
-
     password: {
       minLength: "パスワードは6文字以上である必要があります",
     },
@@ -1083,18 +1071,6 @@ export const chrome = {
         keptUrl: "Loaded from",
         keptUrlFailed: "Couldn't load",
       },
-    },
-
-    priceSearch: {
-      title: "Price search",
-      introLine1: "Search Mercari, Amazon, eBay, Rakuten, and",
-      introLine2: "Yahoo! Auctions for this item's price",
-      search: "Search prices",
-      searchAgain: "Search again",
-      doneTitle: "Search complete",
-      noResults: "No matching products found",
-      failedDesc: "Price search failed. Please try again in a moment.",
-      resultCount: "{n}",
     },
 
     password: {
