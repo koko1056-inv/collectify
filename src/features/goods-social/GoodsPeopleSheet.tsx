@@ -203,11 +203,6 @@ function PersonRow({
         <span className="min-w-0 flex-1">
           <span className="flex min-w-0 items-center gap-1 text-sm">
             <span className="truncate font-bold">{name}</span>
-            {person.is_sample && (
-              <span className="shrink-0 rounded bg-muted px-1 text-3xs font-medium text-muted-foreground">
-                {t("goodsSocial.people.sample")}
-              </span>
-            )}
             {handle && <span className="min-w-0 truncate text-xs text-muted-foreground">@{handle}</span>}
           </span>
           <span className="mt-0.5 flex flex-wrap items-center gap-1">
