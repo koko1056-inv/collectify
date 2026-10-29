@@ -20,8 +20,8 @@ import { GeneratingStep } from "./wizard/GeneratingStep";
 import { ResultStep } from "./wizard/ResultStep";
 import { consumePendingAiItems, consumePendingRemix, type PendingRemix } from "@/utils/ai-studio-handoff";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAiCosts } from "@/hooks/useAiCosts";
 
-const ROOM_COST = 100;
 const MAX_ITEMS = 5;
 const TOTAL_STEPS = 3;
 
@@ -36,6 +36,8 @@ interface AiRoomCreateWizardProps {
 export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCreateWizardProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  // 値段は src/lib/aiCosts.ts（正は generate-ai-room）。サブスクの人は割引後の額
+  const ROOM_COST = useAiCosts().costs.aiRoom;
   const [step, setStep] = useState<Step>("items");
   const [selectedItems, setSelectedItems] = useState<UserItemLite[]>([]);
   const [stylePresetId, setStylePresetId] = useState<string | null>(null);

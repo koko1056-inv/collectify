@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
 import { isAdminUser } from "../_shared/security.ts";
 import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
+import { activePlanFor, discountedAiCost, discountNote } from "../_shared/subscription.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,10 +83,12 @@ Deno.serve(async (req) => {
       throw e;
     }
 
-    // ポイント消費 (100pt) — service role で原子的に処理
+    // ポイント消費 (100pt。サブスクの人は割引) — service role で原子的に処理
     // ただし初回（過去にAIルーム生成履歴がない、かつ ai_generated_rooms にレコードもない場合）は無料
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // 定価。サブスクの人は割引する（_shared/subscription.ts）。返金も実際に引いた額で行う
     const ROOM_GENERATION_COST = 100;
+    let cost = ROOM_GENERATION_COST;
 
     // 保存に使う ID は、ポイントを使う前に確かめる。
     // 以前は変な ID だと生成後の保存だけが失敗し、返金したうえで画像も返していた（タダで作れた）。
@@ -169,7 +172,9 @@ Deno.serve(async (req) => {
       }
       usedFreeTrial = true;
     } else {
-      // 通常のポイント消費フロー
+      // 通常のポイント消費フロー（サブスクの人は割引）
+      const plan = await activePlanFor(adminClient, user.id);
+      cost = discountedAiCost(ROOM_GENERATION_COST, plan);
       const { data: pointsRow, error: pointsErr } = await adminClient
         .from("user_points")
         .select("total_points")
@@ -182,10 +187,10 @@ Deno.serve(async (req) => {
       }
 
       const currentPoints = pointsRow?.total_points ?? 0;
-      if (currentPoints < ROOM_GENERATION_COST) {
+      if (currentPoints < cost) {
         return json(
           {
-            error: `ポイントが不足しています（現在: ${currentPoints}pt / 必要: ${ROOM_GENERATION_COST}pt）`,
+            error: `ポイントが不足しています（現在: ${currentPoints}pt / 必要: ${cost}pt）`,
             code: "INSUFFICIENT_POINTS",
           },
           402
@@ -194,9 +199,9 @@ Deno.serve(async (req) => {
 
       const { error: deductErr } = await adminClient.rpc("add_user_points", {
         _user_id: user.id,
-        _points: -ROOM_GENERATION_COST,
+        _points: -cost,
         _transaction_type: "ai_room_generation",
-        _description: "AI推しルーム生成",
+        _description: "AI推しルーム生成" + discountNote(plan),
       });
       if (deductErr) {
         console.error("Points deduction error:", deductErr);
@@ -209,7 +214,7 @@ Deno.serve(async (req) => {
       try {
         await adminClient.rpc("add_user_points", {
           _user_id: user.id,
-          _points: ROOM_GENERATION_COST,
+          _points: cost,
           _transaction_type: "ai_room_refund",
           _description: `AIルーム生成失敗の返金: ${reason}`,
         });
@@ -381,7 +386,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       if (imgErr) console.error("item_post_images insert error:", imgErr);
     }
 
-    return json({ room, imageUrl: finalImageUrl });
+    return json({ room, imageUrl: finalImageUrl, pointsUsed: usedFreeTrial ? 0 : cost });
   } catch (error) {
     console.error("Error in generate-ai-room:", error);
     return json(

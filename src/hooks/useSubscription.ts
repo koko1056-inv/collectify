@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { PlanTier, PLAN_LIMITS, PlanLimits } from "@/lib/planLimits";
+import { PlanTier, PLAN_PERKS, PlanPerks } from "@/lib/planLimits";
 
 export function useSubscription() {
   const { user } = useAuth();
@@ -28,12 +28,12 @@ export function useSubscription() {
   });
 
   const plan: PlanTier = (subscription?.plan as PlanTier) || "free";
-  const limits: PlanLimits = PLAN_LIMITS[plan];
+  const perks: PlanPerks = PLAN_PERKS[plan];
   const isPremium = plan !== "free";
 
   return {
     plan,
-    limits,
+    perks,
     isPremium,
     subscription,
     isLoading,

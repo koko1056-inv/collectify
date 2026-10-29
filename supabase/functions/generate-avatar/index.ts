@@ -3,12 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
 import { isAdminUser } from "../_shared/security.ts";
 import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
+import { activePlanFor, discountedAiCost, discountNote } from "../_shared/subscription.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// 定価。サブスクの人は割引する（_shared/subscription.ts）
 const AVATAR_GENERATION_COST = 30;
 
 // 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
@@ -40,6 +42,8 @@ serve(async (req) => {
   const user = userRes.user;
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+  // 実際に引いた額（サブスクの割引のあと）。返金もこの額で行う
+  let cost = AVATAR_GENERATION_COST;
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
@@ -48,7 +52,7 @@ serve(async (req) => {
     try {
       await adminClient.rpc("add_user_points", {
         _user_id: user.id,
-        _points: AVATAR_GENERATION_COST,
+        _points: cost,
         _transaction_type: "avatar_generation_refund",
         _description: `アバター生成失敗 返金: ${reason}`,
       });
@@ -105,17 +109,19 @@ serve(async (req) => {
         _description: "AIアバター生成（初回無料）",
       });
     } else {
-      // 通常のポイント消費
+      // 通常のポイント消費（サブスクの人は割引）
+      const plan = await activePlanFor(adminClient, user.id);
+      cost = discountedAiCost(AVATAR_GENERATION_COST, plan);
       const { data: pointRow } = await adminClient
         .from("user_points")
         .select("total_points")
         .eq("user_id", user.id)
         .maybeSingle();
       const balance = pointRow?.total_points ?? 0;
-      if (balance < AVATAR_GENERATION_COST) {
+      if (balance < cost) {
         return jsonResp(
           {
-            error: `ポイントが不足しています（必要: ${AVATAR_GENERATION_COST}pt / 現在: ${balance}pt）`,
+            error: `ポイントが不足しています（必要: ${cost}pt / 現在: ${balance}pt）`,
             code: "INSUFFICIENT_POINTS",
           },
           402
@@ -123,9 +129,9 @@ serve(async (req) => {
       }
       const { error: deductErr } = await adminClient.rpc("add_user_points", {
         _user_id: user.id,
-        _points: -AVATAR_GENERATION_COST,
+        _points: -cost,
         _transaction_type: "avatar_generation",
-        _description: "AIアバター生成",
+        _description: "AIアバター生成" + discountNote(plan),
       });
       if (deductErr) {
         console.error("point deduct error:", deductErr);
@@ -183,7 +189,7 @@ serve(async (req) => {
 
     return jsonResp({
       imageUrl: generatedImageUrl,
-      pointsUsed: isFirstTime ? 0 : AVATAR_GENERATION_COST,
+      pointsUsed: isFirstTime ? 0 : cost,
       freeTrial: isFirstTime,
     });
   } catch (error) {

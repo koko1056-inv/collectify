@@ -47,7 +47,7 @@ type Group = "collection" | "daily" | "oshi" | "social";
  */
 const RULES: { reason: string; group: Group; labelKey: string; icon: LucideIcon; noteKey?: string; cap?: number }[] = [
   // コレクションを進める（本題）
-  { reason: "item_register", group: "collection", labelKey: "itemRegister", icon: Package, noteKey: "itemRegisterNote", cap: 10 },
+  { reason: "item_register", group: "collection", labelKey: "itemRegister", icon: Package, noteKey: "itemRegisterNote", cap: 8 },
   { reason: "series_complete", group: "collection", labelKey: "seriesComplete", icon: Trophy, noteKey: "seriesCompleteNote", cap: 3 },
   { reason: "trade_completed", group: "collection", labelKey: "tradeCompleted", icon: ArrowLeftRight, noteKey: "perDay", cap: 3 },
   { reason: "official_item_add", group: "collection", labelKey: "officialItemAdd", icon: PackagePlus, noteKey: "perItem" },

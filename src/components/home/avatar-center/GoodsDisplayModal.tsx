@@ -16,7 +16,7 @@ import {
   shareDisplayToTwitter,
 } from "./goods-display/useGoodsDisplayActions";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AI_COSTS } from "@/lib/aiCosts";
+import { useAiCosts } from "@/hooks/useAiCosts";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -32,6 +32,8 @@ export function GoodsDisplayModal({
   initialShowGallery = false,
 }: GoodsDisplayModalProps) {
   const { t } = useLanguage();
+  // サブスクの人は割引後の値段（正はサーバー）
+  const { costs: aiCosts } = useAiCosts();
   const [selectedItems, setSelectedItems] = useState<UserItem[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -241,7 +243,7 @@ export function GoodsDisplayModal({
                           <Sparkles className="w-4 h-4 mr-2" />
                           {/* 押す前に値段が分かるように（edit-image で消費） */}
                           {t("homeScreen.goodsDisplay.generate")}{" "}
-                          {t("homeScreen.goodsDisplay.costBadge", { cost: AI_COSTS.editImage })}
+                          {t("homeScreen.goodsDisplay.costBadge", { cost: aiCosts.editImage })}
                         </>
                       )}
                     </Button>

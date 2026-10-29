@@ -5,6 +5,11 @@
 //  - ポイントパック: Checkout が支払い済み（paid）になったら、セッションIDで1回だけ付与する
 //  - サブスク: 通知の中身は信用せず、そのつど Stripe から最新の状態を取り直して反映する。
 //    通知は順番が入れ替わって届くことがあるため（updated が created より先、など）
+//  - サブスクの毎月のポイント: プランを反映したあと grant_subscription_monthly_points を呼ぶ。
+//    購読の始まりから1か月ごとの区切りで、支払い済みの期間の分だけ渡す（区切りごとに1回。DB の一意キーで守る）。
+//    更新（毎月・毎年の請求）のときは customer.subscription.updated が届くので、ここで次の月の分が渡る。
+//    invoice.paid も受け取れるようにしてあるが、Stripe 側で送る設定にしていなくても困らない
+//    （アプリを開いたとき・毎日の cron でも同じ関数で受け取れる）
 //  - どの処理も冪等。再送されても二重に付与・反映しない
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -82,6 +87,16 @@ serve(async (req) => {
         break;
       }
 
+      // 請求の支払いが済んだ（更新のとき）。購読の通知と同じく、Stripe から取り直して反映する
+      case "invoice.paid": {
+        // 新しい API バージョンでは購読の ID が parent.subscription_details 側にある
+        const subRef = obj.subscription ?? obj.parent?.subscription_details?.subscription;
+        const subscriptionId = typeof subRef === "string" ? subRef : subRef?.id;
+        if (!subscriptionId) return json({ ok: true, ignored: "invoice_without_subscription" });
+        await syncSubscription(admin, String(subscriptionId), null);
+        break;
+      }
+
       default:
         // 関係のない通知は、受け取ったことだけ返す
         return json({ ok: true, ignored: event.type });
@@ -124,5 +139,12 @@ async function syncSubscription(admin: any, subscriptionId: string, userIdHint?:
     _cancel_at_period_end: sub.cancel_at_period_end === true,
   });
   if (error) throw error;
-  if (!data?.success) console.error("apply_stripe_subscription refused:", data);
+  if (!data?.success) {
+    console.error("apply_stripe_subscription refused:", data);
+    return;
+  }
+
+  // 毎月のポイント（有効な購読のときだけ。何度呼んでも同じ月は1回）。失敗したら 500 で再送してもらう
+  const { error: grantErr } = await admin.rpc("grant_subscription_monthly_points", { _user_id: userId });
+  if (grantErr) throw grantErr;
 }

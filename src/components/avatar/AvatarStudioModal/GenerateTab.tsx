@@ -14,9 +14,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { consumePendingAvatarPrompt } from "@/utils/ai-studio-handoff";
 import { downscaleToDataUrl } from "@/utils/downscale-image";
 import { useSetAvatarVisibility } from "@/hooks/ai-avatar/usePublicAvatars";
-import { AI_COSTS } from "@/lib/aiCosts";
+import { useAiCosts } from "@/hooks/useAiCosts";
 
-const AVATAR_COST = AI_COSTS.avatar;
 
 /** 目安の所要時間（秒）。これを超えたら文言を変えて「止まっていない」ことを伝える。 */
 const EXPECTED_SECONDS = 45;
@@ -37,6 +36,8 @@ export function GenerateTab({
   onGoToGallery: () => void;
 }) {
   const { t } = useLanguage();
+  // サブスクの人は割引後の値段（正はサーバー）
+  const AVATAR_COST = useAiCosts().costs.avatar;
   const [prompt, setPrompt] = useState("");
 
   // 探索から「このスタイルを使う」で来た場合はプロンプトを引き継ぐ

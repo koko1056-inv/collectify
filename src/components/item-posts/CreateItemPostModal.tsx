@@ -13,9 +13,7 @@ import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AiCreationPicker } from "./AiCreationPicker";
 import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
-import { AI_COSTS } from "@/lib/aiCosts";
-
-const POST_IMAGE_COST = AI_COSTS.postImage;
+import { useAiCosts } from "@/hooks/useAiCosts";
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -48,6 +46,8 @@ export function CreateItemPostModal({
   initialTag,
 }: CreateItemPostModalProps) {
   const { t } = useLanguage();
+  // サブスクの人は割引後の値段（正はサーバー）
+  const POST_IMAGE_COST = useAiCosts().costs.postImage;
   const [caption, setCaption] = useState(initialTag ? `#${initialTag} ` : "");
   const [aiPickerOpen, setAiPickerOpen] = useState(false);
   // AI で画像を作る欄は、既定では1行に畳む。投稿の本題は「自分のグッズの写真」で、

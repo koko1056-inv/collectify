@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
 import { isAdminUser } from "../_shared/security.ts";
 import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
+import { activePlanFor, discountedAiCost, discountNote } from "../_shared/subscription.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,6 +48,8 @@ serve(async (req) => {
   const user = userRes.user;
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+  // 実際に引いた額（サブスクの割引のあと）。返金もこの額で行う
+  let cost = EDIT_IMAGE_COST;
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
@@ -55,7 +58,7 @@ serve(async (req) => {
     try {
       await adminClient.rpc("add_user_points", {
         _user_id: user.id,
-        _points: EDIT_IMAGE_COST,
+        _points: cost,
         _transaction_type: "post_image_generation_refund",
         _description: `投稿用画像生成失敗 返金: ${reason}`,
       });
@@ -93,17 +96,19 @@ serve(async (req) => {
       if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
     }
 
-    // 残高チェック → 消費
+    // 残高チェック → 消費（サブスクの人は割引）
+    const plan = await activePlanFor(adminClient, user.id);
+    cost = discountedAiCost(EDIT_IMAGE_COST, plan);
     const { data: pointRow } = await adminClient
       .from("user_points")
       .select("total_points")
       .eq("user_id", user.id)
       .maybeSingle();
     const balance = pointRow?.total_points ?? 0;
-    if (balance < EDIT_IMAGE_COST) {
+    if (balance < cost) {
       return jsonResp(
         {
-          error: `ポイントが不足しています（必要: ${EDIT_IMAGE_COST}pt / 現在: ${balance}pt）`,
+          error: `ポイントが不足しています（必要: ${cost}pt / 現在: ${balance}pt）`,
           code: "INSUFFICIENT_POINTS",
         },
         402
@@ -112,9 +117,9 @@ serve(async (req) => {
 
     const { error: deductErr } = await adminClient.rpc("add_user_points", {
       _user_id: user.id,
-      _points: -EDIT_IMAGE_COST,
+      _points: -cost,
       _transaction_type: "post_image_generation",
-      _description: "投稿用画像生成",
+      _description: "投稿用画像生成" + discountNote(plan),
     });
     // 引けなかったとき（同時の要求で残高が足りなくなった等）は、生成も返金もしない
     if (deductErr) {
@@ -177,7 +182,7 @@ serve(async (req) => {
 
     console.log('Image edited successfully');
 
-    return jsonResp({ editedImageUrl });
+    return jsonResp({ editedImageUrl, pointsUsed: cost });
   } catch (error) {
     console.error('Error in edit-image function:', error);
     await refund("exception");

@@ -1,62 +1,29 @@
-// Collectify freemium plan limits
-// Free: basic experience
-// Premium: unlimited collection, all themes, unlimited furniture
-// Premium+: everything + priority AI, early access
+// Collectify のサブスク（プレミアム / プレミアム+）
+//
+// 特典は、実際にサーバーで効いているものだけを書く。
+//   - 毎月のポイント: grant_subscription_monthly_points（migrations/20261029190000_subscription_perks_and_earn_trim.sql）
+//     購読の始まりから1か月ごとに、支払い済みの期間の分を渡す。年額プランも毎月その月の分。
+//   - AI 生成の割引: 各 Edge Function（edit-image / generate-avatar / generate-post-image / generate-ai-room）が
+//     supabase/functions/_shared/subscription.ts で割り引く。
+// 変えるときは、ここと上の2か所を揃えること。
+//
+// 以前はここに「コレクション上限・テーマ・家具スロット・ディスプレイ変換・カスタムBGM・透かし削除・
+// 優先AI・バッジ」を並べていたが、どれもアプリ・サーバーのどこでも使われておらず（表示していた
+// PaywallModal も開く場所が無かった）、払っても何も変わらなかった。売り文句からは外した。
 
 export type PlanTier = "free" | "premium" | "premium_plus";
 
-export interface PlanLimits {
-  collectionItems: number;
-  wishlistItems: number;
-  themes: string[] | "all";          // テーマID配列または "all"
-  furnitureSlots: number;            // 同時に部屋に置ける家具数
-  displayConversions: number;        // 月あたりのグッズ→ディスプレイ変換回数
-  roomReactionsPerDay: number;       // 1日にルームに送れるリアクション数
-  customBgm: boolean;                // カスタムBGM設定
-  removeWatermark: boolean;          // シェア画像の透かし削除
-  priorityAI: boolean;               // AI処理の優先度
-  // プロフィールバッジの文字。印は描画側で lucide の Crown を付ける
-  // （以前は "Premium" / "Premium+" と記号・絵文字を文字に混ぜていた）
-  badge: string | null;
+export interface PlanPerks {
+  /** 毎月もらえるポイント */
+  monthlyPoints: number;
+  /** AI 生成の割引（%） */
+  aiDiscountPercent: number;
 }
 
-export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
-  free: {
-    collectionItems: 50,
-    wishlistItems: 20,
-    themes: ["cyber_neon", "sunny_room", "mint_cafe", "midnight_lounge"], // 4つだけ
-    furnitureSlots: 10,
-    displayConversions: 3,
-    roomReactionsPerDay: 10,
-    customBgm: false,
-    removeWatermark: false,
-    priorityAI: false,
-    badge: null,
-  },
-  premium: {
-    collectionItems: 1000,
-    wishlistItems: 500,
-    themes: "all",
-    furnitureSlots: 50,
-    displayConversions: 30,
-    roomReactionsPerDay: 100,
-    customBgm: true,
-    removeWatermark: true,
-    priorityAI: false,
-    badge: "Premium",
-  },
-  premium_plus: {
-    collectionItems: Infinity as unknown as number,
-    wishlistItems: Infinity as unknown as number,
-    themes: "all",
-    furnitureSlots: Infinity as unknown as number,
-    displayConversions: 100,
-    roomReactionsPerDay: Infinity as unknown as number,
-    customBgm: true,
-    removeWatermark: true,
-    priorityAI: true,
-    badge: "Premium+",
-  },
+export const PLAN_PERKS: Record<PlanTier, PlanPerks> = {
+  free: { monthlyPoints: 0, aiDiscountPercent: 0 },
+  premium: { monthlyPoints: 600, aiDiscountPercent: 20 },
+  premium_plus: { monthlyPoints: 1300, aiDiscountPercent: 40 },
 };
 
 export const PLAN_NAMES: Record<PlanTier, string> = {
@@ -79,22 +46,8 @@ export const IAP_PRODUCT_IDS = {
   premium_plus_yearly: "com.collectify.premium_plus.yearly",
 } as const;
 
-export function canUseTheme(plan: PlanTier, themeId: string): boolean {
-  const allowed = PLAN_LIMITS[plan].themes;
-  if (allowed === "all") return true;
-  return allowed.includes(themeId);
-}
-
-export function isThemeLocked(plan: PlanTier, themeId: string): boolean {
-  return !canUseTheme(plan, themeId);
-}
-
-export function hasReachedLimit(
-  plan: PlanTier,
-  limit: keyof PlanLimits,
-  current: number
-): boolean {
-  const max = PLAN_LIMITS[plan][limit];
-  if (typeof max !== "number") return false;
-  return current >= max;
+/** 割引後の pt（サーバーと同じく整数に丸める）。例: 100 → 80 / 60、30 → 24 / 18、20 → 16 / 12 */
+export function discountedAiCost(baseCost: number, plan: PlanTier): number {
+  const pct = PLAN_PERKS[plan].aiDiscountPercent;
+  return Math.round((baseCost * (100 - pct)) / 100);
 }

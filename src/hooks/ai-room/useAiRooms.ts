@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -70,6 +71,8 @@ export interface GenerateInput {
 
 /** AIルーム生成 (Edge Function呼び出し) */
 export function useGenerateAiRoom() {
+  // 描画のたびに作り直されないよう ref に置く（mutationFn と onSuccess は別の描画のものになりうる）
+  const lastPointsUsed = useRef<number | null>(null);
   const { user } = useAuth();
   const { t } = useLanguage();
   const qc = useQueryClient();
@@ -95,6 +98,8 @@ export function useGenerateAiRoom() {
         throw new Error(msg || t("aiRoom.toast.generateFailed"));
       }
       if (!data?.room) throw new Error(data?.error || t("aiRoom.toast.generateFailed"));
+      // 実際に使ったポイント（初回無料は 0、サブスクは割引後）。古い関数は返さないので、そのときは数字を出さない
+      lastPointsUsed.current = typeof data.pointsUsed === "number" ? data.pointsUsed : null;
       return data.room as AiGeneratedRoom;
     },
     onSuccess: () => {
@@ -107,7 +112,11 @@ export function useGenerateAiRoom() {
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success(t("aiRoom.toast.generateSuccess"));
+      toast.success(
+        lastPointsUsed.current && lastPointsUsed.current > 0
+          ? t("aiRoom.toast.generateSuccessCost", { cost: lastPointsUsed.current })
+          : t("aiRoom.toast.generateSuccess")
+      );
     },
     onError: (e) => {
       toast.error((e as Error).message || t("aiRoom.toast.generateFailed"));

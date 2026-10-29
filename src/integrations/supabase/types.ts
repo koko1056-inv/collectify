@@ -3301,6 +3301,47 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_point_grants: {
+        Row: {
+          granted_at: string
+          id: string
+          period_index: number
+          period_start: string
+          plan: string
+          points: number
+          subscription_key: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          id?: string
+          period_index: number
+          period_start: string
+          plan: string
+          points: number
+          subscription_key: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          id?: string
+          period_index?: number
+          period_start?: string
+          plan?: string
+          points?: number
+          subscription_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_point_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tag_aliases: {
         Row: {
           alias_name: string
@@ -4214,6 +4255,7 @@ export type Database = {
           id: string
           plan: string
           platform: string | null
+          provider_status: string | null
           started_at: string
           status: string
           stripe_customer_id: string | null
@@ -4228,6 +4270,7 @@ export type Database = {
           id?: string
           plan?: string
           platform?: string | null
+          provider_status?: string | null
           started_at?: string
           status?: string
           transaction_id?: string | null
@@ -4240,6 +4283,7 @@ export type Database = {
           id?: string
           plan?: string
           platform?: string | null
+          provider_status?: string | null
           started_at?: string
           status?: string
           transaction_id?: string | null
@@ -4695,6 +4739,7 @@ export type Database = {
       cancel_trade_request: { Args: { _trade_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
+      claim_subscription_points: { Args: never; Returns: Json }
       claim_reward: {
         Args: { _reason: string; _reference_id?: string }
         Returns: boolean
@@ -4950,7 +4995,13 @@ export type Database = {
         Args: { _official_item_id: string }
         Returns: string
       }
+      grant_all_subscription_monthly_points: { Args: never; Returns: number }
       grant_eligible_achievements: { Args: never; Returns: number }
+      grant_subscription_monthly_points: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
+      subscription_monthly_points: { Args: { _plan: string }; Returns: number }
       grant_points_from_iap: {
         Args: {
           _apple_tx_id: string

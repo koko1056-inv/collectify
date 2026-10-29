@@ -134,7 +134,8 @@ export const aiRoom = {
     toast: {
       variationStart: "バリエーションを作成します",
       imageUrlCopied: "画像URLをコピーしました",
-      generateSuccess: "AIルームを生成しました！(-100pt)",
+      generateSuccess: "AIルームを生成しました！",
+      generateSuccessCost: "AIルームを生成しました！(-{cost}pt)",
       generateFailed: "生成に失敗しました",
       deleted: "削除しました",
       deleteFailed: "削除に失敗しました",
@@ -276,7 +277,8 @@ export const aiRoom = {
     toast: {
       variationStart: "Creating a variation",
       imageUrlCopied: "Image URL copied",
-      generateSuccess: "AI Room generated! (-100pt)",
+      generateSuccess: "AI Room generated!",
+      generateSuccessCost: "AI Room generated! (-{cost}pt)",
       generateFailed: "Couldn't generate the room",
       deleted: "Deleted",
       deleteFailed: "Couldn't delete",
