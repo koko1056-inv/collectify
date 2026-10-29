@@ -159,8 +159,10 @@ CREATE TRIGGER item_posts_link_event
 -- ---------------------------------------------------------------------------
 -- 4. 参加の数（イベントのカード・ページの「◯人が参加中」）
 --    数えるのは、だれにでも見えている投稿だけ:
---      非表示（通報）でない / 投稿者のプロフィールが公開（privacy_level = public）/ サンプルアカウントでない
+--      非表示（通報）でない / 投稿者のプロフィールが公開（privacy_level = public）
 --    鍵付きの人の投稿の有無が、数の増減から分からないようにするため。
+--    サンプルアカウントも他の人と同じに数える（アプリ内でサンプルと分かる印は出さない方針。
+--    フィードに見えている投稿と数をそろえる）。
 --    下書きのイベントは数えない（管理者がページで見るときは画面側で 0 と出る）。
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.post_event_stats(_event_ids uuid[])
@@ -181,7 +183,6 @@ AS $function$
        SELECT 1 FROM public.profiles pr
         WHERE pr.id = p.user_id
           AND coalesce(pr.privacy_level, 'public') = 'public'
-          AND NOT pr.is_sample
      )
    WHERE e.id = ANY (coalesce(_event_ids, '{}'::uuid[]))
      AND e.status <> 'draft'
