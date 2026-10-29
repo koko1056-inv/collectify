@@ -61,8 +61,12 @@ export function DailyHubCard() {
           <StripButton
             onClick={openDailyRing}
             icon={<PockeRing done={[ring.collect, ring.care, ring.social]} size={18} stroke={3.5} />}
-            label={ring.streak > 0 ? t("pocke.ring.chip", { n: ring.streak }) : t("pocke.ring.chipNone")}
-            ariaLabel={t("pocke.ring.chipLabel", { done: ringDoneCount(ring), n: ring.streak })}
+            label={ring.completed ? t("pocke.ring.chipShortDone") : t("pocke.ring.chipShort", { done: ringDoneCount(ring) })}
+            ariaLabel={t(ring.completed ? "pocke.ring.chipLabelDone" : "pocke.ring.chipLabel", {
+              done: ringDoneCount(ring),
+              bonus: ring.bonus,
+              n: ring.streak,
+            })}
           />
         )}
         <StripButton

@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 
 /** 3つの目標の色（集める・育てる・つながる）。リングの弧と、目標の行の印で同じ色を使う */
 export const RING_GOALS = [
-  { key: "collect", stroke: "stroke-primary", text: "text-primary", bg: "bg-primary" },
-  { key: "care", stroke: "stroke-points", text: "text-points", bg: "bg-points" },
-  { key: "social", stroke: "stroke-info", text: "text-info", bg: "bg-info" },
+  { key: "collect", stroke: "stroke-primary", text: "text-primary", bg: "bg-primary", soft: "bg-primary/10", border: "border-primary" },
+  { key: "care", stroke: "stroke-points", text: "text-points", bg: "bg-points", soft: "bg-points/10", border: "border-points" },
+  { key: "social", stroke: "stroke-info", text: "text-info", bg: "bg-info", soft: "bg-info/10", border: "border-info" },
 ] as const;
 
 /**

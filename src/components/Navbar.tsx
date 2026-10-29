@@ -35,6 +35,15 @@ import {
 const HEADER_ICON_BUTTON =
   "relative h-10 w-10 rounded-full border-0 bg-transparent text-foreground shadow-none hover:bg-muted hover:text-foreground [&_svg]:size-5 [&>span]:right-0.5 [&>span]:top-0.5 [&>span]:ring-2 [&>span]:ring-background";
 
+/**
+ * デスクトップのナビの項目。lg 未満は文字を隠してアイコンだけにし、左右の余白も詰める。
+ * 以前は 640〜1023px で項目の文字が幅を取り、右側のボタン（メッセージ・通知・アバター）が
+ * 画面の外へはみ出して見えなかった。文字は sr-only で読み上げには残し、title で名前を出す。
+ */
+const NAV_ITEM = "px-2 md:px-3 xl:px-4";
+const NAV_ICON = "h-4 w-4 lg:mr-2";
+const NAV_LABEL = "sr-only lg:not-sr-only";
+
 export function Navbar() {
   const {
     user
@@ -132,7 +141,7 @@ export function Navbar() {
       
       {/* デスクトップ版のナビゲーション */}
       <div className="hidden sm:flex h-16 items-center px-4 container mx-auto">
-        <Link to="/" className="logo-text text-xl font-bold mr-8">
+        <Link to="/" className="logo-text text-xl font-bold mr-4 md:mr-8">
           Collectify
         </Link>
         
@@ -141,15 +150,15 @@ export function Navbar() {
         {user && <NavigationMenu data-tour="nav-bar" className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/collection" aria-current={isNavActive("/collection", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/collection", location.pathname) && "bg-accent text-primary")}>
-                  <Boxes className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.collection")}
+                <Link to="/collection" title={t("chrome.nav.collection")} aria-current={isNavActive("/collection", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), NAV_ITEM, isNavActive("/collection", location.pathname) && "bg-accent text-primary")}>
+                  <Boxes className={NAV_ICON} />
+                  <span className={NAV_LABEL}>{t("chrome.nav.collection")}</span>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/trade" aria-current={isNavActive("/trade", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/trade", location.pathname) && "bg-accent text-primary")}>
-                  <ArrowLeftRight className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.trade")}
+                <Link to="/trade" title={t("chrome.nav.trade")} aria-current={isNavActive("/trade", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), NAV_ITEM, isNavActive("/trade", location.pathname) && "bg-accent text-primary")}>
+                  <ArrowLeftRight className={NAV_ICON} />
+                  <span className={NAV_LABEL}>{t("chrome.nav.trade")}</span>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -159,31 +168,36 @@ export function Navbar() {
                   type="button"
                   data-tour="collection-add"
                   onClick={() => setIsAddGoodsOpen(true)}
-                  className={cn(navigationMenuTriggerStyle())}
+                  title={t("chrome.nav.add")}
+                  className={cn(navigationMenuTriggerStyle(), NAV_ITEM)}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.add")}
+                  <Plus className={NAV_ICON} />
+                  <span className={NAV_LABEL}>{t("chrome.nav.add")}</span>
                 </button>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/explore" aria-current={isNavActive("/explore", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/explore", location.pathname) && "bg-accent text-primary")}>
-                  <Compass className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.explore")}
+                <Link to="/explore" title={t("chrome.nav.explore")} aria-current={isNavActive("/explore", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), NAV_ITEM, isNavActive("/explore", location.pathname) && "bg-accent text-primary")}>
+                  <Compass className={NAV_ICON} />
+                  <span className={NAV_LABEL}>{t("chrome.nav.explore")}</span>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/me" aria-current={isNavActive("/me", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/me", location.pathname) && "bg-accent text-primary")}>
-                  <User className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.myPage")}
+                <Link to="/me" title={t("chrome.nav.myPage")} aria-current={isNavActive("/me", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), NAV_ITEM, isNavActive("/me", location.pathname) && "bg-accent text-primary")}>
+                  <User className={NAV_ICON} />
+                  <span className={NAV_LABEL}>{t("chrome.nav.myPage")}</span>
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>}
         
         {/* 右側のアクション */}
-        <div className="ml-auto flex items-center gap-1">
-          <div className="mr-2"><UserInfo /></div>
+        <div className="ml-auto flex shrink-0 items-center md:gap-1">
+          {/* 名前は幅に余裕があるときだけ（狭いとボタンを押し出してしまう） */}
+          <div className="mr-2 hidden xl:block"><UserInfo /></div>
           {user ? <>
+              {/* ポイント残高。以前はモバイルのヘッダーにしか無く、PCでは残高が見えなかった。
+                  モバイルと同じ見た目・同じ行き先（ポイントショップ） */}
+              <PointsNavButton variant="icon" />
               
               {/* 右上の丸いボタンは、ほしいもの・交換・メッセージ・通知で形をそろえる。
                   以前はほしいもの・交換だけ枠付きの小さな四角（32px・アイコン16px）で、
