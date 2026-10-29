@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Camera, Check, Home, Sparkles, Trophy } from "lucide-react";
+import { CalendarDays, Camera, Check, Flame, Home, Sparkles, Trophy } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
 import { PockeRing } from "@/components/daily/PockeRing";
@@ -31,6 +31,7 @@ export function CollectionShortcuts({ onOpenTargets }: CollectionShortcutsProps)
 
   const unseen = releases.unseen > 99 ? "99+" : String(releases.unseen);
   const careLeft = companions.data && companions.data.length > 0 ? nextCare(companions.data, todayJst()) : null;
+  const ringDone = ringDoneCount(ring);
 
   return (
     <div className="space-y-2" data-testid="collection-shortcuts">
@@ -43,13 +44,32 @@ export function CollectionShortcuts({ onOpenTargets }: CollectionShortcutsProps)
           ariaLabel={releases.unseen > 0 ? t("engage.dailyHub.newForYou", { n: releases.unseen }) : t("discover.releases.title")}
           testId="daily-releases"
         />
+        {/* 何の札か（ポッケリング）・今いくつ（1/3）・そろうと何pt かを札だけでわかるようにする。完成したら連続日数を添える */}
         {ring && (
           <Shortcut
             onClick={openDailyRing}
-            icon={<PockeRing done={[ring.collect, ring.care, ring.social]} size={18} stroke={3.5} />}
-            label={ring.streak > 0 ? t("pocke.ring.chip", { n: ring.streak }) : t("pocke.ring.chipNone")}
-            ariaLabel={t("pocke.ring.chipLabel", { done: ringDoneCount(ring), n: ring.streak })}
-            dot={ringDoneCount(ring) < 3}
+            icon={<PockeRing done={[ring.collect, ring.care, ring.social]} size={22} stroke={4} />}
+            label={ring.completed ? t("pocke.ring.chipDone") : t("pocke.ring.chip", { done: ringDone })}
+            ariaLabel={t(ring.completed ? "pocke.ring.chipLabelDone" : "pocke.ring.chipLabel", {
+              done: ringDone,
+              bonus: ring.bonus,
+              n: ring.streak,
+            })}
+            trailing={
+              ring.completed ? (
+                ring.streak > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-warning tabular-nums">
+                    <Flame className="h-3 w-3" />
+                    {ring.streak}
+                  </span>
+                )
+              ) : (
+                <span className="rounded-full bg-points/15 px-1.5 text-3xs font-bold leading-4 text-points tabular-nums">
+                  {t("pocke.ring.chipBonus", { n: ring.bonus })}
+                </span>
+              )
+            }
+            dot={!ring.completed}
             testId="daily-ring-chip"
           />
         )}
@@ -91,6 +111,7 @@ function Shortcut({
   label,
   ariaLabel,
   badge,
+  trailing,
   dot,
   expanded,
   iconClassName,
@@ -102,6 +123,8 @@ function Shortcut({
   ariaLabel: string;
   /** 件数（まだ見ていない新着など） */
   badge?: string;
+  /** ラベルのあとに添える小さな札（もらえる pt・連続日数など） */
+  trailing?: ReactNode;
   /** 今日まだやることがある印 */
   dot?: boolean;
   /** 開閉するもの（今日分）のとき、開いているか */
@@ -128,6 +151,7 @@ function Shortcut({
       {badge && (
         <span className="rounded-full bg-primary px-1.5 text-3xs font-bold leading-4 text-primary-foreground tabular-nums">{badge}</span>
       )}
+      {trailing && <span aria-hidden="true">{trailing}</span>}
       {dot && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />}
     </button>
   );

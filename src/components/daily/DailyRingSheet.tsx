@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronRight, Flame, Heart, Moon, Package, Users, type LucideIcon } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
@@ -79,12 +79,38 @@ export function DailyRingSheet({
         <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto rounded-t-2xl sm:mx-auto sm:max-w-lg">
           <SheetHeader className="text-left">
             <SheetTitle>{t("pocke.ring.title")}</SheetTitle>
+            {/* 何をすると何がもらえるか・いつリセットされるかを、最初に1行で */}
+            <SheetDescription>{t("pocke.ring.intro", { n: ring.bonus })}</SheetDescription>
           </SheetHeader>
 
           <div className="mt-3 flex flex-col items-center gap-3">
             <PockeRing done={flags} size={176} stroke={14}>
               <Pocke key={done} pose={POSE_BY_DONE[done]} height={104} motion="pop" />
             </PockeRing>
+            {/* 今いくつ・そろうと何pt。下の3つの目標と同じ色の印で、弧と目標をつなぐ */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-lg font-black tabular-nums">{t("pocke.ring.progress", { done })}</span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-xs font-bold",
+                  ring.completed ? "bg-points text-points-foreground" : "bg-points/15 text-points"
+                )}
+              >
+                {ring.completed ? t("pocke.ring.bonusGot", { n: ring.bonus }) : t("pocke.ring.bonus", { n: ring.bonus })}
+              </span>
+            </div>
+            <ul className="flex items-center justify-center gap-3 text-xs font-semibold">
+              {GOALS.map((g, i) => (
+                <li key={g.key} className={cn("flex items-center gap-1", flags[i] ? RING_GOALS[i].text : "text-muted-foreground")}>
+                  <span
+                    aria-hidden
+                    className={cn("h-2.5 w-2.5 rounded-full border-2", RING_GOALS[i].border, flags[i] && RING_GOALS[i].bg)}
+                  />
+                  {t(`pocke.ring.${g.key}`)}
+                  {flags[i] && <Check className="h-3 w-3" aria-hidden />}
+                </li>
+              ))}
+            </ul>
             <p className="flex items-center gap-1.5 text-base font-bold">
               <Flame className={cn("h-5 w-5", ring.streak > 0 ? "text-warning" : "text-muted-foreground")} aria-hidden />
               {ring.streak > 0 ? t("pocke.ring.streak", { n: ring.streak }) : t("pocke.ring.streakNone")}
@@ -107,7 +133,7 @@ export function DailyRingSheet({
                   <span
                     className={cn(
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-                      isDone ? cn(RING_GOALS[i].bg, "text-white") : "bg-muted"
+                      isDone ? cn(RING_GOALS[i].bg, "text-white") : cn("border-2 border-dashed", RING_GOALS[i].border, RING_GOALS[i].soft)
                     )}
                   >
                     {isDone ? <Check className="h-5 w-5" aria-hidden /> : <Icon className={cn("h-5 w-5", RING_GOALS[i].text)} aria-hidden />}
@@ -131,9 +157,6 @@ export function DailyRingSheet({
           {/* 今日のミッション（育てるの一歩にもなる） */}
           <DailyMissionCard className="mt-3" onNavigate={() => onOpenChange(false)} />
 
-          <p className={cn("mt-3 text-center text-sm font-semibold", ring.completed ? "text-points" : "text-muted-foreground")}>
-            {ring.completed ? t("pocke.ring.completed", { n: ring.bonus }) : t("pocke.ring.bonus", { n: ring.bonus })}
-          </p>
 
           {/* この7日 */}
           <section className="mt-5" aria-label={t("pocke.ring.week")}>

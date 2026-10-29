@@ -58,7 +58,7 @@ export function useCollectionPockeTips(): PockeTipItem[] {
     });
   }
   if (ring && ringDoneCount(ring) < 3) {
-    tips.push({ kind: "ring", pose: "point", text: t("pocke.tip.ring", { n: 3 - ringDoneCount(ring) }), onSelect: openDailyRing });
+    tips.push({ kind: "ring", pose: "point", text: t("pocke.tip.ring", { n: 3 - ringDoneCount(ring), pt: ring.bonus }), onSelect: openDailyRing });
   }
   if (care) {
     tips.push({
