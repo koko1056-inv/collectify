@@ -76,7 +76,6 @@ export const collectionScreen = {
       removeFailed: "ほしいものリストからの削除に失敗しました。",
       empty: "ほしいものリストは空です",
       notePrefix: "メモ: ",
-      priceSearch: "価格検索",
       got: "ゲット",
     },
     quantity: {
@@ -331,7 +330,6 @@ export const collectionScreen = {
       removeFailed: "Couldn't remove it from your wishlist.",
       empty: "Your wishlist is empty",
       notePrefix: "Note: ",
-      priceSearch: "Find price",
       got: "Got it",
     },
     quantity: {
