@@ -265,19 +265,22 @@ export function useToggleAiRoomPublic() {
           .eq("image_url", room.image_url);
         const postIds = (ipImgs || []).map((r: any) => r.post_id);
         if (postIds.length > 0) {
-          await supabase
+          // 失敗を黙って「非公開にしました」にしない（投稿がフィードに残ったままになる）
+          const { error: ipDelErr } = await supabase
             .from("item_posts")
             .delete()
             .in("id", postIds)
             .eq("user_id", room.user_id);
+          if (ipDelErr) throw ipDelErr;
         }
 
         // goods_posts: 同じ image_url を削除
-        await supabase
+        const { error: gpDelErr } = await supabase
           .from("goods_posts")
           .delete()
           .eq("user_id", room.user_id)
           .eq("image_url", room.image_url);
+        if (gpDelErr) throw gpDelErr;
       }
     },
     onSuccess: (_data, variables) => {
@@ -287,6 +290,7 @@ export function useToggleAiRoomPublic() {
       qc.invalidateQueries({ queryKey: ["posts-paginated"] });
       qc.invalidateQueries({ queryKey: ["posts-for-item"] });
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success(
         variables.isPublic

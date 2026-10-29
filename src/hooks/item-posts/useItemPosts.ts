@@ -124,8 +124,10 @@ export function useItemPost(postId: string | null) {
         `
         )
         .eq("id", postId)
-        .single();
+        .maybeSingle();
       if (error) throw error;
+      // 削除された投稿（共有リンク・ひらいたままの詳細）はエラーにせず「見つからない」として出す
+      if (!data) return null;
 
       // ブロック関係にある人の投稿は、リンクで開かれても見せない
       const blocked = await fetchBlockedUserIds(queryClient, user?.id);
@@ -253,20 +255,102 @@ export function useCreateItemPost() {
  */
 export function useDeleteItemPost() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const { t } = useLanguage();
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { error } = await supabase.from("item_posts").delete().eq("id", postId);
+      // 写真のパスは先に控える（投稿の行を消すと item_post_images も一緒に消える）
+      const { data: imgs } = await supabase.from("item_post_images").select("image_url").eq("post_id", postId);
+
+      // RLS で止められた削除はエラーにならず 0 行で返る。消えた行を返してもらい、0 行なら失敗として知らせる
+      // （以前は 0 行でも「削除しました」と出していた）
+      const { data, error } = await supabase.from("item_posts").delete().eq("id", postId).select("id");
       if (error) throw error;
+      if (!data || data.length === 0) throw new PostDeleteNotAllowedError();
+
+      // 写真の後片付け。自分のフォルダ（item-posts/<自分の id>/）の写真だけ。
+      // AI ルームの投稿など、ほかのバケットの写真は持ち主が別に使っているので消さない。
+      // 失敗しても投稿の削除は済んでいるので、待たない・止めない・知らせない
+      const paths = (imgs || [])
+        .map((img) => itemPostsStoragePath(img.image_url))
+        .filter((p): p is string => !!p && !!user?.id && p.startsWith(`${user.id}/`));
+      if (paths.length > 0) {
+        void supabase.storage
+          .from("item-posts")
+          .remove(paths)
+          .then(
+            ({ error: rmErr }) => rmErr && console.warn("投稿の写真を消せませんでした:", rmErr.message),
+            (e) => console.warn("投稿の写真を消せませんでした:", e)
+          );
+      }
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["item-posts"] });
-      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
-      qc.invalidateQueries({ queryKey: ["user-item-posts"] });
+    // 0 行（消す権限がない）は何度やっても同じなので、通信の失敗のときだけ 1 回やり直す
+    retry: (count, e) => !(e instanceof PostDeleteNotAllowedError) && count < 1,
+    // 押したらすぐ一覧から消す（フィードの全ページを読み直すまで、消した投稿が残って見えないように）
+    onMutate: async (postId) => {
+      await Promise.all(POST_LIST_KEYS.map((queryKey) => qc.cancelQueries({ queryKey })));
+      const snapshot = POST_LIST_KEYS.flatMap((queryKey) => qc.getQueriesData({ queryKey }));
+      snapshot.forEach(([key, data]) => qc.setQueryData<unknown>(key, withoutPost(data, postId)));
+      return { snapshot };
+    },
+    onSuccess: (_data, postId) => {
+      // ひらいたままの詳細・/post/:id は「見つからない（削除された）」にする
+      qc.setQueriesData({ queryKey: ["item-post", postId] }, null);
       toast.success(t("notices.itemPosts.deleted"));
     },
-    onError: () => toast.error(t("notices.itemPosts.deleteFailed")),
+    onError: (e, _postId, ctx) => {
+      // 一覧を元に戻す（消えていないのに消えたように見せない）
+      ctx?.snapshot.forEach(([key, data]) => qc.setQueryData<unknown>(key, data));
+      toast.error(
+        t(e instanceof PostDeleteNotAllowedError ? "notices.itemPosts.deleteNotAllowed" : "notices.itemPosts.deleteFailed")
+      );
+    },
+    onSettled: () => {
+      POST_LIST_KEYS.forEach((queryKey) => qc.invalidateQueries({ queryKey }));
+      // プロフィールの「投稿」の数
+      qc.invalidateQueries({ queryKey: ["profile-hero-stats"] });
+    },
   });
+}
+
+/** 削除が 0 行だった（RLS で止められた）。自分の投稿ではない・ログインが切れている など */
+export class PostDeleteNotAllowedError extends Error {
+  constructor() {
+    super("post delete was not allowed");
+    this.name = "PostDeleteNotAllowedError";
+  }
+}
+
+/** 投稿が並ぶ一覧のキー（グッズの投稿・フィード・みんなの先頭・プロフィール） */
+const POST_LIST_KEYS = [["item-posts"], ["item-posts-feed"], ["user-item-posts"]];
+
+/** キャッシュの一覧（配列・SNS 風フィードの { pages: [{ posts }] }）から、その投稿を抜く */
+function withoutPost(old: unknown, postId: string): unknown {
+  if (!old || typeof old !== "object") return old;
+  if (Array.isArray(old)) return old.filter((p: { id?: string } | null) => p?.id !== postId);
+  const o = old as { pages?: unknown[] };
+  if (!Array.isArray(o.pages)) return old;
+  return {
+    ...o,
+    pages: o.pages.map((pg) => {
+      const page = pg as { posts?: unknown } | null;
+      return page && Array.isArray(page.posts) ? { ...page, posts: withoutPost(page.posts, postId) } : pg;
+    }),
+  };
+}
+
+const ITEM_POSTS_PUBLIC_PREFIX = "/storage/v1/object/public/item-posts/";
+/** item-posts バケットの公開 URL から、バケットの中のパスを取り出す（ほかのバケットの写真は null） */
+function itemPostsStoragePath(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const i = url.indexOf(ITEM_POSTS_PUBLIC_PREFIX);
+  if (i < 0) return null;
+  const path = url.slice(i + ITEM_POSTS_PUBLIC_PREFIX.length).split("?")[0];
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
 }
 
 /**
