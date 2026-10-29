@@ -1,6 +1,6 @@
 /**
  * AI 生成の値段（pt）。正は各 Edge Function の定数で、ここは画面に出すための写し。
- * 変えるときは両方そろえること。
+ * 変えるときは両方そろえること。サブスクの人の割引後の額は src/hooks/useAiCosts.ts で出す。
  *
  *   - editImage: supabase/functions/edit-image（グッズ展示場・着せ替え）
  *   - avatar:    supabase/functions/generate-avatar（初回無料）

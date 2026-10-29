@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
-import { AI_COSTS } from "@/lib/aiCosts";
+import { useAiCosts } from "@/hooks/useAiCosts";
 
 interface UserItem {
   id: string;
@@ -30,6 +30,8 @@ interface Props {
 
 export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Props) {
   const { t } = useLanguage();
+  // サブスクの人は割引後の値段（正はサーバー）
+  const { costs: aiCosts } = useAiCosts();
   const [items, setItems] = useState<UserItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -229,7 +231,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
             <Shirt className="w-5 h-5" />
             {/* 押す前に値段が分かるように（edit-image で消費） */}
             {t("misc.avatar.dressUpRun")}{" "}
-            {t("misc.avatar.costBadge", { cost: AI_COSTS.editImage })}
+            {t("misc.avatar.costBadge", { cost: aiCosts.editImage })}
             <ChevronRight className="w-4 h-4" />
           </>
         )}

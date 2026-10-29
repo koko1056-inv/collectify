@@ -18,6 +18,7 @@ import { shouldRetryQuery, queryRetryDelay } from "@/utils/queryRetry";
 import { PockeCompletionHost } from "@/components/pocke/PockeCompletionHost";
 import { DailyRingHost } from "@/components/daily/DailyRingHost";
 import { DailyLoginRewardHost } from "@/components/daily/DailyLoginRewardHost";
+import { SubscriptionPointsHost } from "@/components/premium/SubscriptionPointsHost";
 import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
 import { GuestPouchImporter } from "@/components/guest/GuestPouchImporter";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -259,6 +260,8 @@ const App: React.FC = () => {
                   <PockeCompletionHost />
                   <DailyRingHost />
                   <DailyLoginRewardHost />
+                  {/* サブスクの毎月のポイント（契約中の人だけ。開いたときに受け取る） */}
+                  <SubscriptionPointsHost />
                   <BadgeUnlockHost />
                   <GuestPouchImporter />
                   </AppErrorBoundary>

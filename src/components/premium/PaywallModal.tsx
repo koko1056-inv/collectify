@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Minus, Sparkles } from "lucide-react";
+import { Crown, Coins, Sparkles, Wand2 } from "lucide-react";
 import { IconTile } from "@/components/ui/icon-tile";
 import { cn } from "@/lib/utils";
 import {
-  PLAN_LIMITS,
+  discountedAiCost,
+  PLAN_NAMES,
+  PLAN_PERKS,
   PLAN_PRICES_JPY,
   PlanTier,
 } from "@/lib/planLimits";
+import { AI_COSTS } from "@/lib/aiCosts";
 import { startPurchase } from "@/utils/iap";
 import { CheckoutError, openBillingPortal } from "@/utils/stripeCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -32,40 +35,27 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
   const price = PLAN_PRICES_JPY[selectedPlan][period];
   const monthlyEquiv = period === "yearly" ? Math.floor(price / 12) : price;
 
-  // 「3Dモデル生成」の行はここにあったが外した。
-  // generate-3d-model 関数はサーバー側に置かれているものの、アプリから呼ぶ
-  // 経路が一度も作られておらず、誰も生成できない。使えないものを有料の
-  // 特典として並べることはできない。呼べるようにしてから戻すこと。
-  const features = [
+  // 特典は、実際にサーバーで効いているもの（毎月のポイント・AI生成の割引）だけを出す。
+  // 以前はコレクション上限・テーマ・家具・ディスプレイ変換・BGM・透かし・バッジの表を出していたが、
+  // どれも有料プランで変わる仕組みが無かった（src/lib/planLimits.ts の説明を参照）。
+  // 「3Dモデル生成」も、アプリから呼ぶ経路が無いので出さない。
+  const perkLines = [
     {
-      key: "collection",
-      label: t("misc.premium.featureCollection"),
-      free: t("misc.premium.valueCollectionFree"),
-      premium: t("misc.premium.valueCollectionPremium"),
+      key: "points",
+      icon: Coins,
+      title: t("misc.premium.perkMonthlyPointsTitle"),
+      desc: t("misc.premium.perkMonthlyPointsDesc"),
     },
     {
-      key: "themes",
-      label: t("misc.premium.featureThemes"),
-      free: t("misc.premium.valueThemesFree"),
-      premium: t("misc.premium.valueThemesPremium"),
+      key: "ai",
+      icon: Wand2,
+      title: t("misc.premium.perkAiDiscountTitle"),
+      desc: t("misc.premium.perkAiDiscountDesc", {
+        premium: discountedAiCost(AI_COSTS.aiRoom, "premium"),
+        plus: discountedAiCost(AI_COSTS.aiRoom, "premium_plus"),
+      }),
     },
-    {
-      key: "furniture",
-      label: t("misc.premium.featureFurniture"),
-      free: t("misc.premium.valueFurnitureFree"),
-      premium: t("misc.premium.valueFurniturePremium"),
-    },
-    {
-      key: "conversion",
-      label: t("misc.premium.featureConversion"),
-      free: t("misc.premium.valueConversionFree"),
-      premium: t("misc.premium.valueConversionPremium"),
-    },
-    // 有無だけの行は、文字の ×/✓ ではなく印で出す（null = 無料では使えない / true = 使える）
-    { key: "bgm", label: t("misc.premium.featureBgm"), free: null, premium: true },
-    { key: "watermark", label: t("misc.premium.featureWatermark"), free: null, premium: true },
-    { key: "badge", label: t("misc.premium.featureBadge"), free: null, premium: true },
-  ] as { key: string; label: string; free: string | null; premium: string | true }[];
+  ];
 
   const checkoutMessage = (e: unknown): string => {
     if (e instanceof CheckoutError) {
@@ -115,7 +105,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
             <Crown />
           </IconTile>
           <DialogTitle className="text-center text-2xl">
-            Collectify Premium
+            {t("misc.premium.title")}
           </DialogTitle>
           {reason && (
             <p className="text-center text-sm text-muted-foreground">{reason}</p>
@@ -178,6 +168,11 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
                         ? t("misc.premium.premiumTagline")
                         : t("misc.premium.premiumPlusTagline")}
                     </p>
+                    <p className="text-xs font-medium text-points mt-1">
+                      {t("misc.premium.perkMonthlyPoints", { n: PLAN_PERKS[p].monthlyPoints.toLocaleString() })}
+                      {" · "}
+                      {t("misc.premium.perkAiDiscount", { n: PLAN_PERKS[p].aiDiscountPercent })}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold">
@@ -196,30 +191,24 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
           })}
         </div>
 
-        {/* Features list */}
-        <div className="border border-border rounded-xl p-4 mt-2 space-y-2">
-          {features.map((f) => (
-            <div key={f.key} className="flex items-center justify-between gap-3 text-sm">
-              <span className="text-muted-foreground">{f.label}</span>
-              <span className="flex items-center gap-2 font-medium">
-                {f.free === null ? (
-                  <Minus className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
-                ) : (
-                  <span className="text-muted-foreground line-through text-xs">{f.free}</span>
-                )}
-                {f.premium === true ? (
-                  <Check className="h-4 w-4 text-primary" aria-hidden="true" />
-                ) : (
-                  f.premium
-                )}
-              </span>
+        {/* 特典 */}
+        <div className="border border-border rounded-xl p-4 mt-2 space-y-3">
+          <p className="text-sm font-bold">{t("misc.premium.perksHeading")}</p>
+          {perkLines.map((f) => (
+            <div key={f.key} className="flex items-start gap-2 text-sm">
+              <f.icon className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="font-medium">{f.title}</p>
+                <p className="text-xs text-muted-foreground">{f.desc}</p>
+              </div>
             </div>
           ))}
+          <p className="text-2xs text-muted-foreground">{t("misc.premium.perksNote")}</p>
         </div>
 
         {isWebSubscriber && (
           <div className="rounded-xl border border-border bg-muted/40 p-3 text-sm space-y-2">
-            <p className="font-medium">{t("misc.checkout.currentPlan")}: {subscription?.plan === "premium_plus" ? "Premium+" : "Premium"}</p>
+            <p className="font-medium">{t("misc.checkout.currentPlan")}: {PLAN_NAMES[(subscription?.plan as PlanTier) ?? "premium"] ?? PLAN_NAMES.premium}</p>
             {subscription?.expires_at && (
               <p className="text-xs text-muted-foreground">
                 {t(subscription.cancel_at_period_end ? "misc.checkout.endsOn" : "misc.checkout.renewsOn", {

@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Shirt,
   UserRound,
+  Crown,
 } from "lucide-react";
 import {
   usePointPackages,
@@ -57,6 +58,9 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AI_COSTS } from "@/lib/aiCosts";
+import { discountedAiCost, PLAN_NAMES, PLAN_PERKS } from "@/lib/planLimits";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PaywallModal } from "@/components/premium/PaywallModal";
 import { COLLECTION_SLOT_EXPAND_COST } from "@/hooks/useSpendPoints";
 
 // label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
@@ -64,10 +68,11 @@ const SPEND_GUIDE = [
   { icon: TagIcon, label: "screens.pointShop.spendCustomTag", cost: 10 },
   { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: COLLECTION_SLOT_EXPAND_COST },
   // AI 生成の値段は各 Edge Function と揃える（src/lib/aiCosts.ts）
-  { icon: Shirt, label: "screens.pointShop.spendEditImage", cost: AI_COSTS.editImage },
-  { icon: UserRound, label: "screens.pointShop.spendAvatar", cost: AI_COSTS.avatar },
-  { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: AI_COSTS.postImage },
-  { icon: Home, label: "screens.pointShop.spendAiRoom", cost: AI_COSTS.aiRoom },
+  // ai: true の行は、サブスクの人には割引後の額も出す（正はサーバー）
+  { icon: Shirt, label: "screens.pointShop.spendEditImage", cost: AI_COSTS.editImage, ai: true },
+  { icon: UserRound, label: "screens.pointShop.spendAvatar", cost: AI_COSTS.avatar, ai: true },
+  { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: AI_COSTS.postImage, ai: true },
+  { icon: Home, label: "screens.pointShop.spendAiRoom", cost: AI_COSTS.aiRoom, ai: true },
   // 推しグッズへのプレゼント（推しの部屋から贈る）。値段は companion_gift_kinds と揃える
   { icon: Cookie, label: "screens.pointShop.spendCompanionSnack", cost: 30 },
   { icon: Gift, label: "screens.pointShop.spendCompanionSpecial", cost: 100 },
@@ -83,6 +88,10 @@ export default function PointShop() {
   const [purchasing, setPurchasing] = useState(false);
   const [rcPackages, setRcPackages] = useState<PointPackageEntry[]>([]);
   const nativeAvailable = isNativeIAPAvailable();
+  const { plan, isPremium } = useSubscription();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  // プランの購入は Web（Stripe）だけ。アプリ内では、契約中の人に状態を見せるときだけ出す
+  const showPlans = isWebCheckoutAvailable() || isPremium;
 
   const { data: packages, isLoading: packagesLoading } = usePointPackages();
   const { data: userPoints, isLoading: pointsLoading } = useUserPoints();
@@ -293,6 +302,37 @@ export default function PointShop() {
           </CardContent>
         </Card>
 
+        {/* サブスク（プレミアム）。以前は PaywallModal がどこからも開かれず、プランを買う入口が無かった */}
+        {showPlans && (
+          <button
+            type="button"
+            onClick={() => setPaywallOpen(true)}
+            data-testid="premium-plan-card"
+            className="mb-8 flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10"
+          >
+            <IconTile tone="primary" size="sm">
+              <Crown />
+            </IconTile>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold">{t("misc.premium.title")}</span>
+              <span className="block text-xs text-muted-foreground">
+                {isPremium
+                  ? t("misc.premium.cardActive", {
+                      plan: PLAN_NAMES[plan],
+                      n: PLAN_PERKS[plan].monthlyPoints.toLocaleString(),
+                      pct: PLAN_PERKS[plan].aiDiscountPercent,
+                    })
+                  : t("misc.premium.cardDesc", {
+                      n: PLAN_PERKS.premium.monthlyPoints.toLocaleString(),
+                      pct: PLAN_PERKS.premium_plus.aiDiscountPercent,
+                    })}
+              </span>
+            </span>
+            <span className="shrink-0 text-xs font-medium text-primary">{t("misc.premium.cardCta")}</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        )}
+
         {/* Point Packages。まだ売っていないあいだは節ごと出さない（空の「まもなく登場」が2つ並んでいた） */}
         {(packagesLoading || (packages && packages.length > 0)) && (
         <section className="mb-8">
@@ -394,6 +434,7 @@ export default function PointShop() {
             <CardContent className="pt-4 space-y-2">
               {SPEND_GUIDE.map((g) => {
                 const Icon = g.icon;
+                const cost = "ai" in g && g.ai ? discountedAiCost(g.cost, plan) : g.cost;
                 return (
                   <div key={g.label} className="flex items-center justify-between py-2 border-b last:border-b-0">
                     <div className="flex items-center gap-2 text-sm">
@@ -403,7 +444,10 @@ export default function PointShop() {
                     </div>
                     <Badge variant="secondary" className="gap-1 tabular-nums">
                       <PointIcon size={14} />
-                      {g.cost}pt
+                      {cost !== g.cost && (
+                        <span className="text-muted-foreground line-through font-normal">{g.cost}</span>
+                      )}
+                      {cost}pt
                     </Badge>
                   </div>
                 );
@@ -478,6 +522,8 @@ export default function PointShop() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showPlans && <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />}
 
       <Footer />
     </div>

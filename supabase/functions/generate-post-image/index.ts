@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { assertReferenceImageUrl, callAi, currentAiProvider, referenceImageError, SsrfError } from "../_shared/ai.ts";
 import { isAdminUser } from "../_shared/security.ts";
 import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
+import { activePlanFor, discountedAiCost, discountNote } from "../_shared/subscription.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,6 +49,8 @@ serve(async (req) => {
   const user = userRes.user;
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
+  // 実際に引いた額（サブスクの割引のあと）。返金もこの額で行う
+  let cost = POINT_COST;
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
@@ -56,7 +59,7 @@ serve(async (req) => {
     try {
       await admin.rpc('add_user_points', {
         _user_id: user.id,
-        _points: POINT_COST,
+        _points: cost,
         _transaction_type: 'ai_post_image_refund',
         _description: `AI投稿画像生成 失敗返金: ${reason}`,
       });
@@ -90,16 +93,18 @@ serve(async (req) => {
       if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
     }
 
-    // ポイント残高チェック
+    // ポイント残高チェック（サブスクの人は割引）
+    const plan = await activePlanFor(admin, user.id);
+    cost = discountedAiCost(POINT_COST, plan);
     const { data: pointRow } = await admin
       .from('user_points')
       .select('total_points')
       .eq('user_id', user.id)
       .maybeSingle();
     const balance = pointRow?.total_points ?? 0;
-    if (balance < POINT_COST) {
+    if (balance < cost) {
       return new Response(
-        JSON.stringify({ error: `ポイントが不足しています（必要: ${POINT_COST}pt / 現在: ${balance}pt）` }),
+        JSON.stringify({ error: `ポイントが不足しています（必要: ${cost}pt / 現在: ${balance}pt）` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -107,9 +112,9 @@ serve(async (req) => {
     // ポイント消費
     const { error: deductErr } = await admin.rpc('add_user_points', {
       _user_id: user.id,
-      _points: -POINT_COST,
+      _points: -cost,
       _transaction_type: 'ai_post_image_generation',
-      _description: 'AI投稿画像生成',
+      _description: 'AI投稿画像生成' + discountNote(plan),
     });
     if (deductErr) {
       console.error('point deduct error:', deductErr);
@@ -155,7 +160,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ imageUrl, pointsUsed: POINT_COST }),
+      JSON.stringify({ imageUrl, pointsUsed: cost }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
