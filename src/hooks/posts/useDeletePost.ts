@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PostDeleteNotAllowedError } from "@/hooks/item-posts/useItemPosts";
 
 export function useDeletePost() {
   const queryClient = useQueryClient();
@@ -10,29 +11,25 @@ export function useDeletePost() {
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      console.log("投稿を削除中...", postId);
-
-      const { error } = await supabase
+      // RLS で止められた削除はエラーにならず 0 行で返る。消えた行を返してもらい、0 行なら失敗にする
+      const { data, error } = await supabase
         .from("goods_posts")
         .delete()
-        .eq("id", postId);
+        .eq("id", postId)
+        .select("id");
 
-      if (error) {
-        console.error("投稿削除エラー:", error);
-        throw error;
-      }
-      
-      console.log("投稿が削除されました:", postId);
+      if (error) throw error;
+      if (!data || data.length === 0) throw new PostDeleteNotAllowedError();
     },
+    // 0 行（消す権限がない）は何度やっても同じなので、通信の失敗のときだけ 1 回やり直す
+    retry: (count, e) => !(e instanceof PostDeleteNotAllowedError) && count < 1,
     onSuccess: () => {
-      console.log("投稿削除成功、キャッシュを更新中...");
-      
-      // 投稿リストを更新
+      // グッズ詳細の「投稿」（useItemPosts は ["item-posts", userItemId]）と、ほかの goods_posts の一覧
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.refetchQueries({ queryKey: ["posts"] });
-      
-      console.log("キャッシュ更新完了");
-      
+      queryClient.invalidateQueries({ queryKey: ["posts-paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["posts-for-item"] });
+      queryClient.invalidateQueries({ queryKey: ["item-posts"] });
+
       toast.success(t("notices.posts.deletedTitle"), {
         description: t("notices.posts.deletedDesc"),
       });
@@ -40,7 +37,9 @@ export function useDeletePost() {
     onError: (error) => {
       console.error("投稿削除エラー:", error);
       toast.error(t("notices.common.errorTitle"), {
-        description: t("notices.posts.deleteFailedDesc"),
+        description: t(
+          error instanceof PostDeleteNotAllowedError ? "notices.itemPosts.deleteNotAllowed" : "notices.posts.deleteFailedDesc"
+        ),
       });
     },
   });

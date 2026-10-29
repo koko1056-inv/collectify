@@ -156,7 +156,8 @@ export const notices = {
       created: "投稿しました！",
       createFailed: "投稿に失敗しました",
       deleted: "投稿を削除しました",
-      deleteFailed: "削除に失敗しました",
+      deleteFailed: "投稿を削除できませんでした。通信を確かめて、もう一度お試しください",
+      deleteNotAllowed: "投稿を削除できませんでした。ログインし直してから、もう一度お試しください",
     },
     trade: {
       updateFailed: "交換の申し込みの更新に失敗しました",
@@ -351,7 +352,8 @@ export const notices = {
       created: "Posted!",
       createFailed: "Couldn't create your post",
       deleted: "Post deleted",
-      deleteFailed: "Couldn't delete",
+      deleteFailed: "Couldn't delete your post. Check your connection and try again",
+      deleteNotAllowed: "Couldn't delete your post. Please sign in again and retry",
     },
     trade: {
       updateFailed: "Couldn't update the request",

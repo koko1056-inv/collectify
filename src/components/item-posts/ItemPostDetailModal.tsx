@@ -38,6 +38,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReactionBar } from "./ReactionBar";
 import { sharePost } from "./sharePost";
+import { DeletePostDialog } from "@/components/posts/DeletePostDialog";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 import { DETAIL_IMAGE_WIDTH, fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
 
@@ -60,8 +61,10 @@ export function ItemPostDetailModal({
   const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
   const { data: fetchedPost, isLoading } = useItemPost(open ? postId : null);
-  const post = fetchedPost ?? initialPost ?? null;
+  // 読めた結果が null（削除された・ブロック中）なら、一覧から渡された古い中身は出さず「見つからない」にする
+  const post = fetchedPost === null ? null : fetchedPost ?? initialPost ?? null;
   const [imageIdx, setImageIdx] = useState(0);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: comments = [] } = useItemPostComments(open ? postId : null);
 
@@ -101,12 +104,11 @@ export function ItemPostDetailModal({
 
   const handleShare = () => sharePost(post, t);
 
-  const handleDelete = async () => {
-    if (!confirm(t("social.itemPosts.confirmDelete"))) return;
-    try {
-      await deletePost.mutateAsync(post.id);
-      onOpenChange(false);
-    } catch {}
+  // 確かめは window.confirm ではなくアプリのダイアログで（アプリ内ブラウザなどでは confirm が出ないことがある）。
+  // 消えたら詳細を閉じる（/post/:id ならフィードへ戻る）。失敗したら開いたまま（知らせはフックが出す）
+  const handleDelete = () => {
+    setConfirmOpen(false);
+    deletePost.mutate(post.id, { onSuccess: () => onOpenChange(false) });
   };
 
   return (
@@ -201,11 +203,12 @@ export function ItemPostDetailModal({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleDelete}
+                onClick={() => setConfirmOpen(true)}
                 disabled={deletePost.isPending}
+                aria-label={t("social.itemPosts.deletePost")}
                 className="text-muted-foreground hover:text-destructive"
               >
-                <Trash2 className="w-4 h-4" />
+                {deletePost.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               </Button>
             )}
           </div>
@@ -322,6 +325,14 @@ export function ItemPostDetailModal({
             sending={createComment.isPending}
           />
         </div>
+        {isOwner && (
+          <DeletePostDialog
+            isOpen={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            onConfirm={handleDelete}
+            isDeleting={deletePost.isPending}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

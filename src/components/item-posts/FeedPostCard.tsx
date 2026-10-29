@@ -20,6 +20,7 @@ import { PublicUserItemModal } from "@/components/item-details/PublicUserItemMod
 import { SITE_URL } from "@/config/site";
 import { fallbackToOriginal, getAvatarImageUrl, getOptimizedImageUrl } from "@/utils/optimized-image";
 import { sharePost } from "./sharePost";
+import { DeletePostDialog } from "@/components/posts/DeletePostDialog";
 
 /** 1回目のタップから、2回目（ダブルタップ）を待つ時間。これを過ぎたら1回のタップとして詳細を開く */
 const DOUBLE_TAP_MS = 260;
@@ -370,42 +371,55 @@ function PostMenu({ post, className }: { post: FeedPost; className?: string }) {
     }
   };
 
+  // 確かめは window.confirm ではなくアプリのダイアログで（アプリ内ブラウザ・ホーム画面のアプリでは
+  // confirm が出ない／すぐ false が返ることがあり、押しても何も起きなかった）
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const remove = () => {
-    if (!confirm(t("social.itemPosts.confirmDelete"))) return;
+    setConfirmOpen(false);
     deletePost.mutate(post.id);
   };
 
   return (
-    <ReportBlockMenu
-      targetType="item_post"
-      targetId={post.id}
-      ownerId={post.user_id}
-      ownerName={post.profile?.display_name || post.profile?.username}
-      className={className}
-      triggerClassName="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary"
-      extraItems={
-        <>
-          <DropdownMenuItem onSelect={() => void sharePost(post, t)}>
-            <Share className="mr-2 h-4 w-4" />
-            {t("social.itemPosts.share")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => void copyLink()}>
-            <Link2 className="mr-2 h-4 w-4" />
-            {t("social.itemPosts.copyLink")}
-          </DropdownMenuItem>
-          {isOwner && (
-            <DropdownMenuItem
-              onSelect={remove}
-              disabled={deletePost.isPending}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("social.itemPosts.deletePost")}
+    <>
+      <ReportBlockMenu
+        targetType="item_post"
+        targetId={post.id}
+        ownerId={post.user_id}
+        ownerName={post.profile?.display_name || post.profile?.username}
+        className={className}
+        triggerClassName="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary"
+        extraItems={
+          <>
+            <DropdownMenuItem onSelect={() => void sharePost(post, t)}>
+              <Share className="mr-2 h-4 w-4" />
+              {t("social.itemPosts.share")}
             </DropdownMenuItem>
-          )}
-        </>
-      }
-    />
+            <DropdownMenuItem onSelect={() => void copyLink()}>
+              <Link2 className="mr-2 h-4 w-4" />
+              {t("social.itemPosts.copyLink")}
+            </DropdownMenuItem>
+            {isOwner && (
+              <DropdownMenuItem
+                onSelect={() => setConfirmOpen(true)}
+                disabled={deletePost.isPending}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("social.itemPosts.deletePost")}
+              </DropdownMenuItem>
+            )}
+          </>
+        }
+      />
+      {isOwner && (
+        <DeletePostDialog
+          isOpen={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          onConfirm={remove}
+          isDeleting={deletePost.isPending}
+        />
+      )}
+    </>
   );
 }
 

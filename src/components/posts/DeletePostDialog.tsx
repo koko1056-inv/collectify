@@ -28,7 +28,8 @@ export function DeletePostDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      {/* カードやメニューの中から開くので、ダイアログ内の押下を親（カード・詳細を開く処理）へ伝えない */}
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("social.posts.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
