@@ -35,6 +35,8 @@ import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CollectionExplorer, type CollectionFacet } from "./collection/CollectionExplorer";
 import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
+import { CollectionShareSheet } from "./share/CollectionShareSheet";
+import { SITE_URL } from "@/config/site";
 import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
 import { OnThisDayCard } from "./collection/OnThisDayCard";
 import { DailyHubCard } from "./daily/DailyHubCard";
@@ -135,6 +137,8 @@ export function UserCollection({
     }
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
+  // シェア画像（推しの棚・今月のお迎え・作品別）
+  const [isShareImageOpen, setIsShareImageOpen] = useState(false);
   const [isUniverseOpen, setIsUniverseOpen] = useState(false);
   const [display, setDisplay] = useCollectionDisplay();
   const [isTargetsOpen, setIsTargetsOpen] = useState(false);
@@ -589,12 +593,13 @@ export function UserCollection({
 
               {isOwnCollection && (
                 <Button
-                  onClick={openStatusShare}
+                  onClick={() => setIsShareImageOpen(true)}
                   variant="ghost"
                   size="icon"
                   className="tap-safe-y h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
-                  title={t("engage.share.statusButton")}
-                  aria-label={t("engage.share.statusButton")}
+                  title={t("collectionShare.open")}
+                  aria-label={t("collectionShare.open")}
+                  data-testid="collection-share-image"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -716,6 +721,16 @@ export function UserCollection({
       )}
 
       <ShareCardDialog open={isShareOpen} onOpenChange={setIsShareOpen} spec={shareSpec} />
+      {isOwnCollection && (
+        <CollectionShareSheet
+          open={isShareImageOpen}
+          onOpenChange={setIsShareImageOpen}
+          items={items}
+          handle={ownerProfile?.username ? `@${ownerProfile.username}` : ownerName}
+          profileUrl={`${SITE_URL}/user/${effectiveUserId}`}
+          onOpenStatusCard={openStatusShare}
+        />
+      )}
 
       <RandomCollectionItemModal
         isOpen={isRandomModalOpen}

@@ -127,6 +127,7 @@ const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => (
 const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const ItemPublic = lazy(() => import("./pages/ItemPublic").catch(() => ({ default: () => <div>Error loading page</div> })));
 const CharacterPage = lazy(() => import("./pages/CharacterPage").catch(() => ({ default: () => <div>Error loading page</div> })));
+const EventPage = lazy(() => import("./pages/EventPage").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiAvatarDetail = lazy(() => import("./pages/AiAvatarDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -215,6 +216,7 @@ const App: React.FC = () => {
                       <Route path="/item/:id" element={<ItemPublic />} />
                       {/* キャラページ。ゲストも見られる（所持率のかわりに登録のおすすめ） */}
                       <Route path="/character/:tagId" element={<CharacterPage />} />
+                      <Route path="/event/:id" element={<EventPage />} />
                       <Route path="/ai-avatar/:id" element={<AiAvatarDetail />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/invite/:code" element={<InviteRedirect />} />

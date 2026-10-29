@@ -49,6 +49,8 @@ type FeedArgs = {
   mode: FeedMode;
   contentFilter?: string | null;
   hashtag?: string | null;
+  /** お題イベントの投稿だけ（イベントのページ）。公開プロフィールの人と自分の投稿だけにする */
+  eventId?: string | null;
   userId?: string | null;
   /** 指定すると、そのグッズ（公式）に結びついた投稿だけにする。グッズのページの「このグッズの話題」 */
   officialItemId?: string | null;
@@ -70,17 +72,24 @@ const q = (v: string | number) => `"${String(v).replace(/"/g, '\\"')}"`;
  *  - グッズ（札・作品の絞り込み） … official_items / user_items を id で 1 回ずつ
  */
 async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<FeedPage> {
-  const { mode, contentFilter, hashtag, userId, officialItemId, limit, after, withComments } = args;
+  const { mode, contentFilter, hashtag, eventId, userId, officialItemId, limit, after, withComments } = args;
   let query = supabase
     .from("item_posts")
     .select(
-      `
+      eventId
+        ? `
+      *,
+      images:item_post_images ( id, image_url, display_order ),
+      profile:profiles ( id, username, display_name, avatar_url, is_sample, privacy_level )
+    `
+        : `
       *,
       images:item_post_images ( id, image_url, display_order ),
       profile:profiles ( id, username, display_name, avatar_url, is_sample )
     `
     )
     .limit(limit);
+  if (eventId) query = query.eq("event_id", eventId);
 
   // モード別ソート/フィルター（最後に id を入れて全順序にする: keyset の境目で抜け・重複が出ないように）
   if (mode === "popular") {
@@ -139,6 +148,14 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
   // ブロックした人・ブロックされた人の投稿は並べない
   const blocked = await fetchBlockedUserIds(queryClient, userId);
   let posts = excludeBlocked(raw, blocked, (p) => p.user_id);
+  // イベントのページは、だれでも開ける公開のページ。鍵付き（フォロワー限定・非公開）の人の投稿は、本人にだけ見せる
+  if (eventId) {
+    posts = posts.filter((p) => {
+      if (p.user_id === userId) return true;
+      const level = (p.profile as { privacy_level?: string | null } | null | undefined)?.privacy_level;
+      return !!p.profile && (level ?? "public") === "public";
+    });
+  }
 
   // グッズ（札に出す名前・写真と、作品での絞り込み）。ページの id でまとめて 1 回ずつ（official / user_items）。
   // 作品で絞り込むときもこの結果を使う（同じ表を 2 回読まない）
@@ -277,22 +294,25 @@ export function useItemPostsFeedPages({
   mode = "new",
   contentFilter,
   hashtag,
+  eventId,
 }: {
   mode?: FeedMode;
   contentFilter?: string | null;
   hashtag?: string | null;
+  eventId?: string | null;
 } = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useInfiniteQuery({
-    queryKey: ["item-posts-feed", "pages", mode, contentFilter, hashtag, user?.id],
+    queryKey: ["item-posts-feed", "pages", mode, contentFilter, hashtag, user?.id, eventId ?? null],
     initialPageParam: null as FeedCursor | null,
     queryFn: ({ pageParam }) =>
       fetchFeedPage(queryClient, {
         mode,
         contentFilter,
         hashtag,
+        eventId,
         userId: user?.id,
         limit: FEED_PAGE_SIZE,
         after: pageParam,

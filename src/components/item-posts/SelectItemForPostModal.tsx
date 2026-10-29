@@ -23,6 +23,10 @@ interface SelectItemForPostModalProps {
   onSelect: (target: PostTarget, itemTitle: string, itemImage: string | null) => void;
   /** 渡すと「グッズを選ばずに書く」を出す（X のような文字だけの投稿へ） */
   onSkip?: () => void;
+  /** 見出し（お題から開いたときなど）。省略時は「投稿するグッズを選ぶ」 */
+  title?: string;
+  /** 名前にこの言葉を含むグッズを先に並べる（お題のおすすめの種類。例: アクスタ） */
+  preferKeyword?: string | null;
 }
 
 /**
@@ -34,6 +38,8 @@ export function SelectItemForPostModal({
   onOpenChange,
   onSelect,
   onSkip,
+  title,
+  preferKeyword,
 }: SelectItemForPostModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -57,16 +63,27 @@ export function SelectItemForPostModal({
 
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
-    if (!kw) return items;
-    return items.filter((i) => i.title?.toLowerCase().includes(kw));
-  }, [items, q]);
+    const list = kw ? items.filter((i) => i.title?.toLowerCase().includes(kw)) : items;
+    const prefer = preferKeyword?.trim().toLowerCase();
+    if (!prefer) return list;
+    // おすすめの種類を先に（それ以外の順はそのまま）
+    const hit = (i: UserItemRow) => (i.title?.toLowerCase().includes(prefer) ? 0 : 1);
+    return [...list].sort((a, b) => hit(a) - hit(b));
+  }, [items, q, preferKeyword]);
+  const preferCount = useMemo(() => {
+    const prefer = preferKeyword?.trim().toLowerCase();
+    return prefer ? items.filter((i) => i.title?.toLowerCase().includes(prefer)).length : 0;
+  }, [items, preferKeyword]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{t("social.itemPosts.selectGoodsTitle")}</DialogTitle>
+          <DialogTitle>{title ?? t("social.itemPosts.selectGoodsTitle")}</DialogTitle>
         </DialogHeader>
+        {preferKeyword && preferCount > 0 && (
+          <p className="-mt-2 text-2xs text-muted-foreground">{t("postEvents.composer.preferHint", { category: preferKeyword })}</p>
+        )}
 
         {onSkip && (
           <button

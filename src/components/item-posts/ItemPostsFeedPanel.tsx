@@ -24,6 +24,7 @@ import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { SelectItemForPostModal } from "./SelectItemForPostModal";
 import { CreateItemPostModal } from "./CreateItemPostModal";
 import { WeeklyPromptBanner } from "./WeeklyPromptBanner";
+import { EventBanner } from "@/components/events/EventBanner";
 import { RecentRegistrationsStrip } from "./RecentRegistrationsStrip";
 
 // label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
@@ -166,6 +167,9 @@ export function ItemPostsFeedPanel() {
     <div className="space-y-4">
       {/* 見出しは探索の上のバーと重なるので読み上げ用だけ。投稿するは右下の丸ボタン（X の「ポスト」と同じ場所） */}
       <h2 className="sr-only">{t("screens.itemPostsFeed.title")}</h2>
+
+      {/* 開催中のお題イベント（無いときは何も出ない） */}
+      <EventBanner />
 
       <WeeklyPromptBanner
         onPost={(tag) => startPost(tag)}

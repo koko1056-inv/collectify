@@ -1773,6 +1773,7 @@ export type Database = {
           caption: string | null
           comment_count: number
           created_at: string
+          event_id: string | null
           id: string
           like_count: number
           official_item_id: string | null
@@ -1787,6 +1788,7 @@ export type Database = {
           caption?: string | null
           comment_count?: number
           created_at?: string
+          event_id?: string | null
           id?: string
           like_count?: number
           official_item_id?: string | null
@@ -1801,6 +1803,7 @@ export type Database = {
           caption?: string | null
           comment_count?: number
           created_at?: string
+          event_id?: string | null
           id?: string
           like_count?: number
           official_item_id?: string | null
@@ -1809,6 +1812,13 @@ export type Database = {
           user_item_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "item_posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "post_events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "item_posts_official_item_id_fkey"
             columns: ["official_item_id"]
@@ -2839,6 +2849,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      post_events: {
+        Row: {
+          color: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          emoji: string | null
+          ends_at: string
+          hashtag: string
+          id: string
+          pocke_line: string | null
+          starts_at: string
+          status: string
+          suggested_category: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          emoji?: string | null
+          ends_at: string
+          hashtag: string
+          id?: string
+          pocke_line?: string | null
+          starts_at?: string
+          status?: string
+          suggested_category?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          emoji?: string | null
+          ends_at?: string
+          hashtag?: string
+          id?: string
+          pocke_line?: string | null
+          starts_at?: string
+          status?: string
+          suggested_category?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       post_likes: {
         Row: {
@@ -4492,6 +4556,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      post_event_stats: {
+        Args: { _event_ids: string[] }
+        Returns: {
+          event_id: string
+          participant_count: number
+          post_count: number
+        }[]
+      }
       review_catalog_item_request: {
         Args: {
           _admin_note?: string
