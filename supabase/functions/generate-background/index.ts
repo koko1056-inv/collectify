@@ -1,16 +1,20 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callAi, currentAiProvider } from "../_shared/ai.ts";
 import {
-  checkRateLimit,
   corsHeadersFor,
+  isAdminUser,
   jsonResponse,
-  rateLimitedResponse,
   readJson,
   requireUser,
 } from "../_shared/security.ts";
+import { consumeRateLimit, rateLimitExceededMessageResponse } from "../_shared/rate-limit.ts";
 
 // プロンプトの上限（プリセットは100字前後）
 const MAX_PROMPT_CHARS = 1000;
+
+// 無料の AI 画像生成なので、DB で数えて1日10回まで（全インスタンス共通）。管理者は対象外。
+const USER_LIMITS = { hour: 10, day: 10 };
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req);
@@ -34,10 +38,14 @@ Deno.serve(async (req) => {
       return jsonResponse(corsHeaders, { error: 'prompt is too long' }, 400);
     }
 
-    // AI 画像生成は高コストなので 1時間に20回まで
-    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限、またはポイント課金に置き換えること（_shared/security.ts 参照）
-    const limit = checkRateLimit(`generate-background:${auth.user.id}`, 20, 60 * 60 * 1000);
-    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec);
+    if (!(await isAdminUser(auth))) {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      const limit = await consumeRateLimit(supabaseAdmin, auth.user.id, 'generate-background', USER_LIMITS);
+      if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
+    }
 
     console.log('Generating background image, promptLength:', prompt.length, 'provider:', currentAiProvider());
 

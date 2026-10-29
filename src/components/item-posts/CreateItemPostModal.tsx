@@ -13,8 +13,9 @@ import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AiCreationPicker } from "./AiCreationPicker";
 import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
+import { AI_COSTS } from "@/lib/aiCosts";
 
-const POST_IMAGE_COST = 50;
+const POST_IMAGE_COST = AI_COSTS.postImage;
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -99,7 +100,7 @@ export function CreateItemPostModal({
       setAiPrompt("");
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success(t("social.itemPosts.generateSuccess"));
+      toast.success(t("social.itemPosts.generateSuccess", { cost: POST_IMAGE_COST }));
     } catch (e) {
       toast.error((e as Error).message || t("social.itemPosts.generateFailed"));
     } finally {
@@ -287,7 +288,7 @@ export function CreateItemPostModal({
           >
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             <span className="flex-1">{t("social.itemPosts.aiGenerate")}</span>
-            <span className="text-3xs">{t("social.itemPosts.aiCost")}</span>
+            <span className="text-3xs">{t("social.itemPosts.aiCost", { cost: POST_IMAGE_COST })}</span>
           </button>
         ) : (
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
@@ -297,7 +298,7 @@ export function CreateItemPostModal({
               {t("social.itemPosts.aiGenerate")}
             </div>
             <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
-              {t("social.itemPosts.aiCost")}
+              {t("social.itemPosts.aiCost", { cost: POST_IMAGE_COST })}
             </span>
           </div>
           <p className="text-2xs text-muted-foreground">

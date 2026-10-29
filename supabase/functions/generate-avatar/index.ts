@@ -43,6 +43,8 @@ serve(async (req) => {
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
+    // 返金は1回だけ。内側で返金してから throw すると外側の catch でもう一度呼ばれるため、先に下ろす
+    pointsDeducted = false;
     try {
       await adminClient.rpc("add_user_points", {
         _user_id: user.id,

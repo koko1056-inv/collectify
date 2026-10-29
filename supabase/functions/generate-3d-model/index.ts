@@ -5,7 +5,7 @@ import {
   jsonResponse,
   rateLimitedResponse,
   readJson,
-  requireUser,
+  requireAdmin,
 } from "../_shared/security.ts";
 import { assertPublicHttpsUrl, SsrfError } from "../_shared/ssrf.ts";
 
@@ -23,8 +23,8 @@ serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // ログイン必須（anon キーだけの呼び出しは 401）
-  const auth = await requireUser(req, corsHeaders);
+  // 管理者だけ（Meshy の従量課金で1回数十円かかり、アプリからは呼んでいない。ログインなしは 401、一般ユーザーは 403）
+  const auth = await requireAdmin(req, corsHeaders);
   if (!auth.ok) return auth.response;
 
   try {

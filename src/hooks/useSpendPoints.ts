@@ -17,7 +17,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
  *   - チャレンジ作成        → create_challenge
  */
 
-/** コレクション枠を +10 拡張 (30pt)。金額と枠数はサーバー側の定数。 */
+/** 枠の拡張の値段と枠数。正はサーバー（expand_collection_slots）の定数で、ここは画面に出すための写し */
+export const COLLECTION_SLOT_EXPAND_COST = 20;
+export const COLLECTION_SLOT_EXPAND_AMOUNT = 10;
+
+/** コレクション枠を +10 拡張 (20pt)。金額と枠数はサーバー側の定数（引数は無視される）。 */
 export function useExpandCollectionSlots() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -29,12 +33,12 @@ export function useExpandCollectionSlots() {
 
       // サーバー側で残高検証 + ポイント減算 + 枠拡張 + 履歴記録を原子化
       const { error } = await supabase.rpc("expand_collection_slots", {
-        _cost: 30,
-        _slots_added: 10,
+        _cost: COLLECTION_SLOT_EXPAND_COST,
+        _slots_added: COLLECTION_SLOT_EXPAND_AMOUNT,
       });
       if (error) {
         if (error.message?.includes("Insufficient points")) {
-          throw new Error(t("notices.points.insufficient30"));
+          throw new Error(t("notices.points.insufficientRequired", { required: COLLECTION_SLOT_EXPAND_COST }));
         }
         throw error;
       }
