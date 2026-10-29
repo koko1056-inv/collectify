@@ -14,7 +14,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
+import { goodsPeopleKey, invalidateGoodsPeople } from "@/features/goods-social/useGoodsSocial";
 
 interface ItemWishersTabProps {
   officialItemId: string;
@@ -36,31 +36,25 @@ export function ItemWishersTab({
   const { playWishlistSound } = useSoundEffect();
   const { t } = useLanguage();
 
+  // 一覧はサーバーで絞り込んだものだけ（非公開・フォロワー限定・「グッズのページに表示しない」・ブロック関係の人と、自分は出ない）
   const { data: wishers = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["item-wishers-tab", officialItemId],
+    queryKey: [...goodsPeopleKey(officialItemId), "tab", "wishers", user?.id ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wishlists")
-        .select("id, user_id, created_at")
-        .eq("official_item_id", officialItemId)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_goods_people", {
+        _item_id: officialItemId,
+        _kind: "wishers",
+        _limit: 50,
+        _offset: 0,
+      });
       if (error) throw error;
-
-      // ブロックした人・ブロックされた人は出さない
-      const blocked = await fetchBlockedUserIds(qc, user?.id);
-      const rows = excludeBlocked(data ?? [], blocked, (d) => d.user_id);
-
-      const ids = rows.map((d) => d.user_id);
-      if (!ids.length) return [];
-
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, username, display_name, avatar_url, bio, is_sample")
-        .in("id", ids);
-      const map = new Map((profs ?? []).map((p) => [p.id, p]));
-      return rows.map((w) => ({ ...w, profile: map.get(w.user_id) }));
+      return (data ?? []).map((p) => ({
+        id: p.user_id,
+        user_id: p.user_id,
+        created_at: p.added_at,
+        profile: { username: p.username, avatar_url: p.avatar_url, display_name: p.display_name, is_sample: p.is_sample },
+      }));
     },
-    enabled: !!officialItemId,
+    enabled: !!officialItemId && !!user,
   });
 
   const { data: isInWishlist } = useQuery({
@@ -100,6 +94,7 @@ export function ItemWishersTab({
       if (r.added) playWishlistSound();
       qc.invalidateQueries({ queryKey: ["is-in-wishlist", officialItemId, user?.id] });
       qc.invalidateQueries({ queryKey: ["item-wishers-tab", officialItemId] });
+      invalidateGoodsPeople(qc, officialItemId);
       qc.invalidateQueries({ queryKey: ["item-wishlist-count", officialItemId] });
       toast.success(
         r.added ? t("itemDetails.wishers.addedToast") : t("itemDetails.wishers.removedToast"),
@@ -138,13 +133,16 @@ export function ItemWishersTab({
       )}
 
       {/* 取得前・取得失敗時に「0人」と出さない */}
-      {!isLoading && !isError && (
+      {!!user && !isLoading && !isError && (
         <p className="text-xs text-muted-foreground px-1">
           {t("itemDetails.wishers.wantCount", { count: wishers.length })}
         </p>
       )}
 
-      {isLoading ? (
+      {!user ? (
+        // ゲストには一覧を出さない（ログインした人だけが見られる）
+        <p className="px-1 py-8 text-center text-xs text-muted-foreground">{t("goodsSocial.people.guestBody")}</p>
+      ) : isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 p-2">
@@ -178,7 +176,7 @@ export function ItemWishersTab({
               >
                 <div className="flex items-center justify-between gap-3">
                   <Link
-                    to={`/user/${w.profile?.username || w.user_id}`}
+                    to={`/user/${w.user_id}`}
                     onClick={onCloseModal}
                     className="flex items-center gap-3 min-w-0 flex-1"
                   >
@@ -198,10 +196,8 @@ export function ItemWishersTab({
                           <TrustBadge score={score} size="xs" showLabel={false} />
                         )}
                       </div>
-                      {w.profile?.bio && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {w.profile.bio}
-                        </p>
+                      {w.profile?.username && w.profile.username !== w.profile.display_name && (
+                        <p className="text-xs text-muted-foreground truncate">@{w.profile.username}</p>
                       )}
                     </div>
                   </Link>

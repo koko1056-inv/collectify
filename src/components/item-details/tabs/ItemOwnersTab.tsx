@@ -15,6 +15,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { goodsPeopleKey } from "@/features/goods-social/useGoodsSocial";
 
 interface ItemOwnersTabProps {
   officialItemId: string;
@@ -51,44 +52,36 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
     },
   });
 
+  // 一覧はサーバーで絞り込んだものだけ（非公開・フォロワー限定・「グッズのページに表示しない」・ブロック関係の人と、自分は出ない）
   const { data: owners = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["item-owners-tab", officialItemId],
+    queryKey: [...goodsPeopleKey(officialItemId), "tab", "owners", user?.id ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_items")
-        .select(
-          `id, user_id, quantity, for_trade,
-           profiles ( id, username, avatar_url, display_name, bio, is_sample )`
-        )
-        .eq("official_item_id", officialItemId);
-
+      const { data, error } = await supabase.rpc("get_goods_people", {
+        _item_id: officialItemId,
+        _kind: "owners",
+        _limit: 50,
+        _offset: 0,
+      });
       if (error) throw error;
-
-      const map = new Map<string, any>();
-      (data ?? []).forEach((item: any) => {
-        const cur = map.get(item.user_id);
-        const qty = (item.quantity || 1) + (cur?.quantity || 0);
-        // 同じ人が複数持っているときは、交換に出している1点を申請の宛先にする
-        const pickThis = !cur || (item.for_trade && !cur.for_trade);
-        map.set(item.user_id, {
-          user_id: item.user_id,
-          quantity: qty,
-          profile: item.profiles,
-          item_id: pickThis ? item.id : cur.item_id,
-          for_trade: !!(item.for_trade || cur?.for_trade),
-        });
-      });
-      return Array.from(map.values()).sort((a, b) => {
-        if (a.user_id === user?.id) return 1;
-        if (b.user_id === user?.id) return -1;
-        return b.quantity - a.quantity;
-      });
+      return (data ?? []).map((p) => ({
+        user_id: p.user_id,
+        quantity: p.quantity ?? 1,
+        profile: { username: p.username, avatar_url: p.avatar_url, display_name: p.display_name, is_sample: p.is_sample },
+        // 同じ人が複数持っているときは、交換に出している1点を申請の宛先にする（サーバーで選んである）
+        item_id: p.trade_item_id ?? "",
+        for_trade: p.for_trade,
+      }));
     },
-    enabled: !!officialItemId,
+    enabled: !!officialItemId && !!user,
   });
 
   const ownerIds = owners.map((o) => o.user_id).filter((id) => id !== user?.id);
   const { data: trustMap } = useTrustScoresBulk(ownerIds);
+
+  // ゲストには一覧を出さない（ログインした人だけが見られる）
+  if (!user) {
+    return <p className="px-1 py-8 text-center text-xs text-muted-foreground">{t("goodsSocial.people.guestBody")}</p>;
+  }
 
   if (isLoading) {
     return (
@@ -142,7 +135,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
           >
             <div className="flex items-center justify-between gap-3">
               <Link
-                to={`/user/${owner.profile?.username || owner.user_id}`}
+                to={`/user/${owner.user_id}`}
                 onClick={onCloseModal}
                 className="flex items-center gap-3 min-w-0 flex-1"
               >
@@ -166,10 +159,8 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                       <TrustBadge score={score} size="xs" showLabel={false} />
                     )}
                   </div>
-                  {owner.profile?.bio && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {owner.profile.bio}
-                    </p>
+                  {owner.profile?.username && owner.profile.username !== owner.profile.display_name && (
+                    <p className="text-xs text-muted-foreground truncate">@{owner.profile.username}</p>
                   )}
                 </div>
               </Link>

@@ -26,6 +26,8 @@ interface CreateItemPostModalProps {
   onCreated?: (postId: string) => void;
   /** お題などから開いたときの先頭ハッシュタグ（#は含まない） */
   initialTag?: string | null;
+  /** 書き出しの文（グッズのページの話題のチップから開いたとき）。ハッシュタグの後に入る */
+  initialText?: string | null;
 }
 
 /** AI画像のプロンプトの出発点。ゼロから文章を考えなくてよいようにする */
@@ -44,11 +46,12 @@ export function CreateItemPostModal({
   itemImage,
   onCreated,
   initialTag,
+  initialText,
 }: CreateItemPostModalProps) {
   const { t } = useLanguage();
   // サブスクの人は割引後の値段（正はサーバー）
   const POST_IMAGE_COST = useAiCosts().costs.postImage;
-  const [caption, setCaption] = useState(initialTag ? `#${initialTag} ` : "");
+  const [caption, setCaption] = useState(`${initialTag ? `#${initialTag} ` : ""}${initialText ?? ""}`);
   const [aiPickerOpen, setAiPickerOpen] = useState(false);
   // AI で画像を作る欄は、既定では1行に畳む。投稿の本題は「自分のグッズの写真」で、
   // 以前は写真の欄と同じ大きさの AI の欄が常に開いていて、投稿が AI 画像を作る場所に見えていた
@@ -157,7 +160,7 @@ export function CreateItemPostModal({
   const reset = () => {
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
-    setCaption(initialTag ? `#${initialTag} ` : "");
+    setCaption(`${initialTag ? `#${initialTag} ` : ""}${initialText ?? ""}`);
     setAiPrompt("");
   };
 

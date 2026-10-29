@@ -19,6 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { buildShareUrl } from "@/utils/shareLinks";
 import { useAddOfficialItem } from "@/hooks/useAddOfficialItem";
 import { useItemCreatorProfile } from "@/hooks/useItemCreatorProfile";
+import { invalidateGoodsPeople, useGoodsPeopleSummary } from "@/features/goods-social/useGoodsSocial";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -84,32 +85,10 @@ export function ItemDetailsWrapper({
     enabled: isUUID(itemId),
   });
 
-  const { data: wishlistCount = 0 } = useQuery({
-    queryKey: ["item-wishlist-count", itemId],
-    queryFn: async () => {
-      if (!isUUID(itemId)) return 0;
-      const { count } = await supabase
-        .from("wishlists")
-        .select("*", { count: "exact", head: true })
-        .eq("official_item_id", itemId);
-      return count ?? 0;
-    },
-    enabled: isUUID(itemId),
-  });
-
-  const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", itemId],
-    queryFn: async () => {
-      if (!isUUID(itemId)) return 0;
-      const { data } = await supabase
-        .from("user_items")
-        .select("user_id")
-        .eq("official_item_id", itemId);
-      const uniq = new Set((data ?? []).map((d) => d.user_id));
-      return uniq.size;
-    },
-    enabled: isUUID(itemId),
-  });
+  // 持ってる人・ほしい人の人数（1 回の RPC。人数は名前を出していない人も含む）
+  const { data: peopleSummary } = useGoodsPeopleSummary(isUUID(itemId) ? itemId : null);
+  const wishlistCount = peopleSummary?.wishers_count ?? 0;
+  const ownersCount = peopleSummary?.owners_count ?? 0;
 
   const { data: commentsCount = 0 } = useQuery({
     queryKey: ["item-comments-count", itemId],
@@ -162,6 +141,7 @@ export function ItemDetailsWrapper({
       toast.success(t("itemDetails.wrapper.wishlistAdded"));
       await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
       await queryClient.invalidateQueries({ queryKey: ["item-wishers-tab", itemId] });
+      await invalidateGoodsPeople(queryClient, itemId);
     } catch (e: any) {
       toast.error(t("itemDetails.common.error"), {
         description: e?.message ?? t("itemDetails.wrapper.addFailed"),

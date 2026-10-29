@@ -35,6 +35,7 @@ import { catalogFilters } from './catalogFilters';
 import { zukan } from './zukan';
 import { characterPage } from './characterPage';
 import { catalogWish } from './catalogWish';
+import { goodsSocial } from './goodsSocial';
 
 export const moduleTranslations = {
   ja: {
@@ -73,6 +74,7 @@ export const moduleTranslations = {
     zukan: zukan.ja,
     characterPage: characterPage.ja,
     catalogWish: catalogWish.ja,
+    goodsSocial: goodsSocial.ja,
   },
   en: {
     admin: admin.en,
@@ -110,5 +112,6 @@ export const moduleTranslations = {
     zukan: zukan.en,
     characterPage: characterPage.en,
     catalogWish: catalogWish.en,
+    goodsSocial: goodsSocial.en,
   },
 };

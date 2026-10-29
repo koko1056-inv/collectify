@@ -23,6 +23,10 @@ import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-imag
 import { pockeCheer } from "@/components/pocke/pockeCheer";
 import { CatalogItemRequestMenu } from "@/components/catalog/CatalogItemRequestMenu";
 import { characterPath } from "@/utils/characterPage";
+import { GoodsPeopleRow } from "@/features/goods-social/GoodsPeopleRow";
+import { GoodsTopicSection } from "@/features/goods-social/GoodsTopicSection";
+import { GoodsTradeMatches } from "@/features/goods-social/GoodsTradeMatches";
+import { invalidateGoodsPeople } from "@/features/goods-social/useGoodsSocial";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -44,6 +48,7 @@ interface PublicItem {
  * 検索やSNSで「このグッズ」を調べた人が最初に着く場所。
  * 写真と基本情報を見せ、登録（またはログイン済みなら追加）へつなげる。
  * 同じ作品の他のグッズも並べて、次のページへ辿れるようにする。
+ * 同じグッズを持ってる人・ほしい人、このグッズの話題（投稿）、交換できるかも から、人とつながれるようにする。
  */
 /** 数字だけの価格（"880"）は円で表示する。"¥880" や "880円（税込）" のような文字列はそのまま */
 function formatPrice(price: string): string {
@@ -140,6 +145,8 @@ export default function ItemPublic() {
       queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids", user?.id] }),
       queryClient.invalidateQueries({ queryKey: ["wished-official-item-ids", user?.id] }),
       queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
+      // 持ってる人・ほしい人の人数と「あなたも」
+      invalidateGoodsPeople(queryClient, item?.id),
     ]);
   };
 
@@ -213,7 +220,7 @@ export default function ItemPublic() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-nav">
+      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-nav lg:max-w-5xl">
         <BackButton fallbackTo="/explore?tab=items" className="-ml-4 mb-2" />
         {isLoading ? (
           <div className="space-y-4">
@@ -230,7 +237,7 @@ export default function ItemPublic() {
             </div>
           </div>
         ) : (
-          <article className="grid gap-6 md:grid-cols-2">
+          <article className="grid gap-6 md:grid-cols-2 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-8">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border bg-muted/30">
               {item.image && (
                 <img
@@ -307,6 +314,9 @@ export default function ItemPublic() {
                 </p>
               )}
 
+              {/* 同じグッズを持ってる人・ほしい人（ゲストは人数だけ。押すとログインをすすめる） */}
+              <GoodsPeopleRow itemId={item.id} itemTitle={item.title} />
+
               {user ? (
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button onClick={handleAdd} disabled={owned || busy !== null} className="gap-1.5">
@@ -358,35 +368,52 @@ export default function ItemPublic() {
           </article>
         )}
 
-        {item && related.length > 0 && (
-          <section className="mt-10 space-y-3">
-            <h2 className="text-sm font-bold text-foreground">
-              {t("engage.itemPage.sameSeries", { series: item.content_name ?? "" })}
-            </h2>
-            <ul className="grid grid-cols-3 gap-2.5">
-              {related.map((r) => (
-                <li key={r.id} className="min-w-0">
-                  <Link
-                    to={`/item/${r.id}`}
-                    className="block overflow-hidden rounded-xl border border-border bg-card hover:border-primary/40"
-                  >
-                    <div className="relative aspect-square overflow-hidden bg-muted/30">
-                      {r.image && (
-                        <img
-                          src={getOptimizedImageUrl(r.image, { width: 320 })}
-                          onError={fallbackToOriginal(r.image)}
-                          alt=""
-                          loading="lazy"
-                          className="absolute inset-0 h-full w-full object-contain"
-                        />
-                      )}
-                    </div>
-                    <p className="line-clamp-2 p-2 text-xs leading-tight">{r.title}</p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+        {item && (
+          // スマホ: 交換できるかも → 話題 → 同じ作品。広い画面: 左に話題、右の列に 交換できるかも と 同じ作品
+          <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-[auto_1fr] lg:gap-x-10">
+            <GoodsTradeMatches
+              itemId={item.id}
+              itemTitle={item.title}
+              itemImage={item.image}
+              className="lg:col-start-2 lg:row-start-1 lg:self-start"
+            />
+            <GoodsTopicSection
+              itemId={item.id}
+              itemTitle={item.title}
+              itemImage={item.image}
+              className="min-w-0 lg:col-start-1 lg:row-span-2 lg:row-start-1"
+            />
+            {related.length > 0 && (
+              <section className="space-y-3 lg:col-start-2 lg:row-start-2 lg:self-start">
+                <h2 className="text-sm font-bold text-foreground">
+                  {t("engage.itemPage.sameSeries", { series: item.content_name ?? "" })}
+                </h2>
+                <ul className="grid grid-cols-3 gap-2.5">
+                  {related.map((r) => (
+                    <li key={r.id} className="min-w-0">
+                      <Link
+                        to={`/item/${r.id}`}
+                        className="block overflow-hidden rounded-xl border border-border bg-card hover:border-primary/40"
+                      >
+                        <div className="relative aspect-square overflow-hidden bg-muted/30">
+                          {r.image && (
+                            <img
+                              src={getOptimizedImageUrl(r.image, { width: 320 })}
+                              onError={fallbackToOriginal(r.image)}
+                              alt=""
+                              loading="lazy"
+                              className="absolute inset-0 h-full w-full object-contain"
+                            />
+                          )}
+                        </div>
+                        <p className="line-clamp-2 p-2 text-xs leading-tight">{r.title}</p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         )}
         <LegalLinks className="mt-12 pb-nav" />
       </main>

@@ -131,11 +131,6 @@ export const FeedPostCard = memo(function FeedPostCard({ post, onOpen, onTagClic
           >
             {name}
           </button>
-          {post.profile?.is_sample && (
-            <span className="shrink-0 rounded bg-muted px-1 text-3xs font-medium text-muted-foreground">
-              {t("social.itemPosts.sampleBadge")}
-            </span>
-          )}
           {handle && <span className="min-w-0 truncate text-muted-foreground">@{handle}</span>}
           <span aria-hidden="true" className="shrink-0 text-muted-foreground">·</span>
           {/* 時刻は投稿へのリンク（X と同じ）。文字だけの投稿は写真がないので、ここか本文から詳細をひらく */}
