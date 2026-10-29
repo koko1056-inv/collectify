@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookMarked, Link2, Share } from "lucide-react";
 import { TagList } from "@/components/collection/TagList";
-import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
+import { GoodsTopicSection } from "@/features/goods-social/GoodsTopicSection";
+import { GoodsTradeMatches } from "@/features/goods-social/GoodsTradeMatches";
 // 3Dプレビューは three.js（918KB）を連れてくる。
 // 静的に読むと、グッズ詳細を開くすべての画面がその重さを背負う。
 // 3Dモデルを持つグッズが現れたときにだけ読み込む。
@@ -113,12 +114,15 @@ export function ItemInfoTab({
         </Button>
       </div>
 
-      {/* みんなの投稿 */}
-      <div className="pt-4 border-t border-border">
-        <ItemPostsSection
-          target={{ type: "official", id: itemDetails.id }}
+      {/* 交換できるかも + このグッズの話題（タイムラインと同じカード） */}
+      <div className="space-y-4 border-t border-border pt-4">
+        <GoodsTradeMatches itemId={itemDetails.id} itemTitle={itemDetails.title} itemImage={itemDetails.image} />
+        <GoodsTopicSection
+          itemId={itemDetails.id}
           itemTitle={itemDetails.title}
           itemImage={itemDetails.image}
+          pageSize={3}
+          headingLevel="h3"
         />
       </div>
     </div>

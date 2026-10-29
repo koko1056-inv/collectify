@@ -23,6 +23,10 @@ import { ItemPostsSection } from "./item-posts/ItemPostsSection";
 import { ScrollArea } from "./ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CatalogItemRequestMenu } from "./catalog/CatalogItemRequestMenu";
+import { GoodsPeopleRow } from "@/features/goods-social/GoodsPeopleRow";
+import { GoodsTopicSection } from "@/features/goods-social/GoodsTopicSection";
+import { GoodsTradeMatches } from "@/features/goods-social/GoodsTradeMatches";
+import { invalidateGoodsPeople } from "@/features/goods-social/useGoodsSocial";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -376,7 +380,9 @@ export function ItemDetailsModal({
           )}
 
           {!isUserItem && (
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border space-y-3">
+              {/* 同じグッズを持ってる人・ほしい人 */}
+              <GoodsPeopleRow itemId={itemId} itemTitle={title} />
               <ItemButtons
                 isInCollection={isInCollection}
                 itemId={itemId}
@@ -385,23 +391,29 @@ export function ItemDetailsModal({
                 releaseDate={releaseDate}
                 price={price}
                 refetchIsInCollection={refetchIsInCollection}
-                refetchOwnersCount={refetchOwnersCount}
+                refetchOwnersCount={async () => {
+                  await Promise.all([refetchOwnersCount(), invalidateGoodsPeople(queryClient, itemId)]);
+                }}
               />
             </div>
           )}
 
-          {/* みんなの投稿セクション */}
-          <div className="p-4 border-t border-border">
-            <ItemPostsSection
-              target={
-                isUserItem
-                  ? { type: "user_item", id: itemId }
-                  : { type: "official", id: itemId }
-              }
-              itemTitle={title}
-              itemImage={image}
-            />
-          </div>
+          {isUserItem ? (
+            // みんなの投稿セクション（持ち物）
+            <div className="p-4 border-t border-border">
+              <ItemPostsSection
+                target={{ type: "user_item", id: itemId }}
+                itemTitle={title}
+                itemImage={image}
+              />
+            </div>
+          ) : (
+            // カタログのグッズ: 交換できるかも + このグッズの話題（タイムラインと同じカード）
+            <div className="space-y-4 border-t border-border p-4">
+              <GoodsTradeMatches itemId={itemId} itemTitle={title} itemImage={image} />
+              <GoodsTopicSection itemId={itemId} itemTitle={title} itemImage={image} pageSize={3} headingLevel="h3" />
+            </div>
+          )}
           </ScrollArea>
         </DialogContent>
       </Dialog>

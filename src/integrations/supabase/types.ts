@@ -2927,6 +2927,7 @@ export type Database = {
           profile_oshi_color: string | null
           privacy_level: Database["public"]["Enums"]["profile_privacy"]
           referred_by: string | null
+          show_on_goods_pages: boolean
           themes: string[] | null
           username: string
           x_username: string | null
@@ -2955,6 +2956,7 @@ export type Database = {
           profile_oshi_color?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           referred_by?: string | null
+          show_on_goods_pages?: boolean
           themes?: string[] | null
           username: string
           x_username?: string | null
@@ -2983,6 +2985,7 @@ export type Database = {
           profile_oshi_color?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           referred_by?: string | null
+          show_on_goods_pages?: boolean
           themes?: string[] | null
           username?: string
           x_username?: string | null
@@ -4949,6 +4952,45 @@ export type Database = {
       admin_set_content_hidden: {
         Args: { _hidden: boolean; _target_id: string; _target_type: string }
         Returns: undefined
+      }
+      get_goods_people: {
+        Args: {
+          _item_id: string
+          _kind: string
+          _limit?: number
+          _offset?: number
+        }
+        Returns: {
+          added_at: string
+          avatar_url: string | null
+          display_name: string | null
+          for_trade: boolean
+          is_following: boolean
+          is_sample: boolean
+          quantity: number | null
+          series_count: number | null
+          trade_item_id: string | null
+          user_id: string
+          username: string
+        }[]
+      }
+      get_goods_people_summary: {
+        Args: { _item_id: string }
+        Returns: Json
+      }
+      get_goods_trade_candidates: {
+        Args: { _item_id: string; _limit?: number }
+        Returns: {
+          avatar_url: string | null
+          direction: string
+          display_name: string | null
+          my_item_id: string | null
+          partner_id: string
+          partner_item_id: string | null
+          partner_item_image: string | null
+          partner_item_title: string | null
+          username: string
+        }[]
       }
       get_blocked_user_ids: {
         Args: Record<PropertyKey, never>

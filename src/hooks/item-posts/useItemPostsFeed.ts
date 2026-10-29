@@ -50,6 +50,8 @@ type FeedArgs = {
   contentFilter?: string | null;
   hashtag?: string | null;
   userId?: string | null;
+  /** 指定すると、そのグッズ（公式）に結びついた投稿だけにする。グッズのページの「このグッズの話題」 */
+  officialItemId?: string | null;
   limit: number;
   /** 指定するとその次から読む（keyset）。null/undefined は先頭 */
   after?: FeedCursor | null;
@@ -68,7 +70,7 @@ const q = (v: string | number) => `"${String(v).replace(/"/g, '\\"')}"`;
  *  - グッズ（札・作品の絞り込み） … official_items / user_items を id で 1 回ずつ
  */
 async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<FeedPage> {
-  const { mode, contentFilter, hashtag, userId, limit, after, withComments } = args;
+  const { mode, contentFilter, hashtag, userId, officialItemId, limit, after, withComments } = args;
   let query = supabase
     .from("item_posts")
     .select(
@@ -113,6 +115,11 @@ async function fetchFeedPage(queryClient: QueryClient, args: FeedArgs): Promise<
     const ids = (follows || []).map((f) => f.following_id);
     if (ids.length === 0) return { posts: [], next: null };
     query = query.in("user_id", ids);
+  }
+
+  // グッズの話題（持ち物への投稿も、トリガーで元の公式グッズが入っている。統合されたグッズの投稿は統合先へ付け替え済み）
+  if (officialItemId) {
+    query = query.eq("official_item_id", officialItemId);
   }
 
   // ハッシュタグ検索
@@ -291,6 +298,34 @@ export function useItemPostsFeedPages({
         after: pageParam,
         withComments: true,
       }),
+    getNextPageParam: (lastPage) => lastPage.next,
+  });
+}
+
+/**
+ * グッズのページの「このグッズの話題」。そのグッズに結びついた投稿を、タイムラインと同じカードで新しい順に読む。
+ * キーは "item-posts-feed" から始める（いいね・コメント・新しい投稿の後の更新がそのまま効くように）。
+ * カードの下のグッズの札は、いま見ているグッズと同じなので出さない（goods: null）。
+ */
+export function useGoodsPostsPages(officialItemId: string | null | undefined, { pageSize = 5 }: { pageSize?: number } = {}) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useInfiniteQuery({
+    queryKey: ["item-posts-feed", "goods", officialItemId, user?.id, pageSize],
+    enabled: !!officialItemId,
+    initialPageParam: null as FeedCursor | null,
+    queryFn: async ({ pageParam }) => {
+      const page = await fetchFeedPage(queryClient, {
+        mode: "new",
+        userId: user?.id,
+        officialItemId,
+        limit: pageSize,
+        after: pageParam,
+        withComments: true,
+      });
+      return { ...page, posts: page.posts.map((p) => ({ ...p, goods: null })) };
+    },
     getNextPageParam: (lastPage) => lastPage.next,
   });
 }

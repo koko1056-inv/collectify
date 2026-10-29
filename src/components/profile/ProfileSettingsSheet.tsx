@@ -16,6 +16,7 @@ import { AccountSection } from "./AccountSection";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 import { MyCatalogItemRequestsSheet } from "@/components/catalog/MyCatalogItemRequestsSheet";
 import { BlockedUsersSection } from "@/components/safety/BlockedUsersSection";
+import { GoodsVisibilitySetting } from "@/features/goods-social/GoodsVisibilitySetting";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -180,6 +181,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
               chevron
             />
           </section>
+
+          {/* プライバシー: グッズのページ（持ってる人・ほしい人・交換できるかも）に自分を出すか */}
+          <GoodsVisibilitySetting />
 
           {/* ブロックしたユーザー（一覧と解除） */}
           <BlockedUsersSection />
