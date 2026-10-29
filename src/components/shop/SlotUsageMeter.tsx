@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Package, Home, AlertTriangle } from "lucide-react";
 import { useCollectionCount, useRoomCount } from "@/hooks/useCollectionLimit";
 import { useUserLimits } from "@/hooks/usePointShop";
-import { useExpandCollectionSlots } from "@/hooks/useSpendPoints";
+import {
+  COLLECTION_SLOT_EXPAND_AMOUNT,
+  COLLECTION_SLOT_EXPAND_COST,
+  useExpandCollectionSlots,
+} from "@/hooks/useSpendPoints";
 import { SpendPointsDialog } from "./SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -19,8 +23,9 @@ interface SlotUsageMeterProps {
   className?: string;
 }
 
-const EXPAND_COST = 30;
-const EXPAND_AMOUNT = 10;
+// ショップの枠パック（2pt/枠）より高くならないよう 20pt（正はサーバー）
+const EXPAND_COST = COLLECTION_SLOT_EXPAND_COST;
+const EXPAND_AMOUNT = COLLECTION_SLOT_EXPAND_AMOUNT;
 
 /**
  * 枠の使用状況を常に表示する。

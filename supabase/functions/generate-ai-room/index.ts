@@ -87,6 +87,54 @@ Deno.serve(async (req) => {
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const ROOM_GENERATION_COST = 100;
 
+    // 保存に使う ID は、ポイントを使う前に確かめる。
+    // 以前は変な ID だと生成後の保存だけが失敗し、返金したうえで画像も返していた（タダで作れた）。
+    if (itemIds !== undefined && itemIds !== null) {
+      if (!Array.isArray(itemIds) || itemIds.length > 5 || !itemIds.every(isUuid)) {
+        return json({ error: "アイテムの指定が正しくありません" }, 400);
+      }
+    }
+    if (parentRoomId !== undefined && parentRoomId !== null && !isUuid(parentRoomId)) {
+      return json({ error: "リミックス元の指定が正しくありません" }, 400);
+    }
+
+    // リミックス元: 公開されているか自分のルーム。他の人のルームの素材（source_item_ids）はそのまま引き継げる
+    let parentItemIds: string[] = [];
+    if (parentRoomId) {
+      const { data: parent, error: parentErr } = await adminClient
+        .from("ai_generated_rooms")
+        .select("id, user_id, is_public, source_item_ids")
+        .eq("id", parentRoomId)
+        .maybeSingle();
+      if (parentErr) {
+        console.error("Parent room lookup error:", parentErr);
+        return json({ error: "リミックス元の確認に失敗しました" }, 500);
+      }
+      if (!parent || (!parent.is_public && parent.user_id !== user.id)) {
+        return json({ error: "リミックス元のルームが見つかりません" }, 400);
+      }
+      parentItemIds = parent.source_item_ids ?? [];
+    }
+
+    // アイテム: 自分の user_items か、リミックス元から引き継いだもの
+    let ownedItemIds: string[] = [];
+    if (itemIds && itemIds.length > 0) {
+      const { data: owned, error: ownedErr } = await adminClient
+        .from("user_items")
+        .select("id")
+        .eq("user_id", user.id)
+        .in("id", itemIds);
+      if (ownedErr) {
+        console.error("Item ownership lookup error:", ownedErr);
+        return json({ error: "アイテムの確認に失敗しました" }, 500);
+      }
+      const ownedSet = new Set((owned ?? []).map((r: { id: string }) => r.id));
+      if (!itemIds.every((id) => ownedSet.has(id) || parentItemIds.includes(id))) {
+        return json({ error: "アイテムの指定が正しくありません" }, 400);
+      }
+      ownedItemIds = itemIds.filter((id) => ownedSet.has(id));
+    }
+
     if (!(await isAdminUser({ user, userClient }))) {
       const limit = await consumeRateLimit(adminClient, user.id, "generate-ai-room", USER_LIMITS);
       if (!limit.ok) return rateLimitExceededMessageResponse(corsHeaders, limit);
@@ -287,7 +335,8 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     if (insertError) {
       console.error("DB insert error:", insertError);
       await refundPoints("DB保存失敗");
-      return json({ error: "保存に失敗しました", imageUrl: finalImageUrl }, 500);
+      // 返金したので画像は渡さない
+      return json({ error: "保存に失敗しました" }, 500);
     }
 
     // 投稿にも反映: goods_posts と item_posts(+images) の両方に作成
@@ -296,7 +345,8 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     captionParts.push("AIで作った推しルーム ✨");
     if (customPrompt) captionParts.push(customPrompt);
     const caption = captionParts.join("\n");
-    const firstItemId = itemIds && itemIds.length > 0 ? itemIds[0] : null;
+    // 投稿に紐づけるのは自分のグッズだけ（リミックスで引き継いだ他の人のグッズには付けない）
+    const firstItemId = ownedItemIds.length > 0 ? ownedItemIds[0] : null;
 
     // goods_posts (アイテム紐付けが必須)
     if (firstItemId) {
@@ -343,6 +393,11 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     );
   }
 });
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(v: unknown): v is string {
+  return typeof v === "string" && UUID_RE.test(v);
+}
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), {

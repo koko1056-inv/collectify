@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { AI_COSTS } from "@/lib/aiCosts";
 
 interface UserItem {
   id: string;
@@ -226,7 +227,9 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
         ) : (
           <>
             <Shirt className="w-5 h-5" />
-            {t("misc.avatar.dressUpRun")}
+            {/* 押す前に値段が分かるように（edit-image で消費） */}
+            {t("misc.avatar.dressUpRun")}{" "}
+            {t("misc.avatar.costBadge", { cost: AI_COSTS.editImage })}
             <ChevronRight className="w-4 h-4" />
           </>
         )}

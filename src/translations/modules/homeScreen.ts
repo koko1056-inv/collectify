@@ -116,6 +116,7 @@ export const homeScreen = {
       tabGallery: "ギャラリー",
       generating: "生成中...",
       generate: "グッズ展示場を生成",
+      costBadge: "({cost}pt)",
     },
     background: {
       savedAsPreset: "背景プリセットとして保存しました",
@@ -299,6 +300,7 @@ export const homeScreen = {
       tabGallery: "Gallery",
       generating: "Generating...",
       generate: "Generate showcase",
+      costBadge: "({cost} pt)",
     },
     background: {
       savedAsPreset: "Saved as a background preset",

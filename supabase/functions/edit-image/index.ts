@@ -9,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const EDIT_IMAGE_COST = 10;
+const EDIT_IMAGE_COST = 20;
 
 // 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
 // 取得に失敗するとポイントは返金されるため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
@@ -50,6 +50,8 @@ serve(async (req) => {
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
+    // 返金は1回だけ。内側で返金してから throw すると外側の catch でもう一度呼ばれるため、先に下ろす
+    pointsDeducted = false;
     try {
       await adminClient.rpc("add_user_points", {
         _user_id: user.id,
@@ -108,12 +110,17 @@ serve(async (req) => {
       );
     }
 
-    await adminClient.rpc("add_user_points", {
+    const { error: deductErr } = await adminClient.rpc("add_user_points", {
       _user_id: user.id,
       _points: -EDIT_IMAGE_COST,
       _transaction_type: "post_image_generation",
       _description: "投稿用画像生成",
     });
+    // 引けなかったとき（同時の要求で残高が足りなくなった等）は、生成も返金もしない
+    if (deductErr) {
+      console.error("point deduct error:", deductErr);
+      throw new Error("ポイント消費に失敗しました");
+    }
     pointsDeducted = true;
 
     console.log('Editing image with prompt:', prompt, 'provider:', currentAiProvider());

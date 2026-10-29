@@ -9,7 +9,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const POINT_COST = 50;
+// アバターと同じ1枚の画像生成なので、アバターと同じ値段にそろえる
+const POINT_COST = 30;
 
 // 参照画像の URL をサーバーから取りに行く（Gemini 直結時）ので、ポイントとは別に回数も絞る。
 // 取得に失敗するとポイントは返金されるため、ポイントだけでは連打の歯止めにならない。管理者は対象外。
@@ -50,6 +51,8 @@ serve(async (req) => {
   let pointsDeducted = false;
   const refund = async (reason: string) => {
     if (!pointsDeducted) return;
+    // 返金は1回だけ。内側で返金してから throw すると外側の catch でもう一度呼ばれるため、先に下ろす
+    pointsDeducted = false;
     try {
       await admin.rpc('add_user_points', {
         _user_id: user.id,

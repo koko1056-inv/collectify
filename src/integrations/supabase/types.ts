@@ -884,6 +884,7 @@ export type Database = {
           id: string
           image_url: string | null
           official_item_id: string | null
+          paid_pool: number
           second_place_points: number
           starts_at: string
           status: string
@@ -900,6 +901,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           official_item_id?: string | null
+          paid_pool?: number
           second_place_points?: number
           starts_at?: string
           status?: string
@@ -916,6 +918,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           official_item_id?: string | null
+          paid_pool?: number
           second_place_points?: number
           starts_at?: string
           status?: string

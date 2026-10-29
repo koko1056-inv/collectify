@@ -16,6 +16,7 @@ import {
   shareDisplayToTwitter,
 } from "./goods-display/useGoodsDisplayActions";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AI_COSTS } from "@/lib/aiCosts";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -238,7 +239,9 @@ export function GoodsDisplayModal({
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          {t("homeScreen.goodsDisplay.generate")}
+                          {/* 押す前に値段が分かるように（edit-image で消費） */}
+                          {t("homeScreen.goodsDisplay.generate")}{" "}
+                          {t("homeScreen.goodsDisplay.costBadge", { cost: AI_COSTS.editImage })}
                         </>
                       )}
                     </Button>

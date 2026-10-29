@@ -28,6 +28,8 @@ import {
   ImageIcon,
   Cookie,
   ChevronRight,
+  Shirt,
+  UserRound,
 } from "lucide-react";
 import {
   usePointPackages,
@@ -54,13 +56,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AI_COSTS } from "@/lib/aiCosts";
+import { COLLECTION_SLOT_EXPAND_COST } from "@/hooks/useSpendPoints";
 
 // label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
 const SPEND_GUIDE = [
   { icon: TagIcon, label: "screens.pointShop.spendCustomTag", cost: 10 },
-  { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: 30 },
-  { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: 50 },
-  { icon: Home, label: "screens.pointShop.spendAiRoom", cost: 100 },
+  { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: COLLECTION_SLOT_EXPAND_COST },
+  // AI 生成の値段は各 Edge Function と揃える（src/lib/aiCosts.ts）
+  { icon: Shirt, label: "screens.pointShop.spendEditImage", cost: AI_COSTS.editImage },
+  { icon: UserRound, label: "screens.pointShop.spendAvatar", cost: AI_COSTS.avatar },
+  { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: AI_COSTS.postImage },
+  { icon: Home, label: "screens.pointShop.spendAiRoom", cost: AI_COSTS.aiRoom },
   // 推しグッズへのプレゼント（推しの部屋から贈る）。値段は companion_gift_kinds と揃える
   { icon: Cookie, label: "screens.pointShop.spendCompanionSnack", cost: 30 },
   { icon: Gift, label: "screens.pointShop.spendCompanionSpecial", cost: 100 },
