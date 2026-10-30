@@ -14,7 +14,6 @@ import { useOshiRoomList } from "@/hooks/useOshiRoomSocial";
 import { timeOfDayJst } from "@/lib/oshiRoom";
 import { getInitial } from "@/utils/initial";
 import { fallbackToOriginal, getOptimizedImageUrl } from "@/utils/optimized-image";
-import { WeeklyPromptBanner } from "@/components/item-posts/WeeklyPromptBanner";
 import { EventBanner } from "@/components/events/EventBanner";
 import { OshiRoomCardView } from "./OshiRoomsTab";
 
@@ -70,11 +69,6 @@ export function ExploreHome({ onOpenTab }: { onOpenTab: (tab: string, extra?: Re
     <div className="mx-auto max-w-4xl space-y-7">
       {/* 開催中のお題イベント（無いときは何も出ない） */}
       <EventBanner />
-
-      <WeeklyPromptBanner
-        onPost={(tag) => onOpenTab("posts", { compose: tag })}
-        onBrowse={(tag) => onOpenTab("posts", { tag })}
-      />
 
       <HomeSection title={t("chrome.explore.home.posts")} onSeeAll={() => onOpenTab("posts")}>
         {posts.isLoading ? (

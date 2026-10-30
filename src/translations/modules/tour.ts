@@ -89,7 +89,7 @@ export const tour = {
     explore: {
       tabs: {
         title: "みんなの楽しみがここに集まるよ",
-        body: "今週のお題・新着の投稿・推しの部屋・AI作品・人気のユーザーを少しずつ並べてるんだ。「すべて」で一覧が開くよ。",
+        body: "お題イベント・新着の投稿・推しの部屋・AI作品・人気のユーザーを少しずつ並べてるんだ。「すべて」で一覧が開くよ。",
       },
       feed: {
         title: "気になったらワンタップで反応！",
@@ -227,7 +227,7 @@ export const tour = {
     explore: {
       tabs: {
         title: "Everything from everyone, on one screen",
-        body: "This week's theme, new posts, oshi rooms, AI creations and popular users, a few of each. Tap \"See all\" to open the full list.",
+        body: "Theme events, new posts, oshi rooms, AI creations and popular users, a few of each. Tap \"See all\" to open the full list.",
       },
       feed: {
         title: "React with one tap",

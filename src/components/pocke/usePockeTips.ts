@@ -10,7 +10,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { todayJst } from "@/utils/companion";
 import { openDailyRing, ringDoneCount, useDailyRing } from "@/hooks/useDailyRing";
 import { MISSION_SHOOT_HREF, useDailyMission } from "@/hooks/useDailyMission";
-import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
+import { useActivePostEvents } from "@/hooks/usePostEvents";
+import { daysLeft } from "@/types/postEvents";
 import type { PockePose } from "./pockeAssets";
 
 /**
@@ -105,16 +106,22 @@ export function useTradePockeTips(): PockeTipItem[] {
   return tips;
 }
 
-/** みんな: 今週のお題 */
+/** みんな: 開催中のお題イベント（締め切りがいちばん近いもの）。開催中が無ければ何も言わない */
 export function useExplorePockeTips(): PockeTipItem[] {
   const { t } = useLanguage();
-  const prompt = getWeeklyPrompt();
+  const { data: events } = useActivePostEvents();
+  const event = events[0];
+  if (!event) return [];
+  const left = daysLeft(event);
   return [
     {
-      kind: `prompt-${prompt.id}`,
+      kind: `event-${event.id}`,
       pose: "cheer",
-      text: t("pocke.corner.explore.prompt", { tag: prompt.tag }),
-      href: `/explore?tab=posts&compose=${encodeURIComponent(prompt.tag)}`,
+      text:
+        left > 0
+          ? t("pocke.corner.explore.event", { tag: event.hashtag, n: left })
+          : t("pocke.corner.explore.eventLastDay", { tag: event.hashtag }),
+      href: `/event/${event.id}`,
     },
   ];
 }
