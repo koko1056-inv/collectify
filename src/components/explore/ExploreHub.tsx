@@ -689,7 +689,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
   );
 }
 
-/** みんな画面のポッケ（今週のお題） */
+/** みんな画面のポッケ（開催中のお題イベント） */
 function ExplorePocke() {
   const tips = useExplorePockeTips();
   return <PockeCorner screen="explore" tips={tips} />;

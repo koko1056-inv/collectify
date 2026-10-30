@@ -12,8 +12,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AiCreationPicker } from "./AiCreationPicker";
-import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
 import { useAiCosts } from "@/hooks/useAiCosts";
+import { useActivePostEvents } from "@/hooks/usePostEvents";
 import { eventColor, type PostEvent } from "@/types/postEvents";
 
 interface CreateItemPostModalProps {
@@ -67,7 +67,10 @@ export function CreateItemPostModal({
   // AI で画像を作る欄は、既定では1行に畳む。投稿の本題は「自分のグッズの写真」で、
   // 以前は写真の欄と同じ大きさの AI の欄が常に開いていて、投稿が AI 画像を作る場所に見えていた
   const [aiOpen, setAiOpen] = useState(false);
-  const weeklyTag = getWeeklyPrompt().tag;
+  // 開催中のお題イベントのタグ。押すと本文に「#タグ」が入り、投稿したときにサーバーがそのイベントにつなぐ（item_posts_link_event）。
+  // イベントのページから開いたとき（event あり）は、もうそのイベントにつながっているので出さない
+  const { data: activeEvents } = useActivePostEvents();
+  const eventTags = event ? [] : activeEvents;
   const [images, setImages] = useState<{ file: File; preview: string }[]>(() =>
     (initialFiles ?? []).slice(0, MAX_IMAGES).map((file) => ({ file, preview: URL.createObjectURL(file) }))
   );
@@ -415,9 +418,8 @@ export function CreateItemPostModal({
             data-testid="post-caption"
           />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {[...QUICK_TAGS.map((id) => t(`engage.posts.quickTag.${id}`)), weeklyTag].map((tag, i, all) => {
+            {QUICK_TAGS.map((id) => t(`engage.posts.quickTag.${id}`)).map((tag) => {
               const active = caption.includes(`#${tag}`);
-              const isWeekly = i === all.length - 1;
               return (
                 <button
                   key={tag}
@@ -432,7 +434,32 @@ export function CreateItemPostModal({
                 >
                   <Hash className="h-3 w-3" />
                   {tag}
-                  {isWeekly && <span className="ml-1 opacity-70">{t("engage.posts.thisWeek")}</span>}
+                </button>
+              );
+            })}
+            {eventTags.map((e) => {
+              const active = caption.includes(`#${e.hashtag}`);
+              const color = eventColor(e);
+              return (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => toggleTag(e.hashtag)}
+                  title={e.title}
+                  aria-pressed={active}
+                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-2xs font-medium"
+                  style={
+                    active
+                      ? { borderColor: color, backgroundColor: `${color}1f`, color }
+                      : { borderColor: `${color}55`, color }
+                  }
+                  data-testid="post-event-tag"
+                >
+                  <span aria-hidden="true">{e.emoji || "#"}</span>
+                  #{e.hashtag}
+                  <span className="rounded-full px-1 text-3xs font-bold text-white" style={{ backgroundColor: color }}>
+                    {t("postEvents.composer.tagLabel")}
+                  </span>
                 </button>
               );
             })}

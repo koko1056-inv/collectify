@@ -54,7 +54,8 @@ export const pocke = {
         wish: "ほしいグッズを入れてくれたら、持ってる人を探してくるね",
       },
       explore: {
-        prompt: "今週のお題は「#{tag}」！ 投稿してみる？",
+        event: "お題イベント「#{tag}」、あと{n}日だよ！ 参加してみる？",
+        eventLastDay: "お題イベント「#{tag}」は今日まで！ 参加してみる？",
       },
       me: {
         avatar: "アイコンを設定すると、みんなに覚えてもらいやすいよ",
@@ -344,7 +345,8 @@ export const pocke = {
         wish: "Add goods you want and I'll find who has them",
       },
       explore: {
-        prompt: "This week's theme is \"#{tag}\"! Want to post?",
+        event: "The \"#{tag}\" theme event has {n} days left! Want to join?",
+        eventLastDay: "The \"#{tag}\" theme event ends today! Want to join?",
       },
       me: {
         avatar: "Set an icon so everyone remembers you",

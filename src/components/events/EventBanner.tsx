@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,13 +9,34 @@ import { daysLeft, eventColor, type PostEvent, type PostEventStats } from "@/typ
 
 /**
  * 開催中のお題イベントの帯。「みんな」の最初の画面と、投稿タブのいちばん上に置く。
- * スマホは1枚ずつ横にスワイプ（次のカードの端が見える幅）、広い画面は2〜3枚を並べる。
- * 開催中のイベントが無いときは何も出さない（空の枠を見せない）。
+ * スマホは1枚ずつ横にスワイプ（次のカードの端が見える幅）。下の点で、いま何枚目か・ほかに何枚あるかがわかる。
+ * 広い画面は横にスクロールさせず、ぜんぶを並べる（3つなら3列、それ以外は2列。4つなら2×2）。
+ * 並びは締め切りが近い順（useActivePostEvents）。開催中のイベントが無いときは何も出さない（空の枠を見せない）。
  */
 export function EventBanner({ className }: { className?: string }) {
   const { t } = useLanguage();
   const { data: events, isLoading } = useActivePostEvents();
   const stats = usePostEventStats(events.map((e) => e.id));
+
+  const listRef = useRef<HTMLUListElement>(null);
+  const [current, setCurrent] = useState(0);
+  const count = events.length;
+
+  // スマホの横スワイプで、いちばん左に見えているカードの番号を点に映す
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || count < 2) return;
+    const onScroll = () => {
+      const first = el.firstElementChild as HTMLElement | null;
+      if (!first) return;
+      const step = first.offsetWidth + 12; // gap-3
+      // 最後まで送ったときは、最後のカードを「いま」にする（最後の1枚は左端まで来ないため）
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+      setCurrent(atEnd ? count - 1 : Math.min(count - 1, Math.round(el.scrollLeft / step)));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [count]);
 
   if (isLoading) {
     return (
@@ -24,29 +46,49 @@ export function EventBanner({ className }: { className?: string }) {
       </div>
     );
   }
-  if (events.length === 0) return null;
+  if (count === 0) return null;
+
+  const scrollTo = (i: number) => {
+    const el = listRef.current;
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft - 16, behavior: "smooth" });
+  };
 
   return (
-    <section aria-label={t("postEvents.bannerAria")} className={className} data-testid="event-banner">
+    <section aria-label={t("postEvents.bannerAria")} className={className} data-testid="event-banner" data-tour="post-events">
       <ul
+        ref={listRef}
         className={cn(
-          "-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          "sm:mx-0 sm:px-0"
+          "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          // 広い画面は横スクロールをやめて並べる
+          "sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0",
+          count === 1 ? "sm:grid-cols-1" : "sm:grid-cols-2",
+          count === 3 && "lg:grid-cols-3"
         )}
       >
         {events.map((e) => (
-          <li
-            key={e.id}
-            className={cn(
-              "w-[85%] shrink-0 snap-start",
-              events.length === 1 ? "sm:w-full" : "sm:w-[calc(50%-6px)]",
-              events.length >= 3 && "lg:w-[calc(33.333%-8px)]"
-            )}
-          >
+          <li key={e.id} className={cn("shrink-0 snap-start sm:w-auto", count === 1 ? "w-full" : "w-[85%]")}>
             <EventCard event={e} stats={stats.data?.get(e.id)} />
           </li>
         ))}
       </ul>
+      {count > 1 && (
+        <div className="mt-2 flex justify-center gap-1.5 sm:hidden" aria-hidden="true">
+          {events.map((e, i) => (
+            <button
+              key={e.id}
+              type="button"
+              tabIndex={-1}
+              onClick={() => scrollTo(i)}
+              className={cn(
+                "h-1.5 rounded-full transition-all motion-reduce:transition-none",
+                i === current ? "w-4" : "w-1.5 bg-muted-foreground/25"
+              )}
+              style={i === current ? { backgroundColor: eventColor(e) } : undefined}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

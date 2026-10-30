@@ -44,6 +44,7 @@ export const postEvents = {
     badgeAria: "お題「#{tag}」の投稿。お題のページをひらく",
     composer: {
       joining: "お題に参加",
+      tagLabel: "お題",
       hint: "投稿すると「#{tag}」のページに並びます",
       pickTitle: "お題に使うグッズを選ぶ",
       preferHint: "「{category}」のグッズを先に並べています",
@@ -128,6 +129,7 @@ export const postEvents = {
     badgeAria: "Post for \"#{tag}\". Open the theme page",
     composer: {
       joining: "Joining theme",
+      tagLabel: "Theme",
       hint: "Your post will appear on the \"#{tag}\" page",
       pickTitle: "Pick goods for this theme",
       preferHint: "Showing \"{category}\" goods first",

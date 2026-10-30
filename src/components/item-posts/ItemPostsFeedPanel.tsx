@@ -23,7 +23,6 @@ import { ItemPostGrid } from "./ItemPostGrid";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { SelectItemForPostModal } from "./SelectItemForPostModal";
 import { CreateItemPostModal } from "./CreateItemPostModal";
-import { WeeklyPromptBanner } from "./WeeklyPromptBanner";
 import { EventBanner } from "@/components/events/EventBanner";
 import { RecentRegistrationsStrip } from "./RecentRegistrationsStrip";
 
@@ -138,7 +137,8 @@ export function ItemPostsFeedPanel() {
     setPickerOpen(true);
   };
 
-  // ?compose=<お題>: 「みんな」の上の「今週のお題 → 投稿する」から来たとき、その場で投稿を始める
+  // ?compose=<タグ>: 以前の「今週のお題 → 投稿する」のリンクから来たとき、そのタグを入れて投稿を始める
+  // （開催中のお題イベントのタグなら、投稿したときにサーバーでそのイベントに入る）
   const composeParam = searchParams.get("compose");
   useEffect(() => {
     if (composeParam === null) return;
@@ -170,11 +170,6 @@ export function ItemPostsFeedPanel() {
 
       {/* 開催中のお題イベント（無いときは何も出ない） */}
       <EventBanner />
-
-      <WeeklyPromptBanner
-        onPost={(tag) => startPost(tag)}
-        onBrowse={(tag) => patchParams((p) => p.set("tag", tag))}
-      />
 
       <RecentRegistrationsStrip />
 
