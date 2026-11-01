@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronRight, Megaphone } from "lucide-react";
 import { toast } from "sonner";
+import { requestPlanReco } from "@/components/premium/planRecoEvents";
 
 import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -197,6 +198,7 @@ function TradeSpotlightSheet({
           toast.error(t("trade.spotlight.insufficientToast"), {
             action: { label: t("trade.spotlight.getPoints"), onClick: () => navigate("/point-shop") },
           });
+          requestPlanReco("insufficient");
         } else if (kind === "limit") {
           toast.error(t("trade.spotlight.limitToast", { n: maxDays }));
         } else if (kind === "noOffers") {

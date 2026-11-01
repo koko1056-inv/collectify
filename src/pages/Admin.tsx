@@ -10,6 +10,7 @@ import { CatalogRequestsManager } from "@/components/admin/CatalogRequestsManage
 import { CatalogItemRequestsManager } from "@/components/admin/CatalogItemRequestsManager";
 import { SeriesBackfillManager } from "@/components/admin/SeriesBackfillManager";
 import { PostEventsManager } from "@/components/admin/PostEventsManager";
+import { AboutYouStatsManager } from "@/components/admin/AboutYouStatsManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearchParams } from "react-router-dom";
@@ -60,6 +61,8 @@ const Admin = () => {
                 </span>
               )}
             </TabsTrigger>
+            {/* 「あなたのこと」の回答を、人数だけにまとめたもの（5人未満は伏せる） */}
+            <TabsTrigger value="aboutYouStats">{t("aboutYou.admin.tab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="items" className="space-y-8">
@@ -97,6 +100,10 @@ const Admin = () => {
 
           <TabsContent value="itemRequests">
             <CatalogItemRequestsManager />
+          </TabsContent>
+
+          <TabsContent value="aboutYouStats">
+            <AboutYouStatsManager />
           </TabsContent>
         </Tabs>
       </main>

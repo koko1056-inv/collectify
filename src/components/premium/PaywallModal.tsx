@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Crown, Coins, Sparkles, Wand2 } from "lucide-react";
@@ -22,11 +22,17 @@ interface PaywallModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   reason?: string; // e.g. "家具をもっと置くには..."
+  /** 開いたときに選んでおくプラン（おすすめから来たとき）。既定はプレミアム */
+  initialPlan?: "premium" | "premium_plus";
 }
 
-export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) {
+export function PaywallModal({ open, onOpenChange, reason, initialPlan = "premium" }: PaywallModalProps) {
   const { t } = useLanguage();
-  const [selectedPlan, setSelectedPlan] = useState<PlanTier>("premium");
+  const [selectedPlan, setSelectedPlan] = useState<PlanTier>(initialPlan);
+  // おすすめのカードから別のプランで開き直したとき、選んでおくプランを合わせる
+  useEffect(() => {
+    if (open) setSelectedPlan(initialPlan);
+  }, [open, initialPlan]);
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
   const { isPremium, subscription } = useSubscription();

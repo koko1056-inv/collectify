@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { requestPlanReco } from "@/components/premium/planRecoEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { PointIcon } from "@/components/ui/point-icon";
 import { useUserPoints } from "@/hooks/usePoints";
@@ -72,6 +73,8 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
         toast.error(t("tagManage.addDialog.insufficientPoints"), {
           description: `${t("tagManage.addDialog.insufficientPrefix")}${TAG_CREATE_COST}${t("tagManage.addDialog.insufficientMid")}${balance}${t("tagManage.addDialog.insufficientSuffix")}`,
         });
+        // 出すかどうか・間隔は PlanRecoHost が決める（契約中・サンプル・アプリ内・最近出した、なら出ない）
+        requestPlanReco("insufficient");
         return;
       }
 

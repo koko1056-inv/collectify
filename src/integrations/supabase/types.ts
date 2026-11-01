@@ -2966,6 +2966,45 @@ export type Database = {
           },
         ]
       }
+      profile_private: {
+        Row: {
+          age_range: string | null
+          created_at: string
+          gender: string | null
+          goods_types: string[] | null
+          monthly_budget: string | null
+          oshi_years: string | null
+          prefecture: string | null
+          trade_frequency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_range?: string | null
+          created_at?: string
+          gender?: string | null
+          goods_types?: string[] | null
+          monthly_budget?: string | null
+          oshi_years?: string | null
+          prefecture?: string | null
+          trade_frequency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_range?: string | null
+          created_at?: string
+          gender?: string | null
+          goods_types?: string[] | null
+          monthly_budget?: string | null
+          oshi_years?: string | null
+          prefecture?: string | null
+          trade_frequency?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_frame_key: string | null
@@ -4556,6 +4595,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      // 運営向け「あなたのこと」集計（管理者以外は forbidden）。形は src/lib/profileExtrasAggregate.ts の toAggregateView を参照
+      profile_private_aggregate: { Args: never; Returns: Json }
       post_event_stats: {
         Args: { _event_ids: string[] }
         Returns: {

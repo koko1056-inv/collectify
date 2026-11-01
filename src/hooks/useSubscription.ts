@@ -6,16 +6,19 @@ import { PlanTier, PLAN_PERKS, PlanPerks } from "@/lib/planLimits";
 export function useSubscription() {
   const { user } = useAuth();
 
-  const { data: subscription, isLoading } = useQuery({
+  const { data: subscription, isLoading, isError } = useQuery({
     queryKey: ["subscription", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_subscriptions")
         .select("*")
         .eq("user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
+      // 読めなかったときは「無料」と決めつけない（isError で分かるようにする。表示は今までどおり無料扱い）。
+      // プランのおすすめは、読めていない人には出さない（契約中の人に出してしまわないため）
+      if (error) throw error;
 
       // expires_at が過去なら無効
       if (data?.expires_at && new Date(data.expires_at) < new Date()) {
@@ -37,6 +40,7 @@ export function useSubscription() {
     isPremium,
     subscription,
     isLoading,
+    isError,
   };
 }
 

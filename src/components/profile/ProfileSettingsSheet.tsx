@@ -4,7 +4,10 @@ import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { PointIcon } from "@/components/ui/point-icon";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageSquarePlus, ClipboardList, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, ChevronRight } from "lucide-react";
+import { LogOut, MessageSquarePlus, ClipboardList, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, ChevronRight, UserRound, Lock } from "lucide-react";
+import { useProfilePrivate } from "@/hooks/useProfilePrivate";
+import { answeredCount } from "@/lib/profileExtras";
+import { AboutYouSheet } from "./AboutYouSheet";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,6 +34,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
   const { data: userPoints } = useUserPoints();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [catalogRequestsOpen, setCatalogRequestsOpen] = useState(false);
+  const [aboutYouOpen, setAboutYouOpen] = useState(false);
+  const { data: aboutYouData } = useProfilePrivate({ enabled: open });
+  const aboutYouAnswered = aboutYouData ? answeredCount(aboutYouData.extras) : null;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -154,6 +160,28 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
             <InviteCodeSection />
           </section>
 
+          {/* あなたのこと（性別・年代・都道府県・推し活のこと）。本人だけに見える任意の答え */}
+          <SectionHeading>{t("aboutYou.settings.heading")}</SectionHeading>
+          <section className="bg-card rounded-2xl border border-border divide-y divide-border">
+            <SettingRow
+              icon={<UserRound className="w-4 h-4" />}
+              label={t("aboutYou.settings.row")}
+              hint={
+                aboutYouAnswered === null
+                  ? undefined
+                  : aboutYouAnswered > 0
+                    ? t("aboutYou.settings.hintSome", { n: aboutYouAnswered })
+                    : t("aboutYou.settings.hintNone")
+              }
+              onClick={() => setAboutYouOpen(true)}
+              chevron
+            />
+            <p className="flex items-center gap-1.5 px-4 py-2 text-2xs text-muted-foreground">
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              {t("aboutYou.settings.onlyYou")}
+            </p>
+          </section>
+
           <SectionHeading>{t("profileScreen.settings.app")}</SectionHeading>
           {/* ホーム画面に追加（PWA） */}
           <InstallAppCard variant="section" />
@@ -204,6 +232,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
       </SheetContent>
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
       <MyCatalogItemRequestsSheet open={catalogRequestsOpen} onOpenChange={setCatalogRequestsOpen} />
+      <AboutYouSheet open={aboutYouOpen} onOpenChange={setAboutYouOpen} />
     </Sheet>
   );
 }
