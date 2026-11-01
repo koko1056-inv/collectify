@@ -18,10 +18,13 @@ import { OnboardingBottomBar, OnboardingPrimaryButton } from "./OnboardingParts"
  */
 export function PlanRecoStep({
   suggested,
+  showSuggested,
   onSeePlans,
   onStayFree,
 }: {
   suggested: RecoPlan;
+  /** 「あなたに合いそう」を出すか（予算を答えてくれたときだけ。未回答・ないしょ では出さない） */
+  showSuggested: boolean;
   onSeePlans: () => void;
   onStayFree: () => void;
 }) {
@@ -38,7 +41,7 @@ export function PlanRecoStep({
           {/* 2つのプランの見比べ（押しても何も起きない表示だけ。選ぶのはプランの画面で） */}
           <div className="mt-4 grid grid-cols-2 gap-2">
             {(["premium", "premium_plus"] as const).map((p) => {
-              const isSuggested = p === suggested;
+              const isSuggested = showSuggested && p === suggested;
               return (
                 <div
                   key={p}
@@ -48,7 +51,7 @@ export function PlanRecoStep({
                   )}
                 >
                   {isSuggested && (
-                    <span className="absolute -top-2.5 left-3 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground">
+                    <span className="absolute -top-3 left-3 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground">
                       {t("planReco.onboarding.suggested")}
                     </span>
                   )}

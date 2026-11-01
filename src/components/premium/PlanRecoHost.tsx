@@ -255,15 +255,26 @@ export function PlanRecoHost() {
       <Sheet open={!!shown} onOpenChange={(o) => !o && snooze()}>
         <SheetContent
           side="bottom"
-          className="rounded-t-3xl px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 sm:mx-auto sm:max-w-md"
+          // ✕（44px）が吹き出しに重ならないよう、上を少し空ける
+          className="rounded-t-3xl px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-14 sm:mx-auto sm:max-w-md"
+          closeClassName="right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {copy && (
             <>
               <div className="flex items-end gap-2">
-                <Pocke pose={copy.pose} height={120} motion="pop" className="-mb-1 shrink-0" />
-                <PockeBubble tail="left" className="mb-5 flex-1">
-                  <SheetTitle className="text-base font-bold">{t(copy.title, { n: shown?.n ?? 0 })}</SheetTitle>
+                {/* 節目のポッケは紙吹雪で横に広いので、少し小さくして吹き出しの幅を確保する */}
+                <Pocke
+                  pose={copy.pose}
+                  height={copy.pose === "celebrate" ? 100 : 120}
+                  motion="pop"
+                  className="-mb-1 shrink-0"
+                />
+                <PockeBubble tail="left" className="mb-5 min-w-0 flex-1">
+                  {/* 日本語は文節の途中で折り返さない（「、」や空白で折り返す）。収まらない長さのときだけ途中で折る */}
+                  <SheetTitle className="text-base font-bold [overflow-wrap:anywhere] [word-break:keep-all]">
+                    {t(copy.title, { n: shown?.n ?? 0 })}
+                  </SheetTitle>
                   <SheetDescription className="mt-0.5 text-sm text-foreground">{t(copy.desc)}</SheetDescription>
                 </PockeBubble>
               </div>
@@ -292,7 +303,7 @@ export function PlanRecoHost() {
               <button
                 type="button"
                 onClick={never}
-                className="mt-3 w-full py-1 text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+                className="mt-1 min-h-11 w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
               >
                 {t("planReco.sheet.never")}
               </button>

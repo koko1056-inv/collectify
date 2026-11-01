@@ -69,12 +69,13 @@ export function AboutYouStatsManager() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
+        {/* 狭い画面では題名を1行のまま、「更新」を次の行へ回す（題名を窮屈に折り返さない） */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-primary" />
+            <BarChart3 className="h-5 w-5 shrink-0 text-primary" />
             {t("aboutYou.admin.title")}
           </CardTitle>
-          <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => refetch()} disabled={isFetching}>
+          <Button size="sm" variant="outline" className="h-8 shrink-0 gap-1.5" onClick={() => refetch()} disabled={isFetching}>
             {isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
             {t("aboutYou.admin.refresh")}
           </Button>
@@ -160,8 +161,10 @@ function FieldBlock({
           {f.buckets.map((b) => (
             <Bar key={b.value} label={optionLabel(f.field, b.value)} count={b.count} share={b.share} />
           ))}
-          {f.other && <Bar label={t("aboutYou.admin.other", { k })} count={f.other.count} share={f.other.share} muted />}
+          {f.other && <Bar label={t("aboutYou.admin.other")} count={f.other.count} share={f.other.share} muted />}
           {f.otherHidden && <li className="text-xs text-muted-foreground">{t("aboutYou.admin.otherHidden", { k })}</li>}
+          {/* 注記はカードの下にまとめる（ラベルは短く保つ） */}
+          {f.other && <li className="text-2xs text-muted-foreground">{t("aboutYou.admin.otherNote", { k })}</li>}
           {f.field === "goods_types" && <li className="text-2xs text-muted-foreground">{t("aboutYou.admin.multiNote")}</li>}
         </ul>
       )}

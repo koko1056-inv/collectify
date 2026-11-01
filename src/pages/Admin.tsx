@@ -13,6 +13,7 @@ import { PostEventsManager } from "@/components/admin/PostEventsManager";
 import { AboutYouStatsManager } from "@/components/admin/AboutYouStatsManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOpenReportCount } from "@/hooks/useOpenReportCount";
 import { usePendingCatalogItemRequestCount } from "@/hooks/useCatalogItemRequests";
@@ -26,6 +27,17 @@ const Admin = () => {
   const tab = searchParams.get("tab") ?? "items";
   const { data: openReports = 0 } = useOpenReportCount();
   const { data: pendingItemRequests = 0 } = usePendingCatalogItemRequestCount();
+  // 横スクロールのタブ列で、選んでいるタブが画面の外に隠れないようにする（?tab= で開いたときなど）
+  const tabListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = tabListRef.current;
+    const active = list?.querySelector<HTMLElement>('[data-state="active"]');
+    if (!list || !active) return;
+    const left = active.offsetLeft - list.offsetLeft;
+    if (left < list.scrollLeft || left + active.offsetWidth > list.scrollLeft + list.clientWidth) {
+      list.scrollLeft = left - (list.clientWidth - active.offsetWidth) / 2;
+    }
+  }, [tab]);
   return (
     <div className="min-h-screen bg-accent">
       <Navbar />
@@ -33,7 +45,8 @@ const Admin = () => {
         <h1 className="text-3xl font-bold mb-8">{t("screens.admin.title")}</h1>
 
         <Tabs value={tab} onValueChange={(v) => setSearchParams({ tab: v }, { replace: true })} className="space-y-6">
-          <TabsList>
+          {/* タブが多いので、スマホではタブの列だけ横にスクロールする（ページ全体は横に広げない） */}
+          <TabsList ref={tabListRef} className="no-scrollbar w-full justify-start overflow-x-auto [&>*]:shrink-0">
             <TabsTrigger value="items">{t("screens.admin.itemsTab")}</TabsTrigger>
             <TabsTrigger value="tags">{t("screens.admin.tagsTab")}</TabsTrigger>
             <TabsTrigger value="duplicates">{t("screens.admin.duplicatesTab")}</TabsTrigger>

@@ -24,10 +24,13 @@ export function AboutYouFields({
   value,
   onChange,
   className,
+  basicsTitle,
 }: {
   value: ProfileExtras;
   onChange: (next: ProfileExtras) => void;
   className?: string;
+  /** 1つめのカードの見出し。シートの題が「あなたのこと」のときに重ならないよう差し替える */
+  basicsTitle?: string;
 }) {
   const { t, language } = useLanguage();
   const set = <K extends keyof ProfileExtras>(key: K, v: ProfileExtras[K]) => onChange({ ...value, [key]: v });
@@ -35,7 +38,7 @@ export function AboutYouFields({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <FieldCard title={t("aboutYou.sectionYou")}>
+      <FieldCard title={basicsTitle ?? t("aboutYou.sectionYou")}>
         <ChipGroup label={t("aboutYou.gender.label")}>
           {GENDERS.map((g) => (
             <Chip key={g} active={value.gender === g} onClick={() => set("gender", toggleSingle(value.gender, g))}>
@@ -161,15 +164,23 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      // 選んでも太字にしない（幅が変わって並びがずれるため）。色・枠線（＋複数選択はチェック）で示す
       className={cn(
-        "inline-flex min-h-9 items-center gap-1 rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+        "relative inline-flex min-h-11 items-center rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
         active
-          ? "border-primary bg-primary/10 font-bold text-primary"
+          ? "border-primary bg-primary/10 text-primary ring-1 ring-inset ring-primary"
           : "border-border bg-background text-foreground hover:bg-accent"
       )}
     >
-      {multi && active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
       {children}
+      {multi && active && (
+        <span
+          className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground"
+          aria-hidden="true"
+        >
+          <Check className="h-3 w-3" strokeWidth={3} />
+        </span>
+      )}
     </button>
   );
 }

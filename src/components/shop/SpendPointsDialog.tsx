@@ -109,7 +109,8 @@ export function SpendPointsDialog({
                   {t("planReco.inline.text")}
                   <button
                     type="button"
-                    className="font-medium text-primary underline-offset-2 hover:underline"
+                    // 文字の大きさはそのままで、押せる範囲だけ44pxに広げる
+                    className="tap-safe font-medium text-primary underline-offset-2 hover:underline"
                     onClick={() => {
                       onOpenChange(false);
                       setPaywallOpen(true);

@@ -211,3 +211,10 @@ export type RecoPlan = "premium" | "premium_plus";
 export function suggestedPlan(monthlyBudget: string | null | undefined): RecoPlan {
   return monthlyBudget === "10k_30k" || monthlyBudget === "30k_plus" ? "premium_plus" : "premium";
 }
+
+/**
+ * 「あなたに合いそう」と言ってよいか。予算を答えてくれたときだけ（未回答・ないしょ では根拠がないので言わない）。
+ */
+export function hasBudgetBasis(monthlyBudget: string | null | undefined): boolean {
+  return !!monthlyBudget && monthlyBudget !== "secret";
+}
