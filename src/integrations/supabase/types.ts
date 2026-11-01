@@ -4595,6 +4595,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      // 運営向け「あなたのこと」集計（管理者以外は forbidden）。形は src/lib/profileExtrasAggregate.ts の toAggregateView を参照
+      profile_private_aggregate: { Args: never; Returns: Json }
       post_event_stats: {
         Args: { _event_ids: string[] }
         Returns: {

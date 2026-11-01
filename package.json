@@ -30,7 +30,8 @@
     "test:realtime": "node --experimental-strip-types scripts/test-realtime-subscriptions.mjs",
     "test:catalog-keyset": "node --experimental-strip-types scripts/test-catalog-keyset.mjs",
     "test:plan-reco": "node --experimental-strip-types scripts/test-plan-reco.mjs",
-    "test:profile-extras": "node --experimental-strip-types scripts/test-profile-extras.mjs"
+    "test:profile-extras": "node --experimental-strip-types scripts/test-profile-extras.mjs",
+    "test:profile-extras-aggregate": "node --experimental-strip-types scripts/test-profile-extras-aggregate.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
