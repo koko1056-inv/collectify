@@ -12,6 +12,10 @@ import { Gift } from "lucide-react";
 import { PointIcon } from "@/components/ui/point-icon";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from "react";
+import { PaywallModal } from "@/components/premium/PaywallModal";
+import { usePlanRecoAudience } from "@/hooks/usePlanRecoAudience";
+import { canShowInlinePlanHint } from "@/lib/planReco";
 
 interface SpendPointsDialogProps {
   open: boolean;
@@ -47,8 +51,12 @@ export function SpendPointsDialog({
   const balance = userPoints?.total_points ?? 0;
   const effectiveCost = freeTrial ? 0 : cost;
   const insufficient = !freeTrial && balance < cost;
+  const showPlanHint = canShowInlinePlanHint(usePlanRecoAudience());
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   return (
+    <>
+    {showPlanHint && <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />}
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -94,6 +102,23 @@ export function SpendPointsDialog({
                   {t("misc.shop.insufficient")}
                 </p>
               )}
+              {/* 足りないときだけ、さりげなくプランも知らせる（契約中・サンプル・アプリ内では出さない）。
+                  ここは文脈上必要な案内なので、アプリの中のおすすめの間隔・「もう表示しない」とは別 */}
+              {insufficient && showPlanHint && (
+                <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground" data-testid="spend-plan-hint">
+                  {t("planReco.inline.text")}
+                  <button
+                    type="button"
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                    onClick={() => {
+                      onOpenChange(false);
+                      setPaywallOpen(true);
+                    }}
+                  >
+                    {t("planReco.inline.cta")}
+                  </button>
+                </p>
+              )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -115,5 +140,6 @@ export function SpendPointsDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   );
 }

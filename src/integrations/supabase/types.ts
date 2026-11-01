@@ -2966,6 +2966,45 @@ export type Database = {
           },
         ]
       }
+      profile_private: {
+        Row: {
+          age_range: string | null
+          created_at: string
+          gender: string | null
+          goods_types: string[] | null
+          monthly_budget: string | null
+          oshi_years: string | null
+          prefecture: string | null
+          trade_frequency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_range?: string | null
+          created_at?: string
+          gender?: string | null
+          goods_types?: string[] | null
+          monthly_budget?: string | null
+          oshi_years?: string | null
+          prefecture?: string | null
+          trade_frequency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_range?: string | null
+          created_at?: string
+          gender?: string | null
+          goods_types?: string[] | null
+          monthly_budget?: string | null
+          oshi_years?: string | null
+          prefecture?: string | null
+          trade_frequency?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_frame_key: string | null

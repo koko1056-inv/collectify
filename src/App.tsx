@@ -20,6 +20,8 @@ import { DailyRingHost } from "@/components/daily/DailyRingHost";
 import { DailyLoginRewardHost } from "@/components/daily/DailyLoginRewardHost";
 import { SubscriptionPointsHost } from "@/components/premium/SubscriptionPointsHost";
 import { BadgeUnlockHost } from "@/components/badges/BadgeUnlockHost";
+import { PlanRecoHost } from "@/components/premium/PlanRecoHost";
+import { AboutYouNudgeHost } from "@/components/profile/AboutYouNudgeHost";
 import { GuestPouchImporter } from "@/components/guest/GuestPouchImporter";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
@@ -264,6 +266,10 @@ const App: React.FC = () => {
                   <DailyLoginRewardHost />
                   {/* サブスクの毎月のポイント（契約中の人だけ。開いたときに受け取る） */}
                   <SubscriptionPointsHost />
+                  {/* プランのやさしいおすすめ（契約中・サンプル・アプリ内には出さない。間隔は src/lib/planReco.ts） */}
+                  <PlanRecoHost />
+                  {/* すでに使っている人への「あなたのこと」の案内（1回きり） */}
+                  <AboutYouNudgeHost />
                   <BadgeUnlockHost />
                   <GuestPouchImporter />
                   </AppErrorBoundary>

@@ -1,0 +1,188 @@
+/**
+ * 翻訳モジュール: aboutYou
+ * 対象: 「あなたのこと」（性別・年代・都道府県・推し活のこと。本人だけに見える任意の質問）
+ *   - ウェルカムのステップ（src/components/onboarding/AboutYouStep.tsx）
+ *   - すでに使っている人への1回だけの案内（src/components/profile/AboutYouNudgeHost.tsx）
+ *   - 設定の「あなたのこと」（src/components/profile/AboutYouSheet.tsx）
+ * 選択肢のキーは src/lib/profileExtras.ts と揃える（scripts/test-profile-extras.mjs が確かめる）。
+ *
+ * ja と en は同じキー構造にすること。
+ */
+export const aboutYou = {
+  ja: {
+    step: {
+      title: "{name}のこと、すこし教えてね",
+      desc: "タップで選ぶだけ。ぜんぶ答えなくても大丈夫だよ。",
+      next: "次へ",
+      skipNote: "答えなくても進めます。あとから設定でいつでも変えられます。",
+    },
+    privacy: "ここで答えた内容は、あなただけが見られます。プロフィールには出ません。",
+    sectionYou: "あなたのこと",
+    sectionOshi: "推し活のこと",
+    gender: {
+      label: "性別",
+      female: "女性",
+      male: "男性",
+      other: "その他",
+      no_answer: "答えない",
+    },
+    age: {
+      label: "年代",
+      "13_19": "10代",
+      "20s": "20代",
+      "30s": "30代",
+      "40s": "40代",
+      "50_plus": "50代以上",
+      no_answer: "答えない",
+    },
+    prefecture: {
+      label: "住んでいる都道府県",
+      optional: "任意",
+      none: "えらばない",
+    },
+    oshiYears: {
+      label: "推し活歴",
+      just_started: "はじめたばかり",
+      lt_1y: "1年未満",
+      "1_3y": "1〜3年",
+      "3_5y": "3〜5年",
+      "5y_plus": "5年以上",
+    },
+    budget: {
+      label: "月のグッズ予算",
+      lt_3k: "〜3,000円",
+      "3k_10k": "3,000〜10,000円",
+      "10k_30k": "10,000〜30,000円",
+      "30k_plus": "30,000円〜",
+      secret: "ないしょ",
+    },
+    goodsTypes: {
+      label: "よく買うグッズ",
+      hint: "いくつでも",
+      can_badge: "缶バッジ",
+      acrylic_stand: "アクスタ",
+      acrylic_keychain: "アクキー",
+      plush: "ぬい・ふわふわたん",
+      trading_card: "トレカ",
+      gacha_kuji: "ガチャ・くじ",
+      cd_live: "CD・ライブグッズ",
+      other: "その他",
+    },
+    trade: {
+      label: "グッズの交換",
+      often: "よくする",
+      sometimes: "たまに",
+      never: "しない",
+    },
+    nudge: {
+      title: "よかったら、あなたのことを教えてね",
+      desc: "年代や推し活のことを、タップで選ぶだけ。ほかの人には見えないよ。",
+      cta: "答えてみる",
+      later: "今はやめておく",
+      laterNote: "設定の「あなたのこと」から、いつでも答えられます。",
+    },
+    sheet: {
+      title: "あなたのこと",
+      desc: "ぜんぶ任意です。答えた内容はあなただけが見られます。",
+      save: "保存する",
+      saved: "ありがとう！保存しました",
+      saveFailed: "保存できませんでした。時間をおいてもう一度お試しください",
+      loadFailed: "読み込めませんでした。時間をおいてもう一度お試しください",
+    },
+    settings: {
+      heading: "あなたのこと",
+      row: "性別・年代・推し活のこと",
+      hintNone: "未回答",
+      hintSome: "{n}項目に回答",
+      onlyYou: "自分だけに見えます",
+    },
+  },
+  en: {
+    step: {
+      title: "Tell me a little about {name}",
+      desc: "Just tap to choose. You don't have to answer everything.",
+      next: "Next",
+      skipNote: "You can continue without answering, and change these anytime in Settings.",
+    },
+    privacy: "Only you can see these answers. They never appear on your profile.",
+    sectionYou: "About you",
+    sectionOshi: "Your fandom",
+    gender: {
+      label: "Gender",
+      female: "Female",
+      male: "Male",
+      other: "Other",
+      no_answer: "Prefer not to say",
+    },
+    age: {
+      label: "Age",
+      "13_19": "13–19",
+      "20s": "20s",
+      "30s": "30s",
+      "40s": "40s",
+      "50_plus": "50+",
+      no_answer: "Prefer not to say",
+    },
+    prefecture: {
+      label: "Prefecture",
+      optional: "Optional",
+      none: "Not selected",
+    },
+    oshiYears: {
+      label: "How long you've been a fan",
+      just_started: "Just started",
+      lt_1y: "Under 1 year",
+      "1_3y": "1–3 years",
+      "3_5y": "3–5 years",
+      "5y_plus": "5+ years",
+    },
+    budget: {
+      label: "Monthly merch budget",
+      lt_3k: "Up to ¥3,000",
+      "3k_10k": "¥3,000–10,000",
+      "10k_30k": "¥10,000–30,000",
+      "30k_plus": "¥30,000+",
+      secret: "It's a secret",
+    },
+    goodsTypes: {
+      label: "Merch you often buy",
+      hint: "Pick any",
+      can_badge: "Can badges",
+      acrylic_stand: "Acrylic stands",
+      acrylic_keychain: "Acrylic keychains",
+      plush: "Plushies",
+      trading_card: "Trading cards",
+      gacha_kuji: "Gacha / kuji",
+      cd_live: "CDs / live goods",
+      other: "Other",
+    },
+    trade: {
+      label: "Merch trading",
+      often: "Often",
+      sometimes: "Sometimes",
+      never: "Never",
+    },
+    nudge: {
+      title: "Would you tell me a little about you?",
+      desc: "Just tap your age group and fandom style. Nobody else can see it.",
+      cta: "Sure",
+      later: "Not now",
+      laterNote: "You can answer anytime from \"About you\" in Settings.",
+    },
+    sheet: {
+      title: "About you",
+      desc: "Everything is optional. Only you can see your answers.",
+      save: "Save",
+      saved: "Thanks! Saved",
+      saveFailed: "Couldn't save. Please try again later",
+      loadFailed: "Couldn't load. Please try again later",
+    },
+    settings: {
+      heading: "About you",
+      row: "Gender, age & fandom",
+      hintNone: "Not answered",
+      hintSome: "{n} answered",
+      onlyYou: "Only visible to you",
+    },
+  },
+};

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, ChevronRight, Gift } from "lucide-react";
 import { toast } from "sonner";
+import { requestPlanReco } from "@/components/premium/planRecoEvents";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -142,6 +143,7 @@ export function GoodsCarePanel({ companion, onFx, onReact, owned, oshi, onPhoto,
         toast.error(t("engage.oshi.giftInsufficient"), {
           action: { label: t("engage.oshi.giftToShop"), onClick: () => navigate("/point-shop") },
         });
+        requestPlanReco("insufficient");
       } else if (code === "gift_daily_limit") {
         toast.error(t("engage.oshi.giftLimit"));
       } else if (code === "max_level") {

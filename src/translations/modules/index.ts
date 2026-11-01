@@ -38,6 +38,8 @@ import { catalogWish } from './catalogWish';
 import { goodsSocial } from './goodsSocial';
 import { postEvents } from './postEvents';
 import { collectionShare } from './collectionShare';
+import { aboutYou } from './aboutYou';
+import { planReco } from './planReco';
 
 export const moduleTranslations = {
   ja: {
@@ -79,6 +81,8 @@ export const moduleTranslations = {
     goodsSocial: goodsSocial.ja,
     postEvents: postEvents.ja,
     collectionShare: collectionShare.ja,
+    aboutYou: aboutYou.ja,
+    planReco: planReco.ja,
   },
   en: {
     admin: admin.en,
@@ -119,5 +123,7 @@ export const moduleTranslations = {
     goodsSocial: goodsSocial.en,
     postEvents: postEvents.en,
     collectionShare: collectionShare.en,
+    aboutYou: aboutYou.en,
+    planReco: planReco.en,
   },
 };

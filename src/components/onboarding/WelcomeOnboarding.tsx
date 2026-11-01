@@ -19,17 +19,29 @@ import { OnboardingAiTry } from "./OnboardingAiTry";
 import { Pocke, PockeBubble, PockeSays } from "@/components/pocke/Pocke";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Users } from "lucide-react";
+import { AboutYouStep } from "./AboutYouStep";
+import { PlanRecoStep } from "./PlanRecoStep";
+import { useSaveProfilePrivate } from "@/hooks/useProfilePrivate";
+import { usePlanRecoAudience } from "@/hooks/usePlanRecoAudience";
+import { EMPTY_PROFILE_EXTRAS, hasAnyAnswer, type ProfileExtras } from "@/lib/profileExtras";
+import { isPlanRecoAudience, markShown, markSnoozed, suggestedPlan } from "@/lib/planReco";
+import { loadPlanRecoState, openPlanPaywall, savePlanRecoState } from "@/components/premium/planRecoEvents";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
 }
 
 // ──────────────────────────────────────────────
-// ウェルカムフロー（4ステップ）
+// ウェルカムフロー（4〜6ステップ）
 //   1. Welcome / 名前入力
-//   2. 興味選択（おすすめの精度に使う）
-//   3. はじめの1コレ: 推しの作品のグッズから、持っているものをタップして登録（写真を撮らずに数秒で）
-//   4. 完了セレブレーション → /collection へ
+//   2. あなたのこと（性別・年代・都道府県・推し活のこと。すべて任意・本人だけに見える）
+//   3. 興味選択（おすすめの精度に使う）
+//   4. はじめの1コレ: 推しの作品のグッズから、持っているものをタップして登録（写真を撮らずに数秒で）
+//   5. 完了セレブレーション
+//   6. プランもあるよ（任意。「無料のまま、はじめる」が主ボタン）→ /collection へ
+//
+// 2 と 6 は公式サンプルアカウント（profiles.is_sample）には出さない（運営のシミュレーターの流れを以前のままにする）。
+// 6 は Web で、契約中でない人だけ（アプリ内ではプランを買えず、外の決済へ誘うのはストアの規約に反する）。
 //
 // 以前はここに AIスタジオ / 探索 / コレクション の紹介スライドが3枚あった。
 // 読む時点では指し示す対象が画面に無く、読み終えても何も残らないため外した。
@@ -41,10 +53,10 @@ interface WelcomeOnboardingProps {
 // 以前の、漂う絵文字・紙吹雪・発光するグラデーションの丸は外した。
 // ──────────────────────────────────────────────
 
-type Step = "welcome" | "interests" | "starter" | "celebrate";
+type Step = "welcome" | "aboutYou" | "interests" | "starter" | "celebrate" | "plan";
 
 /** 戻る・スキップを出すステップ。ロゴと進捗バーはすべてのステップで出す */
-const BAR_STEPS: Step[] = ["interests", "starter"];
+const BAR_STEPS: Step[] = ["aboutYou", "interests", "starter", "plan"];
 
 /**
  * ステップの切り替え。進む向きに少しだけ横へずらして入れ替える。
@@ -83,6 +95,12 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [direction, setDirection] = useState(1);
   const [displayName, setDisplayName] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  // 公式サンプルアカウントか（読めるまでは null。サンプルには「あなたのこと」「プラン」を出さない）
+  const [isSample, setIsSample] = useState<boolean | null>(null);
+  // あなたのこと（すべて任意）
+  const [aboutYou, setAboutYou] = useState<ProfileExtras>(EMPTY_PROFILE_EXTRAS);
+  const { save: saveAboutYou, markAsked: markAboutYouAsked } = useSaveProfilePrivate();
+  const planAudience = usePlanRecoAudience();
   // はじめの1コレで登録した数（締めの画面と、最後の行き先に使う）
   const [addedCount, setAddedCount] = useState(0);
   // 登録したグッズの写真（締めの画面で扇状に並べる）
@@ -95,11 +113,13 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     if (!user?.id) return;
     supabase
       .from("profiles")
-      .select("display_name, username")
+      .select("display_name, username, is_sample")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         setDisplayName(data?.display_name || data?.username || "");
+        // 読めなかったときはサンプル扱い（以前のままの流れ）にして、追加のステップを出さない
+        setIsSample(data ? !!data.is_sample : true);
         setIsLoadingProfile(false);
       });
   }, [user?.id]);
@@ -114,10 +134,20 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     [displayName, t]
   );
 
+  // 最後の「プランもあるよ」を出すか（Web・契約中でない・サンプルでない）
+  const showPlanStep = isPlanRecoAudience(planAudience) && isSample === false;
+
   // 全ステップ順序とindex計算（プログレス表示用）
   const allSteps: Step[] = useMemo(
-    () => ["welcome", "interests", "starter", "celebrate"],
-    []
+    () => [
+      "welcome",
+      ...(isSample === false ? (["aboutYou"] as Step[]) : []),
+      "interests",
+      "starter",
+      "celebrate",
+      ...(showPlanStep ? (["plan"] as Step[]) : []),
+    ],
+    [isSample, showPlanStep]
   );
   const stepIndex = allSteps.indexOf(step);
   const progress = ((stepIndex + 1) / allSteps.length) * 100;
@@ -134,11 +164,28 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     if (prev) setStep(prev);
   }, [allSteps, stepIndex]);
 
-  // 上部の「スキップ」: 興味の選択は飛ばして次（はじめの1コレ）へ。はじめの1コレを飛ばすと締めの画面へ。
+  // 「あなたのこと」を終える。答えがあれば保存、無ければ「聞いた」印（空の行）だけ作る。
+  // どちらも待たずに次へ進む（保存に失敗しても、ウェルカムは止めない。設定からいつでも答え直せる）
+  const finishAboutYou = useCallback(
+    (answers: ProfileExtras | null) => {
+      const task = answers && hasAnyAnswer(answers) ? saveAboutYou(answers) : markAboutYouAsked();
+      task.catch((e) => console.error("Failed to save about-you:", e));
+      setDirection(1);
+      setStep("interests");
+    },
+    [saveAboutYou, markAboutYouAsked]
+  );
+
+  // 上部の「スキップ」: あなたのことは答えを保存せずに次へ。興味の選択は飛ばして次（はじめの1コレ）へ。
+  // はじめの1コレを飛ばすと締めの画面へ。
   const skipToEnd = useCallback(() => {
+    if (step === "aboutYou") {
+      finishAboutYou(null);
+      return;
+    }
     setDirection(1);
     setStep(step === "interests" ? "starter" : "celebrate");
-  }, [step]);
+  }, [step, finishAboutYou]);
 
   // Welcome → display_name保存 → interests
   const handleWelcomeNext = useCallback(async () => {
@@ -155,7 +202,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     goNext();
   }, [user?.id, displayName, goNext]);
 
-  const handleFinish = useCallback(async () => {
+  const handleFinish = useCallback(async (openPlans = false) => {
     // ようこそボーナス。付与額と「生涯1回」の判定はサーバー側が持つ。
     if (user?.id) {
       await claimReward("welcome_bonus");
@@ -169,7 +216,17 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     // いまは /quick-add 側のガイドが撮り方と逃げ道を実物の上で説明する。
     // 1つでも登録していれば、できあがったコレクションを見せる。何も選ばなかった人だけ登録画面へ。
     navigate(addedCount > 0 ? "/collection" : "/quick-add");
-  }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate, addedCount]);
+    // 「プランをくわしく見る」: ウェルカムを終えてから、移った先の画面の上にプランの画面（PaywallModal）を開く。
+    // 決済ページから戻ってきても、ウェルカムをやり直さずに済む
+    if (openPlans) window.setTimeout(() => openPlanPaywall(suggestedPlan(aboutYou.monthly_budget)), 300);
+  }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate, addedCount, aboutYou.monthly_budget]);
+
+  // 「プランもあるよ」を見せたら、アプリの中のおすすめ（PlanRecoHost）はしばらく休む（7日・3日に1回の決まりに入れる）
+  useEffect(() => {
+    if (step !== "plan" || !user?.id) return;
+    const now = Date.now();
+    savePlanRecoState(user.id, markSnoozed(markShown(loadPlanRecoState(user.id), "onboarding", now), now));
+  }, [step, user?.id]);
 
   const showBar = BAR_STEPS.includes(step);
 
@@ -197,8 +254,13 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <span className="logo-text text-xl">Collectify</span>
               <div className="flex-1" />
               {showBar && (
-                <Button variant="ghost" size="sm" onClick={skipToEnd} className="text-muted-foreground">
-                  {t("misc.common.skip")}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={step === "plan" ? () => handleFinish() : skipToEnd}
+                  className="text-muted-foreground"
+                >
+                  {step === "plan" ? t("planReco.onboarding.later") : t("misc.common.skip")}
                 </Button>
               )}
             </div>
@@ -227,6 +289,17 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                     onDisplayNameChange={setDisplayName}
                     onNext={handleWelcomeNext}
                     isLoading={isLoadingProfile}
+                  />
+                </StepFrame>
+              )}
+
+              {step === "aboutYou" && (
+                <StepFrame key="aboutYou" direction={direction}>
+                  <AboutYouStep
+                    friendlyName={friendlyName}
+                    value={aboutYou}
+                    onChange={setAboutYou}
+                    onNext={() => finishAboutYou(aboutYou)}
                   />
                 </StepFrame>
               )}
@@ -268,7 +341,18 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                     friendlyName={friendlyName}
                     addedCount={addedCount}
                     addedImages={addedImages}
-                    onFinish={handleFinish}
+                    hasNext={showPlanStep}
+                    onFinish={showPlanStep ? goNext : () => handleFinish()}
+                  />
+                </StepFrame>
+              )}
+
+              {step === "plan" && (
+                <StepFrame key="plan" direction={direction}>
+                  <PlanRecoStep
+                    suggested={suggestedPlan(aboutYou.monthly_budget)}
+                    onSeePlans={() => handleFinish(true)}
+                    onStayFree={() => handleFinish()}
                   />
                 </StepFrame>
               )}
@@ -371,11 +455,14 @@ function CelebrateStep({
   friendlyName,
   addedCount,
   addedImages,
+  hasNext,
   onFinish,
 }: {
   friendlyName: string;
   addedCount: number;
   addedImages: string[];
+  /** このあとに「プランもあるよ」が続く（主ボタンは「次へ」にする） */
+  hasNext: boolean;
   onFinish: () => void;
 }) {
   const { t } = useLanguage();
@@ -454,11 +541,14 @@ function CelebrateStep({
 
       <OnboardingBottomBar>
         <OnboardingPrimaryButton onClick={onFinish}>
-          {/* 登録済みなら棚へ、まだなら登録画面へ（handleFinish の行き先と揃える） */}
-          {t(addedCount > 0 ? "misc.onboarding.goToCollection" : "misc.onboarding.goRegisterFirst")}
+          {/* 登録済みなら棚へ、まだなら登録画面へ（handleFinish の行き先と揃える）。
+              このあと「プランもあるよ」が続くときは「次へ」 */}
+          {hasNext
+            ? t("aboutYou.step.next")
+            : t(addedCount > 0 ? "misc.onboarding.goToCollection" : "misc.onboarding.goRegisterFirst")}
           <ArrowRight />
         </OnboardingPrimaryButton>
-        <p className="mt-2 text-center text-2xs text-muted-foreground">{t("misc.onboarding.continueNote")}</p>
+        {!hasNext && <p className="mt-2 text-center text-2xs text-muted-foreground">{t("misc.onboarding.continueNote")}</p>}
       </OnboardingBottomBar>
     </>
   );

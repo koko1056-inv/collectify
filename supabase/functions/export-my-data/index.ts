@@ -96,6 +96,14 @@ serve(async (req) => {
     ]);
     if (profileRes.error) throw new Error(`profiles: ${profileRes.error.message}`);
 
+    // 本人だけの「あなたのこと」（profile_private）。マイグレーションがまだの環境でも書き出し全体は止めない
+    const privateRes = await admin
+      .from("profile_private")
+      .select("gender, age_range, prefecture, oshi_years, monthly_budget, goods_types, trade_frequency, created_at, updated_at")
+      .eq("user_id", uid)
+      .maybeSingle();
+    if (privateRes.error) console.error("export-my-data: profile_private skipped:", privateRes.error.message);
+
     // 相手の公開情報（ユーザー名）だけを引く
     const otherIds = new Set<string>();
     for (const t of tradeSender) if (t.receiver_id) otherIds.add(t.receiver_id);
@@ -131,6 +139,7 @@ serve(async (req) => {
       format_version: 1,
       account: { id: uid, email: user.email ?? null, created_at: user.created_at },
       profile: profileRes.data ?? null,
+      profile_private: privateRes.error ? null : privateRes.data ?? null,
       points: { balance: pointsRes.data ?? null, transactions: pointTransactions },
       subscription: subRes.data ?? null,
       user_items: userItems,
