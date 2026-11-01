@@ -24,7 +24,7 @@ import { PlanRecoStep } from "./PlanRecoStep";
 import { useSaveProfilePrivate } from "@/hooks/useProfilePrivate";
 import { usePlanRecoAudience } from "@/hooks/usePlanRecoAudience";
 import { EMPTY_PROFILE_EXTRAS, hasAnyAnswer, type ProfileExtras } from "@/lib/profileExtras";
-import { isPlanRecoAudience, markShown, markSnoozed, suggestedPlan } from "@/lib/planReco";
+import { hasBudgetBasis, isPlanRecoAudience, markShown, markSnoozed, suggestedPlan } from "@/lib/planReco";
 import { loadPlanRecoState, openPlanPaywall, savePlanRecoState } from "@/components/premium/planRecoEvents";
 
 interface WelcomeOnboardingProps {
@@ -351,6 +351,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 <StepFrame key="plan" direction={direction}>
                   <PlanRecoStep
                     suggested={suggestedPlan(aboutYou.monthly_budget)}
+                    showSuggested={hasBudgetBasis(aboutYou.monthly_budget)}
                     onSeePlans={() => handleFinish(true)}
                     onStayFree={() => handleFinish()}
                   />

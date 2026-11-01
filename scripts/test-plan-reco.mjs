@@ -20,6 +20,7 @@ import {
   recordActiveDay,
   isActiveEnough,
   suggestedPlan,
+  hasBudgetBasis,
 } from "../src/lib/planReco.ts";
 import { planReco } from "../src/translations/modules/planReco.ts";
 import { PLAN_PERKS, PLAN_PRICES_JPY } from "../src/lib/planLimits.ts";
@@ -146,6 +147,12 @@ assert.equal(suggestedPlan("3k_10k"), "premium");
 assert.equal(suggestedPlan("secret"), "premium");
 assert.equal(suggestedPlan(null), "premium");
 assert.equal(suggestedPlan(undefined), "premium");
+// 「あなたに合いそう」は予算を答えたときだけ（未回答・ないしょ は根拠がないので出さない）
+assert.equal(hasBudgetBasis("lt_3k"), true);
+assert.equal(hasBudgetBasis("30k_plus"), true);
+assert.equal(hasBudgetBasis("secret"), false);
+assert.equal(hasBudgetBasis(null), false);
+assert.equal(hasBudgetBasis(undefined), false);
 
 // ── 文言: ja / en が同じ形で、数を直書きしていない（特典の正は PLAN_PERKS / PLAN_PRICES_JPY） ──
 function keys(obj, prefix = "") {

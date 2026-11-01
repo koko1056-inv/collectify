@@ -67,7 +67,7 @@ export function AboutYouSheet({
           ) : isError ? (
             <p className="py-8 text-center text-sm text-muted-foreground">{t("aboutYou.sheet.loadFailed")}</p>
           ) : (
-            <AboutYouFields value={draft} onChange={setDraft} />
+            <AboutYouFields value={draft} onChange={setDraft} basicsTitle={t("aboutYou.sheet.sectionBasics")} />
           )}
         </div>
         <div className="shrink-0 border-t px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">

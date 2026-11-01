@@ -97,13 +97,16 @@ export function AboutYouNudgeHost() {
       <Sheet open={open} onOpenChange={(o) => !o && close()}>
         <SheetContent
           side="bottom"
-          className="rounded-t-3xl px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 sm:mx-auto sm:max-w-md"
+          // ✕（44px）が吹き出しに重ならないよう、上を少し空ける
+          className="rounded-t-3xl px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-14 sm:mx-auto sm:max-w-md"
+          closeClassName="right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="flex items-end gap-2">
             <Pocke pose="think" height={120} motion="pop" className="-mb-1 shrink-0" />
-            <PockeBubble tail="left" className="mb-5 flex-1">
-              <SheetTitle className="text-base font-bold">{t("aboutYou.nudge.title")}</SheetTitle>
+            <PockeBubble tail="left" className="mb-5 min-w-0 flex-1">
+              {/* 日本語は文節の途中で折り返さない（「、」や空白で折り返す）。収まらない長さのときだけ途中で折る */}
+              <SheetTitle className="text-base font-bold [overflow-wrap:anywhere] [word-break:keep-all]">{t("aboutYou.nudge.title")}</SheetTitle>
               <SheetDescription className="mt-0.5 text-sm text-foreground">{t("aboutYou.nudge.desc")}</SheetDescription>
             </PockeBubble>
           </div>
@@ -117,7 +120,7 @@ export function AboutYouNudgeHost() {
             >
               {t("aboutYou.nudge.cta")}
             </Button>
-            <Button variant="ghost" className="w-full text-muted-foreground" onClick={close}>
+            <Button variant="ghost" className="h-11 w-full text-muted-foreground" onClick={close}>
               {t("aboutYou.nudge.later")}
             </Button>
             <p className="text-center text-2xs text-muted-foreground">{t("aboutYou.nudge.laterNote")}</p>
